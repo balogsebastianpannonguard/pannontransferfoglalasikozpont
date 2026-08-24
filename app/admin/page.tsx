@@ -39,6 +39,15 @@ const sidebarItems: SidebarItem[] = [
     ),
   },
   {
+    id: "admin-accounts",
+    label: "Adminisztrációs fiókok",
+    icon: (
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+      </svg>
+    ),
+  },
+  {
     id: "profiles",
     label: "Profilok",
     icon: (
@@ -180,6 +189,16 @@ export default function AdminDashboard() {
   const [catlInviteSending, setCatlInviteSending] = useState(false);
   const [catlInviteDeleting, setCatlInviteDeleting] = useState<string | null>(null);
 
+  const [staffInviteRecipients, setStaffInviteRecipients] = useState("");
+  const [staffInviteRole, setStaffInviteRole] = useState<"admin" | "dispatcher">("dispatcher");
+  const [staffInvite2FA, setStaffInvite2FA] = useState(false);
+  const [staffInviteSending, setStaffInviteSending] = useState(false);
+  const [staffInvites, setStaffInvites] = useState<any[] | null>(null);
+  const [staffInvitesMeta, setStaffInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
+  const [staffInvitesLoading, setStaffInvitesLoading] = useState(false);
+  const [staffInviteDeleting, setStaffInviteDeleting] = useState<string | null>(null);
+  const [staffDeleteTarget, setStaffDeleteTarget] = useState<{ id: string; email: string; name?: string; role?: string } | null>(null);
+
   async function handleDeleteCatlUser(id: string, email: string) {
     if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt CATL hozzáférést?\n\nA művelet nem visszavonható.`)) {
       return;
@@ -283,6 +302,36 @@ export default function AdminDashboard() {
     })();
   }, [active]);
 
+  useEffect(() => {
+    if (active !== "admin-accounts") return;
+    setStaffInvitesLoading(true);
+    (async () => {
+      try {
+        const res = await fetch("/api/staff-invites/list", { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.success && Array.isArray(json.users)) {
+            setStaffInvites(json.users);
+            setStaffInvitesMeta(
+              json.counts || {
+                total: json.users.length,
+                activated: 0,
+                pending: 0,
+                require2fa: 0,
+              }
+            );
+          } else {
+            setStaffInvites(null);
+          }
+        } else setStaffInvites(null);
+      } catch {
+        setStaffInvites(null);
+      } finally {
+        setStaffInvitesLoading(false);
+      }
+    })();
+  }, [active]);
+
   async function handleSendCatlInvite() {
     const recipients = catlInviteRecipients
       .split(/[,;\n]/)
@@ -347,6 +396,112 @@ export default function AdminDashboard() {
     } finally {
       setCatlInviteSending(false);
     }
+  }
+
+  async function handleSendStaffInvite() {
+    const recipients = staffInviteRecipients
+      .split(/[,;\n]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (recipients.length === 0) {
+      setToast({ type: "error", message: "Legalább egy címzett email címét add meg." });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (const e of recipients) {
+      if (!emailRegex.test(e)) {
+        setToast({ type: "error", message: `Érvénytelen email cím: ${e}` });
+        return;
+      }
+    }
+
+    let staffBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = staffInviteRole === "dispatcher" ? "3002" : url.port;
+        }
+        staffBase = url.origin;
+      } catch {
+        staffBase = window.location.origin;
+      }
+    }
+
+    setStaffInviteSending(true);
+    try {
+      const res = await fetch("/api/staff-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients,
+          requireTwoFactor: !!staffInvite2FA,
+          loginBaseUrl: staffBase,
+          role: staffInviteRole,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setToast({ type: "error", message: json?.message || "Hiba történt a küldés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "Sikeres meghívó küldés." });
+        setStaffInviteRecipients("");
+        setStaffInvite2FA(false);
+        // Refresh staff list
+        try {
+          const listRes = await fetch("/api/staff-invites/list", { cache: "no-store" });
+          if (listRes.ok) {
+            const j2 = await listRes.json();
+            if (j2?.success) {
+              setStaffInvites(j2.users);
+              setStaffInvitesMeta(j2.counts || {});
+            }
+          }
+        } catch {}
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
+    } finally {
+      setStaffInviteSending(false);
+    }
+  }
+
+  function openStaffDeleteModal(id: string, email: string, name?: string, role?: string) {
+    setStaffDeleteTarget({ id, email, name, role });
+  }
+
+  async function handleConfirmStaffDelete() {
+    if (!staffDeleteTarget) return;
+    const { id, email } = staffDeleteTarget;
+    setStaffInviteDeleting(id);
+    try {
+      const res = await fetch("/api/staff-invites/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "Staff felhasználó véglegesen törölve." });
+        const listRes = await fetch("/api/staff-invites/list", { cache: "no-store" });
+        const listJson = await listRes.json().catch(() => null);
+        if (listRes.ok && listJson?.success) {
+          setStaffInvites(listJson.users || []);
+          setStaffInvitesMeta(listJson.counts || staffInvitesMeta);
+        }
+      }
+    } catch (e) {
+      setToast({ type: "error", message: "Hálózati hiba törlés közben." });
+    } finally {
+      setStaffInviteDeleting(null);
+      setStaffDeleteTarget(null);
+    }
+  }
+
+  async function handleDeleteStaffUser(id: string, email: string) {
+    openStaffDeleteModal(id, email);
   }
 
   useEffect(() => {
@@ -1743,6 +1898,616 @@ export default function AdminDashboard() {
                 </>
               )}
             </div>
+          ) : active === "admin-accounts" ? (
+            <div className="max-w-7xl mx-auto w-full">
+              <div className="mb-10 flex flex-col md:flex-row md:items-start gap-5 md:justify-between">
+                <div>
+                  <h2 className="font-serif text-3xl font-bold tracking-tight text-admin-gray-900 mb-2">
+                    Adminisztrációs fiókok
+                  </h2>
+                  <p className="text-admin-gray-500 font-medium">
+                    Adminisztrátor és Diszpécser fiókok kezelése, meghívások küldése és hozzáférések áttekintése.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2.5 flex-wrap justify-start md:justify-end">
+                  <button
+                    onClick={() => setActive("profiles")}
+                    className="px-5 py-3 rounded-xl bg-white hover:bg-admin-gray-50 text-admin-gray-800 transition-all text-xs font-bold tracking-wider uppercase shadow-sm border border-admin-gray-200 flex items-center gap-2 shrink-0"
+                  >
+                    <Users className="w-4 h-4 text-admin-gray-500" />
+                    Összes profil
+                  </button>
+                </div>
+              </div>
+
+              {(() => {
+                const legacyAdmins = displayCrmUsers.filter((u: any) => u.role === "admin").map((u: any, i: number) => ({
+                  id: `legacy-${i}-${u.email}`,
+                  email: u.email,
+                  name: (u.email || "").split("@")[0],
+                  role: "admin" as const,
+                  isActivated: !!u.isInviteAccepted,
+                  requireTwoFactor: false,
+                  twoFactorEnabled: !!u.twoFactorEnabled,
+                  hasPassword: !!u.hasPassword,
+                  createdAt: u.createdAt,
+                  lastLoginAt: u.lastLoginAt,
+                  isLocked: !!u.isLocked,
+                  legacy: true,
+                }));
+                const list = staffInvites && staffInvites.length > 0 ? [...staffInvites, ...legacyAdmins] : legacyAdmins;
+                const allMeta = {
+                  total: staffInvitesLoading && list.length === 0 ? null : list.length,
+                  activated: staffInvitesLoading && list.length === 0 ? null : list.filter((u: any) => u.isActivated && u.hasPassword && !u.isLocked).length,
+                  twofa: staffInvitesLoading && list.length === 0 ? null : list.filter((u: any) => u.twoFactorEnabled).length,
+                  pending: staffInvitesLoading && list.length === 0 ? null : list.filter((u: any) => !u.isActivated || !u.hasPassword).length,
+                };
+                const accent = staffInviteRole === "dispatcher"
+                  ? {
+                      primary: "#0056D2",
+                      gradient: "from-[#0056D2] via-[#0047BA] to-[#003F9F]",
+                      shadow: "0_10px_30px_rgba(0,86,210,0.25)",
+                      hoverShadow: "0_15px_40px_rgba(0,86,210,0.4)",
+                      soft: "#0056D2",
+                      badge: "[#0056D2]/5",
+                      badgeBorder: "[#0056D2]/15",
+                    }
+                  : {
+                      primary: "#111827",
+                      gradient: "from-admin-gray-800 via-admin-gray-900 to-black",
+                      shadow: "0_10px_30px_rgba(17,24,39,0.25)",
+                      hoverShadow: "0_15px_40px_rgba(17,24,39,0.45)",
+                      soft: "admin-gray-900",
+                      badge: "admin-gray-900/5",
+                      badgeBorder: "admin-gray-900/15",
+                    };
+                return (
+                  <>
+                    {/* Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+                      <div className="rounded-2xl bg-gradient-to-br from-admin-gray-900/5 to-admin-gray-800/5 border border-admin-gray-200 p-5">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-[10px] font-black tracking-widest uppercase text-admin-gray-500">Összes fiók</div>
+                            <div className="text-3xl font-black text-admin-gray-900 mt-2 leading-none">
+                              {allMeta.total === null ? "—" : allMeta.total}
+                            </div>
+                          </div>
+                          <div className="w-11 h-11 rounded-xl bg-white border border-admin-gray-100 flex items-center justify-center shadow-sm">
+                            <svg className="w-5 h-5 text-admin-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-5">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-[10px] font-black tracking-widest uppercase text-admin-gray-500">Aktív fiókok</div>
+                            <div className="text-3xl font-black text-emerald-700 mt-2 leading-none">
+                              {allMeta.activated === null ? "—" : allMeta.activated}
+                            </div>
+                          </div>
+                          <div className="w-11 h-11 rounded-xl bg-white border border-admin-gray-100 flex items-center justify-center shadow-sm">
+                            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="rounded-2xl bg-[#0047BA]/5 border border-[#0047BA]/15 p-5">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-[10px] font-black tracking-widest uppercase text-admin-gray-500">2FA bekapcsolva</div>
+                            <div className="text-3xl font-black text-[#0047BA] mt-2 leading-none">
+                              {allMeta.twofa === null ? "—" : allMeta.twofa}
+                            </div>
+                          </div>
+                          <div className="w-11 h-11 rounded-xl bg-white border border-admin-gray-100 flex items-center justify-center shadow-sm">
+                            <svg className="w-5 h-5 text-[#0047BA]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="rounded-2xl bg-amber-50 border border-amber-100 p-5">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-[10px] font-black tracking-widest uppercase text-admin-gray-500">Függőben (jelszó)</div>
+                            <div className="text-3xl font-black text-amber-700 mt-2 leading-none">
+                              {allMeta.pending === null ? "—" : allMeta.pending}
+                            </div>
+                          </div>
+                          <div className="w-11 h-11 rounded-xl bg-white border border-admin-gray-100 flex items-center justify-center shadow-sm">
+                            <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Invite Form */}
+                    <div className="bg-white border border-admin-gray-200 rounded-3xl p-8 shadow-sm mb-10">
+                      <div className="flex items-center gap-4 mb-8">
+                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-50 to-rose-50 flex items-center justify-center border border-amber-100`}>
+                          <MailOpen className="w-7 h-7 text-amber-700" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-2xl font-bold text-admin-gray-900 font-serif mb-1">Új Fiók Meghívó</h3>
+                          <p className="text-admin-gray-500 font-medium">
+                            Küldj meghívót Adminisztrátornak vagy Diszpecsernek – a meghívott személyre szabott emailben kapja az aktiválási linket.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-6">
+                        {/* Role selector */}
+                        <div>
+                          <label className="block text-xs font-black tracking-[0.2em] uppercase text-admin-gray-500 mb-3">
+                            Szerepkör
+                          </label>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <button
+                              type="button"
+                              onClick={() => setStaffInviteRole("dispatcher")}
+                              className={`relative overflow-hidden group rounded-2xl border-2 transition-all duration-300 p-5 text-left ${
+                                staffInviteRole === "dispatcher"
+                                  ? "border-[#0056D2] bg-gradient-to-br from-[#0056D2]/5 via-[#0047BA]/5 to-[#003F9F]/5 shadow-[0_10px_30px_rgba(0,86,210,0.18)]"
+                                  : "border-admin-gray-200 bg-admin-gray-50/50 hover:border-[#0056D2]/40 hover:bg-[#0056D2]/5"
+                              }`}
+                            >
+                              <div className="flex items-start gap-4">
+                                <div className={`w-12 h-12 rounded-xl shrink-0 flex items-center justify-center transition-all duration-300 shadow-md ${
+                                  staffInviteRole === "dispatcher"
+                                    ? "bg-gradient-to-br from-[#0056D2] to-[#003F9F] shadow-[0_6px_20px_rgba(0,86,210,0.35)]"
+                                    : "bg-gradient-to-br from-[#0056D2]/60 to-[#003F9F]/60"
+                                }`}>
+                                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375c-.621 0-1.125-.504-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.125-.504 1.125-1.125V17.5a6 6 0 00-.176-1.472 6.003 6.003 0 00-.423-1.078M4.5 14.25h15M4.5 14.25v-3a1.125 1.125 0 01.897-1.104A12.038 12.038 0 0112 9c2.327 0 4.528.474 6.603 1.146a1.125 1.125 0 01.897 1.104v3" />
+                                  </svg>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1.5">
+                                    <h4 className={`font-black tracking-tight text-lg transition-colors ${
+                                      staffInviteRole === "dispatcher" ? "text-[#0056D2]" : "text-admin-gray-900"
+                                    }`}>Diszpécser</h4>
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black tracking-wider uppercase border ${
+                                      staffInviteRole === "dispatcher"
+                                        ? "bg-[#0056D2]/10 border-[#0056D2]/25 text-[#0056D2]"
+                                        : "bg-admin-gray-100 border-admin-gray-200 text-admin-gray-500"
+                                    }`}>
+                                      ⭐ Fő szerepkör
+                                    </span>
+                                  </div>
+                                  <p className="text-sm font-medium text-admin-gray-500 leading-relaxed">
+                                    A Pannon Diszpécser Központba jelentkezhet be. Foglalási feladatok, menetrendi és kommunikációs feladatok ellátása.
+                                  </p>
+                                </div>
+                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 transition-all ${
+                                  staffInviteRole === "dispatcher"
+                                    ? "border-[#0056D2] bg-[#0056D2]"
+                                    : "border-admin-gray-300 bg-white"
+                                }`}>
+                                  {staffInviteRole === "dispatcher" && (
+                                    <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setStaffInviteRole("admin")}
+                              className={`relative overflow-hidden group rounded-2xl border-2 transition-all duration-300 p-5 text-left ${
+                                staffInviteRole === "admin"
+                                  ? "border-admin-gray-900 bg-gradient-to-br from-admin-gray-900/5 via-admin-gray-800/5 to-black/5 shadow-[0_10px_30px_rgba(17,24,39,0.15)]"
+                                  : "border-admin-gray-200 bg-admin-gray-50/50 hover:border-admin-gray-500/60 hover:bg-admin-gray-100"
+                              }`}
+                            >
+                              <div className="flex items-start gap-4">
+                                <div className={`w-12 h-12 rounded-xl shrink-0 flex items-center justify-center transition-all duration-300 shadow-md ${
+                                  staffInviteRole === "admin"
+                                    ? "bg-gradient-to-br from-admin-gray-800 to-black shadow-[0_6px_20px_rgba(17,24,39,0.35)]"
+                                    : "bg-gradient-to-br from-admin-gray-800/60 to-black/60"
+                                }`}>
+                                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.9}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75V4.5m0 2.25a5.25 5.25 0 100 10.5 5.25 5.25 0 000-10.5zM4.5 20.25a7.5 7.5 0 0115 0" />
+                                  </svg>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1.5">
+                                    <h4 className={`font-black tracking-tight text-lg transition-colors ${
+                                      staffInviteRole === "admin" ? "text-admin-gray-900" : "text-admin-gray-900"
+                                    }`}>Adminisztrátor</h4>
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black tracking-wider uppercase border ${
+                                      staffInviteRole === "admin"
+                                        ? "bg-admin-gray-900/10 border-admin-gray-900/25 text-admin-gray-900"
+                                        : "bg-admin-gray-100 border-admin-gray-200 text-admin-gray-500"
+                                    }`}>
+                                      CRM Admin
+                                    </span>
+                                  </div>
+                                  <p className="text-sm font-medium text-admin-gray-500 leading-relaxed">
+                                    Teljes hozzáférés a CRM Admin Panelhez. Profilok, statisztikák, ügyfelek és fiókok kezelése.
+                                  </p>
+                                </div>
+                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 transition-all ${
+                                  staffInviteRole === "admin"
+                                    ? "border-admin-gray-900 bg-admin-gray-900"
+                                    : "border-admin-gray-300 bg-white"
+                                }`}>
+                                  {staffInviteRole === "admin" && (
+                                    <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <label className="text-xs font-black tracking-[0.2em] uppercase text-admin-gray-500">
+                              Címzettek
+                            </label>
+                            <span className="text-xs font-bold text-admin-gray-400">
+                              {staffInviteRecipients.split(/[,;\n]/).map((s) => s.trim()).filter(Boolean).length} címzett
+                            </span>
+                          </div>
+                          <textarea
+                            value={staffInviteRecipients}
+                            onChange={(e) => setStaffInviteRecipients(e.target.value)}
+                            rows={3}
+                            placeholder={`diszpecser@pannon.hu, vezetodiszpecser@hu.com${staffInviteRole === "admin" ? "; admin@pannon.hu" : ""}`}
+                            className="w-full px-5 py-4 bg-admin-gray-50 border border-admin-gray-200 rounded-2xl text-admin-gray-900 placeholder:text-admin-gray-400 font-medium focus:outline-none focus:ring-2 focus:ring-[var(--ring-focus,rgba(0,86,210,0.2))] focus:border-[var(--ring-border,#0056D2)] transition-all resize-y min-h-[90px]"
+                            style={{
+                              // eslint-disable-next-line @typescript-eslint/prefer-as-const
+                              ["--ring-focus" as any]: staffInviteRole === "dispatcher"
+                                ? "rgba(0,86,210,0.2)"
+                                : "rgba(17,24,39,0.2)",
+                              ["--ring-border" as any]: staffInviteRole === "dispatcher" ? "#0056D2" : "#111827",
+                            }}
+                          />
+                          <p className="text-xs text-admin-gray-400 mt-2 pl-1">
+                            Több email cím is megadható vesszővel (,) , pontosvesszővel (;) vagy új sorral elválasztva.
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className={`rounded-2xl p-5 border ${
+                            staffInviteRole === "dispatcher"
+                              ? "bg-[#0056D2]/[0.04] border-[#0056D2]/15"
+                              : "bg-admin-gray-900/[0.04] border-admin-gray-900/15"
+                          }`}>
+                            <label className="flex items-start gap-4 cursor-pointer group">
+                              <div className="relative flex items-center mt-1">
+                                <div className="relative">
+                                  <input
+                                    id="staff-2fa-flag"
+                                    type="checkbox"
+                                    checked={staffInvite2FA}
+                                    onChange={(e) => setStaffInvite2FA(e.target.checked)}
+                                    className={`w-6 h-6 rounded-lg border-2 bg-white cursor-pointer appearance-none transition-colors ${
+                                      staffInviteRole === "dispatcher"
+                                        ? "border-[#0056D2]/60 text-[#0056D2] focus:ring-[#0056D2] checked:bg-[#0056D2] checked:border-[#0056D2]"
+                                        : "border-admin-gray-500 text-admin-gray-900 focus:ring-admin-gray-900 checked:bg-admin-gray-900 checked:border-admin-gray-900"
+                                    }`}
+                                  />
+                                  {staffInvite2FA && (
+                                    <svg
+                                      className="absolute inset-0 w-6 h-6 p-1.5 text-white pointer-events-none"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                      strokeWidth={3}
+                                    >
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex-1">
+                                <label
+                                  htmlFor="staff-2fa-flag"
+                                  className="block font-bold text-admin-gray-900 mb-1 cursor-pointer select-none"
+                                >
+                                  Kétfaktoros hitelesítés kötelező (2FA)
+                                </label>
+                                <p className="text-sm text-admin-gray-500 leading-relaxed">
+                                  Ha bekapcsolod, a meghívott felhasználók <strong>muszáj bekapcsolják</strong> a telefonos kétfaktoros hitelesítést a jelszó beállítása után.
+                                </p>
+                              </div>
+                            </label>
+                          </div>
+
+                          <div className={`rounded-2xl p-5 flex flex-col justify-between gap-3 border ${
+                            staffInviteRole === "dispatcher"
+                              ? "bg-[#0056D2]/[0.03] border-[#0056D2]/15"
+                              : "bg-admin-gray-900/[0.03] border-admin-gray-900/15"
+                          }`}>
+                            <div>
+                              <label className="block text-xs font-black tracking-[0.2em] uppercase text-admin-gray-500 mb-2">
+                                {staffInviteRole === "dispatcher" ? "Diszpécser Belépési URL" : "Admin Belépési URL"}
+                              </label>
+                              <div className="px-4 py-3 bg-white border border-admin-gray-200 rounded-xl text-xs font-mono text-admin-gray-700 break-all">
+                                {(() => {
+                                  if (typeof window === "undefined") {
+                                    return staffInviteRole === "dispatcher"
+                                      ? "http://localhost:3002"
+                                      : "http://localhost:3000/admin";
+                                  }
+                                  try {
+                                    const u = new URL(window.location.origin);
+                                    if (u.hostname === "localhost" || u.hostname === "127.0.0.1") {
+                                      if (staffInviteRole === "dispatcher") u.port = "3002";
+                                    }
+                                    return staffInviteRole === "dispatcher"
+                                      ? u.origin
+                                      : `${u.origin}/admin`;
+                                  } catch {
+                                    return staffInviteRole === "dispatcher"
+                                      ? "http://localhost:3002"
+                                      : "http://localhost:3000/admin";
+                                  }
+                                })()}
+                              </div>
+                            </div>
+                            <p className="text-xs text-admin-gray-400">
+                              A meghívottak <strong>kizárólag</strong> az emailben küldött egyedi linken keresztül tudják aktiválni a fiókjukat.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-end pt-2">
+                          <button
+                            onClick={handleSendStaffInvite}
+                            disabled={staffInviteSending}
+                            className={`h-[56px] px-8 rounded-2xl text-white font-black text-sm tracking-widest uppercase hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center gap-3 bg-gradient-to-r ${accent.gradient}`}
+                            style={{ boxShadow: staffInviteSending ? accent.shadow : accent.shadow }}
+                            onMouseEnter={(e) => {
+                              if (!staffInviteSending) (e.currentTarget.style.boxShadow = accent.hoverShadow);
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!staffInviteSending) (e.currentTarget.style.boxShadow = accent.shadow);
+                            }}
+                          >
+                            {staffInviteSending ? (
+                              <>
+                                <svg className="w-4.5 h-4.5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                </svg>
+                                KÜLDÉS FOLYAMATBAN...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="w-4.5 h-4.5" />
+                                Meghívók kiküldése
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Staff list */}
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="font-serif text-2xl font-bold text-admin-gray-900">
+                        Fiókok listája
+                      </h3>
+                      {staffInvitesLoading && (
+                        <span className="text-sm text-admin-gray-400 font-medium animate-pulse">Betöltés...</span>
+                      )}
+                    </div>
+
+                    {staffInvitesLoading && list.length === 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                        {[0, 1, 2].map((i) => (
+                          <div key={`st-sk-${i}`} className="bg-white border border-admin-gray-200 rounded-3xl p-6 shadow-sm animate-pulse">
+                            <div className="flex items-start gap-4 mb-5">
+                              <div className="w-14 h-14 rounded-2xl bg-admin-gray-100" />
+                              <div className="flex-1 space-y-2.5">
+                                <div className="h-4 w-1/2 bg-admin-gray-100 rounded-md" />
+                                <div className="h-3.5 w-3/5 bg-admin-gray-100 rounded-md" />
+                              </div>
+                            </div>
+                            <div className="space-y-2.5">
+                              <div className="h-3 w-full bg-admin-gray-100 rounded" />
+                              <div className="h-3 w-4/5 bg-admin-gray-100 rounded" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : list.length === 0 ? (
+                      <div className="py-20 flex flex-col items-center text-center">
+                        <div className={`w-20 h-20 rounded-2xl border flex items-center justify-center mb-6 ${
+                          staffInviteRole === "dispatcher" ? "bg-[#0056D2]/5 border-[#0056D2]/15" : "bg-admin-gray-900/5 border-admin-gray-200"
+                        }`}>
+                          <MailOpen className={`w-9 h-9 ${staffInviteRole === "dispatcher" ? "text-[#0056D2]" : "text-admin-gray-900"}`} />
+                        </div>
+                        <h3 className="font-serif text-2xl font-bold text-admin-gray-900 mb-2">Jelenleg nincsenek fiókok</h3>
+                        <p className="text-admin-gray-500 font-medium max-w-md mb-8 leading-relaxed">
+                          Küldj ki egyedi meghívót a fenti űrlapon keresztül a Diszpecser vagy Adminisztrátor fiókok létrehozásához.
+                        </p>
+                        <div className="flex gap-3 flex-wrap items-center justify-center">
+                          <button
+                            onClick={() => setActive("profiles")}
+                            className="px-6 py-3 bg-white hover:bg-admin-gray-50 text-admin-gray-900 rounded-xl font-semibold text-sm transition-all duration-300 border border-admin-gray-200 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                          >
+                            Profilok megtekintése
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                        {list.map((u: any, idx: number) => {
+                          const role = (u.role || "admin") as "admin" | "dispatcher";
+                          const namePart = (u.name || (u.email || "").split("@")[0] || "staff").toString();
+                          const nameDisplay =
+                            typeof u.name === "string" && u.name.trim()
+                              ? u.name.trim().split(/[._-]/).map((p: string) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ")
+                              : namePart.split(/[._-]/).map((p: string) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ");
+                          const monogram = (
+                            (namePart.charAt(0) || "D").toUpperCase() +
+                            (((u.email || "").split("@")[1] || "").charAt(0) || "C").toUpperCase()
+                          ).slice(0, 2);
+                          const fmtHu = (ts: number | null | undefined) => ts ? new Date(ts).toLocaleDateString("hu-HU", { year: "numeric", month: "short", day: "numeric" }) : "–";
+
+                          let statusBadge: any;
+                          if (u.isLocked) statusBadge = { label: "Lezárva", color: "bg-rose-50 text-rose-700 border-rose-100", dot: "bg-rose-500" };
+                          else if (!u.isActivated) statusBadge = { label: "Meghívva", color: "bg-amber-50 text-amber-700 border-amber-100", dot: "bg-amber-500 animate-pulse" };
+                          else if (u.hasPassword) statusBadge = { label: "Aktív", color: "bg-emerald-50 text-emerald-700 border-emerald-100", dot: "bg-emerald-500" };
+                          else statusBadge = { label: "Inaktív", color: "bg-admin-gray-50 text-admin-gray-600 border-admin-gray-100", dot: "bg-admin-gray-400" };
+
+                          const roleGradient =
+                            role === "dispatcher"
+                              ? "from-[#0056D2] via-[#0047BA] to-[#003F9F]"
+                              : "from-admin-gray-800 to-admin-gray-900";
+                          const roleBadge =
+                            role === "dispatcher"
+                              ? {
+                                  label: "DISZPÉCSER",
+                                  gradient: "from-[#0056D2] to-[#003F9F]",
+                                  color: "text-white",
+                                  border: "border-[#0056D2]",
+                                  hasStar: true,
+                                }
+                              : {
+                                  label: "ADMIN",
+                                  gradient: "from-admin-gray-900 to-black",
+                                  color: "text-white",
+                                  border: "border-admin-gray-900",
+                                  hasStar: true,
+                                };
+
+                          const accentGlow =
+                            role === "dispatcher"
+                              ? "from-[#0056D2] via-[#0047BA] to-transparent"
+                              : "from-admin-gray-900 via-admin-gray-800 to-transparent";
+                          const accentTop =
+                            role === "dispatcher" ? "via-[#0056D2]/50" : "via-admin-gray-800/60";
+
+                          return (
+                            <div
+                              key={u.id || `st-${idx}-${u.email}`}
+                              className="bg-white rounded-3xl p-1 border border-admin-gray-200 shadow-[0_20px_60px_rgba(0,0,0,0.06)] hover:shadow-[0_30px_80px_rgba(0,0,0,0.12)] transition-all duration-500 group relative overflow-hidden"
+                            >
+                              <div className={`absolute -top-24 -right-24 w-56 h-56 bg-gradient-to-br ${accentGlow} opacity-0 group-hover:opacity-[0.1] rounded-full blur-[40px] transition-opacity duration-500 pointer-events-none`} />
+                              <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[2px] bg-gradient-to-r from-transparent ${accentTop} to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-500`} />
+
+                              <div className="p-7 flex flex-col h-full relative z-10">
+                                <div className="flex items-start gap-4 mb-6">
+                                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${roleGradient} flex items-center justify-center shadow-lg shrink-0 relative`}>
+                                    <span className="text-white font-black text-lg tracking-tight">{monogram}</span>
+                                    <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-white shadow-sm flex items-center justify-center">
+                                      <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6z" />
+                                      </svg>
+                                    </div>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                      <h3 className="font-bold text-lg text-admin-gray-900 truncate">{nameDisplay}</h3>
+                                      <span className={`px-2 py-0.5 border rounded-full text-[10px] font-black tracking-wider uppercase shrink-0 ${statusBadge.color}`}>
+                                        <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1.5 ${statusBadge.dot}`} />
+                                        {statusBadge.label}
+                                      </span>
+                                      {u.id && (
+                                        <button
+                                          onClick={() => openStaffDeleteModal(u.id as string, u.email, nameDisplay, roleBadge.label)}
+                                          disabled={staffInviteDeleting === u.id}
+                                          title="Felhasználó és hozzáférés VÉGLEGES törlése"
+                                          className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all ml-auto ${
+                                            staffInviteDeleting === u.id
+                                              ? "bg-rose-100 text-rose-400 cursor-progress"
+                                              : "text-admin-gray-300 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 hover:shadow-sm"
+                                          }`}
+                                        >
+                                          <Trash2 className="w-[18px] h-[18px]" />
+                                        </button>
+                                      )}
+                                    </div>
+                                    <div className="text-sm font-semibold text-admin-gray-500 truncate mb-2 flex items-center gap-1.5">
+                                      <svg className="w-4 h-4 text-admin-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                                      </svg>
+                                      {u.email}
+                                    </div>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg border text-[10px] font-black tracking-wider uppercase bg-gradient-to-br ${roleBadge.gradient} ${roleBadge.color} shadow-sm`}>
+                                        {roleBadge.hasStar && (
+                                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6z" />
+                                          </svg>
+                                        )}
+                                        {roleBadge.label}
+                                      </span>
+                                      {u.twoFactorEnabled && (
+                                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg border text-[10px] font-black tracking-wider uppercase bg-[#0047BA]/5 text-[#0047BA] border-[#0047BA]/20">
+                                          2FA ✓
+                                        </span>
+                                      )}
+                                      {u.requireTwoFactor && !u.twoFactorEnabled && (
+                                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg border text-[10px] font-black tracking-wider uppercase bg-amber-50 text-amber-700 border-amber-200">
+                                          2FA Kötelező
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-2.5 mb-6">
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span className="text-admin-gray-500 font-medium">Létrehozva</span>
+                                    <span className="font-bold text-admin-gray-800">{fmtHu(u.createdAt || u.inviteIssuedAt)}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span className="text-admin-gray-500 font-medium">Utolsó bejelentkezés</span>
+                                    <span className="font-bold text-admin-gray-800">{fmtHu(u.lastLoginAt)}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span className="text-admin-gray-500 font-medium">Kétfaktoros védelem</span>
+                                    <span className={`font-bold ${u.twoFactorEnabled ? "text-emerald-700" : "text-admin-gray-400"}`}>
+                                      {u.twoFactorEnabled ? "Bekapcsolva" : "Kikapcsolva"}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="mt-auto pt-5 border-t border-admin-gray-100/80">
+                                  <div className="flex gap-2.5">
+                                    <button
+                                      onClick={() => setToast({ type: "success", message: `⚙️ ${u.email} beállításai hamarosan elérhetőek.` })}
+                                      className="flex-1 py-2.5 bg-white hover:bg-admin-gray-50 text-admin-gray-900 rounded-xl text-xs font-bold tracking-wider uppercase transition-colors border border-admin-gray-200 shadow-sm"
+                                    >
+                                      Beállítások
+                                    </button>
+                                    <button
+                                      onClick={() => setToast({ type: u.isActivated ? "success" : "success", message: u.isActivated ? `🔐 ${u.email} jelszó-visszaállítási email küldve.` : `💌 ${u.email} meghívója újraküldve.` })}
+                                      className={`flex-1 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-colors border shadow-sm ${
+                                        role === "dispatcher"
+                                          ? "bg-[#0056D2]/5 hover:bg-[#0056D2]/10 text-[#0056D2] border-[#0056D2]/20"
+                                          : "bg-admin-gray-900/5 hover:bg-admin-gray-900/10 text-admin-gray-900 border-admin-gray-200"
+                                      }`}
+                                    >
+                                      {u.isActivated ? "Új jelszó" : "Meghívás újra"}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
           ) : active === "profiles" ? (
             <div className="max-w-7xl mx-auto w-full">
               <div className="mb-10 flex flex-col md:flex-row md:items-start gap-5 md:justify-between">
@@ -2010,6 +2775,112 @@ export default function AdminDashboard() {
           )}
         </main>
       </div>
+
+      {staffDeleteTarget && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center px-4 sm:px-6 animate-[fadeIn_0.15s_ease-out]">
+          <div
+            className="absolute inset-0 bg-admin-gray-900/50 backdrop-blur-sm"
+            onClick={() => !staffInviteDeleting && setStaffDeleteTarget(null)}
+          />
+          <div className="relative w-full max-w-md bg-white rounded-[28px] shadow-[0_40px_120px_rgba(15,23,42,0.25)] border border-admin-gray-100 overflow-hidden animate-[popIn_0.2s_ease]">
+            <div className="absolute -top-24 -right-24 w-56 h-56 rounded-full bg-gradient-to-br from-rose-500 to-red-600 opacity-10 blur-3xl pointer-events-none" />
+
+            <div className="p-8 sm:p-9">
+              <div className="flex items-start gap-5 mb-6">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-50 to-red-50 border-2 border-rose-100 flex items-center justify-center shrink-0 shadow-inner">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 shadow-md shadow-rose-500/25 flex items-center justify-center">
+                    <Trash2 className="w-5 h-5 text-white" strokeWidth={2.2} />
+                  </div>
+                </div>
+                <div className="flex-1 pt-1">
+                  <h3 className="font-serif text-2xl font-bold tracking-tight text-admin-gray-900 mb-1.5">
+                    Végleges törlés
+                  </h3>
+                  <p className="text-sm text-admin-gray-500 font-medium leading-relaxed">
+                    A művelet nem visszavonható. A felhasználó és az összes hozzáférése véglegesen elvész.
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50/60 to-red-50/30 p-5 mb-7">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-white border border-rose-100 flex items-center justify-center shrink-0 shadow-sm">
+                    <svg className="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-admin-gray-900 truncate">
+                      {staffDeleteTarget.name || staffDeleteTarget.email.split("@")[0]}
+                    </div>
+                    {staffDeleteTarget.role && (
+                      <div className="text-[10px] font-black tracking-widest uppercase text-rose-700 mt-0.5">
+                        {staffDeleteTarget.role} · Staff fiók
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="text-sm font-semibold text-admin-gray-600 flex items-center gap-2 pl-0.5">
+                  <svg className="w-4 h-4 text-admin-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                  </svg>
+                  {staffDeleteTarget.email}
+                </div>
+              </div>
+
+              <div className="mb-7">
+                <div className="text-[11px] font-black tracking-[0.18em] uppercase text-admin-gray-500 mb-2.5 pl-1">
+                  Mi törlődik
+                </div>
+                <ul className="space-y-2">
+                  {[
+                    "A felhasználó személyes adatai (név, email)",
+                    "Bejelentkezési jelszó és biztonsági beállítások (2FA)",
+                    "Hozzáférés a CRM-hez és a Diszpécser Központhoz",
+                    "Aktív meghívók és munkamenetek",
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-sm text-admin-gray-600 font-medium">
+                      <svg className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="flex flex-col-reverse sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onClick={() => !staffInviteDeleting && setStaffDeleteTarget(null)}
+                  disabled={!!staffInviteDeleting}
+                  className="flex-1 py-3.5 rounded-2xl bg-white hover:bg-admin-gray-50 text-admin-gray-900 text-xs font-black tracking-[0.16em] uppercase border border-admin-gray-200 transition-all hover:-translate-y-0.5 hover:shadow-sm disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                >
+                  Mégsem
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmStaffDelete}
+                  disabled={!!staffInviteDeleting}
+                  className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white text-xs font-black tracking-[0.16em] uppercase shadow-lg shadow-rose-500/25 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-rose-500/35 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-2"
+                >
+                  {staffInviteDeleting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      Törlés...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Végleges törlés
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 animate-[fadeIn_0.2s_ease-out]">
