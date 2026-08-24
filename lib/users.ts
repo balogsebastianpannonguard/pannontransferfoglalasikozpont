@@ -98,7 +98,7 @@ export async function createPendingInviteUser(
   const res = await collection.insertOne(newUser as any);
   const created = await collection.findOne({ _id: res.insertedId });
   if (!created) throw new Error("Nem sikerült létrehozni a felhasználót.");
-  return created as CrmUser;
+  return { ...created, _id: created._id.toString() } as unknown as CrmUser;
 }
 
 export async function findUserByEmail(email: string): Promise<CrmUser | null> {
@@ -222,7 +222,7 @@ export async function listAllUsers(): Promise<CrmUser[]> {
   const collection = await getUserCollection();
   await initUserIndexes();
   const docs = await collection.find({}).sort({ createdAt: -1 }).toArray();
-  return docs.map((d) => d as unknown as CrmUser);
+  return docs.map((d) => ({ ...d, _id: d._id.toString() }) as unknown as CrmUser);
 }
 
 export interface DeleteUserResult {

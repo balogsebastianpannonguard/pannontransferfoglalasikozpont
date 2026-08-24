@@ -28,7 +28,7 @@ export interface PricingTerms {
 }
 
 export interface PartnerPricing {
-  _id?: ObjectId;
+  _id?: string | ObjectId;
   partnerKey: string;
   partnerName: string;
   isActive: boolean;
@@ -146,7 +146,7 @@ export async function getAllPartnerPricing(): Promise<PartnerPricing[]> {
   const collection = await getPricingCollection();
   await initPricingIndexes();
   const docs = await collection.find({}).sort({ updatedAt: -1 }).toArray();
-  return docs.map((d) => d as unknown as PartnerPricing);
+  return docs.map((d) => ({ ...d, _id: d._id.toString() }) as unknown as PartnerPricing);
 }
 
 export async function getPartnerPricingByKey(

@@ -6,7 +6,7 @@ export const CATL_BCRYPT_ROUNDS = 12;
 export const INVITE_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface CatlPortalUser {
-  _id?: ObjectId;
+  _id?: string | ObjectId;
   email: string;
   normalizedEmail: string;
   hashedPassword: string | null;
@@ -129,7 +129,7 @@ export async function listCatlPortalUsers(): Promise<CatlPortalUser[]> {
   await initCatlUserIndexes();
   const col = await getCatlPortalCollection();
   const docs = await col.find({}).sort({ createdAt: -1 }).toArray();
-  return docs.map((d) => d as unknown as CatlPortalUser);
+  return docs.map((d) => ({ ...d, _id: d._id.toString() }) as unknown as CatlPortalUser);
 }
 
 export async function findCatlUserByInviteToken(

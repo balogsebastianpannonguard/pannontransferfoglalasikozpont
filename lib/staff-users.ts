@@ -8,7 +8,7 @@ export const STAFF_INVITE_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export type StaffRole = "admin" | "dispatcher";
 
 export interface StaffUser {
-  _id?: ObjectId;
+  _id?: string | ObjectId;
   email: string;
   normalizedEmail: string;
   role: StaffRole;
@@ -141,7 +141,7 @@ export async function listStaffUsers(filter?: { role?: StaffRole }): Promise<Sta
   const query: any = {};
   if (filter?.role) query.role = filter.role;
   const docs = await col.find(query).sort({ createdAt: -1 }).toArray();
-  return docs.map((d) => d as unknown as StaffUser);
+  return docs.map((d) => ({ ...d, _id: d._id.toString() }) as unknown as StaffUser);
 }
 
 export async function findStaffUserByInviteToken(rawToken: string): Promise<StaffUser | null> {
