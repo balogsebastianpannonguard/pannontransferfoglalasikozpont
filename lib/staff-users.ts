@@ -5,7 +5,7 @@ import { ObjectId } from "mongodb";
 export const STAFF_BCRYPT_ROUNDS = 12;
 export const STAFF_INVITE_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-export type StaffRole = "admin" | "dispatcher";
+export type StaffRole = "admin" | "dispatcher" | "driver";
 
 export interface StaffUser {
   _id?: string | ObjectId;
@@ -23,6 +23,7 @@ export interface StaffUser {
   requireTwoFactor: boolean;
   twoFactorSecret: string | null;
   twoFactorEnabled: boolean;
+  status?: string;
   welcomeEmailSent: boolean;
   createdAt: number;
   updatedAt: number;
@@ -78,7 +79,7 @@ export async function createOrResetStaffInvite(
   const rawToken = generateInviteToken();
   const inviteTokenHash = await hashToken(rawToken);
   const inviteExpiresAt = now + STAFF_INVITE_TOKEN_TTL_MS;
-  const role: StaffRole = opts.role === "dispatcher" ? "dispatcher" : "admin";
+  const role: StaffRole = opts.role;
 
   const existing = await col.findOne({ normalizedEmail });
   if (existing) {

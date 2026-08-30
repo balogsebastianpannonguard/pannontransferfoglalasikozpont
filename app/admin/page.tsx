@@ -48,6 +48,15 @@ const sidebarItems: SidebarItem[] = [
     ),
   },
   {
+    id: "driver-invites",
+    label: "Sofőrök meghívó",
+    icon: (
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+      </svg>
+    ),
+  },
+  {
     id: "profiles",
     label: "Profilok",
     icon: (
@@ -197,6 +206,12 @@ export default function AdminDashboard() {
   const [staffInvitesMeta, setStaffInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
   const [staffInvitesLoading, setStaffInvitesLoading] = useState(false);
   const [staffInviteDeleting, setStaffInviteDeleting] = useState<string | null>(null);
+  const [driverInviteRecipients, setDriverInviteRecipients] = useState("");
+  const [driverInviteSending, setDriverInviteSending] = useState(false);
+  const [driverInvites, setDriverInvites] = useState<any[] | null>(null);
+  const [driverInvitesLoading, setDriverInvitesLoading] = useState(false);
+  const [driverInviteDeleting, setDriverInviteDeleting] = useState<string | null>(null);
+
   const [staffDeleteTarget, setStaffDeleteTarget] = useState<{ id: string; email: string; name?: string; role?: string } | null>(null);
 
   async function handleDeleteCatlUser(id: string, email: string) {
@@ -303,6 +318,26 @@ export default function AdminDashboard() {
   }, [active]);
 
   useEffect(() => {
+    if (active !== "driver-invites") return;
+    setDriverInvitesLoading(true);
+    (async () => {
+      try {
+        const res = await fetch("/api/driver-invites/list", { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.success && Array.isArray(json.users)) {
+            setDriverInvites(json.users);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setDriverInvitesLoading(false);
+      }
+    })();
+  }, [active]);
+
+  useEffect(() => {
     if (active !== "admin-accounts") return;
     setStaffInvitesLoading(true);
     (async () => {
@@ -395,6 +430,70 @@ export default function AdminDashboard() {
       setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
     } finally {
       setCatlInviteSending(false);
+    }
+  }
+
+  async function handleSendDriverInvite() {
+    if (!driverInviteRecipients.trim()) {
+      setToast({ type: "error", message: "Adj meg legalább egy email címet!" });
+      return;
+    }
+
+    const recipients = driverInviteRecipients
+      .split(/[,;\n]+/)
+      .map((r) => r.trim())
+      .filter(Boolean);
+
+    if (recipients.length === 0) {
+      setToast({ type: "error", message: "Nincs érvényes email cím." });
+      return;
+    }
+
+    let driverBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3003";
+        }
+        driverBase = url.origin;
+      } catch {
+        driverBase = window.location.origin;
+      }
+    }
+
+    setDriverInviteSending(true);
+    try {
+      const res = await fetch("/api/driver-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients,
+          loginBaseUrl: driverBase,
+        }),
+      });
+
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setToast({ type: "error", message: json?.message || "Hiba a meghívó küldésekor." });
+      } else {
+        setToast({ type: "success", message: json.message || "Sikeres meghívó küldés." });
+        setDriverInviteRecipients("");
+        // Refresh driver list
+        try {
+          const listRes = await fetch("/api/driver-invites/list", { cache: "no-store" });
+          if (listRes.ok) {
+            const j2 = await listRes.json();
+            if (j2?.success) {
+              setDriverInvites(j2.users);
+            }
+          }
+        } catch {}
+      }
+    } catch (err: any) {
+      setToast({ type: "error", message: "Hálózati hiba történt." });
+    } finally {
+      setDriverInviteSending(false);
     }
   }
 
@@ -497,6 +596,33 @@ export default function AdminDashboard() {
     } finally {
       setStaffInviteDeleting(null);
       setStaffDeleteTarget(null);
+    }
+  }
+
+  async function handleDeleteDriverUser(id: string, email: string) {
+    if (!confirm(`Biztosan törlöd a következő sofőrt: ${email}?`)) return;
+    setDriverInviteDeleting(id);
+    try {
+      const res = await fetch("/api/driver-invites/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "Sofőr véglegesen törölve." });
+        const listRes = await fetch("/api/driver-invites/list", { cache: "no-store" });
+        const listJson = await listRes.json().catch(() => null);
+        if (listRes.ok && listJson?.success) {
+          setDriverInvites(listJson.users || []);
+        }
+      }
+    } catch (err: any) {
+      setToast({ type: "error", message: "Hálózati hiba történt." });
+    } finally {
+      setDriverInviteDeleting(null);
     }
   }
 
@@ -2507,6 +2633,157 @@ export default function AdminDashboard() {
                   </>
                 );
               })()}
+            </div>
+          ) : active === "driver-invites" ? (
+            <div className="max-w-7xl mx-auto w-full">
+              <div className="mb-10 flex flex-col md:flex-row md:items-start gap-5 md:justify-between">
+                <div>
+                  <h2 className="font-serif text-3xl font-bold tracking-tight text-admin-gray-900 mb-2">
+                    Sofőrök meghívó
+                  </h2>
+                  <p className="text-admin-gray-500 font-medium">
+                    Sofőrök meghívása a Pannon Transfer rendszerébe.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Bal oszlop - Form */}
+                <div className="lg:col-span-4 flex flex-col gap-6">
+                  <div className="bg-white rounded-3xl border border-admin-gray-200 shadow-sm p-6 overflow-hidden relative">
+                    <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#0056D2] to-[#003F9F]"></div>
+                    <h3 className="text-lg font-black tracking-tight text-admin-gray-900 mb-5 flex items-center gap-2">
+                      <MailOpen className="w-5 h-5 text-[#0056D2]" />
+                      Új meghívó küldése
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-black tracking-wider text-admin-gray-600 uppercase mb-2">
+                          Email címek (vesszővel elválasztva)
+                        </label>
+                        <textarea
+                          value={driverInviteRecipients}
+                          onChange={(e) => setDriverInviteRecipients(e.target.value)}
+                          placeholder="sofor1@pelda.hu, sofor2@pelda.hu"
+                          className="w-full bg-admin-gray-50 border-2 border-admin-gray-200 rounded-2xl p-4 text-sm font-medium text-admin-gray-900 focus:outline-none focus:border-[#0056D2] focus:bg-white transition-all placeholder:text-admin-gray-400 min-h-[120px] resize-y"
+                        />
+                      </div>
+
+                      <button
+                        onClick={handleSendDriverInvite}
+                        disabled={driverInviteSending || !driverInviteRecipients.trim()}
+                        className="w-full relative overflow-hidden group bg-[#0056D2] text-white rounded-2xl p-4 font-bold tracking-wider text-sm transition-all hover:bg-[#0047BA] shadow-lg shadow-[#0056D2]/25 hover:shadow-xl hover:shadow-[#0056D2]/40 disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none flex items-center justify-center gap-2"
+                      >
+                        {driverInviteSending ? (
+                          <>
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            <span>KÜLDÉS FOLYAMATBAN...</span>
+                          </>
+                        ) : (
+                          <>
+                            <MailOpen className="w-5 h-5" />
+                            <span>MEGHÍVÓK KÜLDÉSE</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Jobb oszlop - Lista */}
+                <div className="lg:col-span-8 flex flex-col gap-6">
+                  <div className="bg-white rounded-3xl border border-admin-gray-200 shadow-sm overflow-hidden flex flex-col h-full">
+                    <div className="p-6 border-b border-admin-gray-100 flex items-center justify-between bg-admin-gray-50/50">
+                      <h3 className="text-lg font-black tracking-tight text-admin-gray-900 flex items-center gap-2">
+                        <Users className="w-5 h-5 text-admin-gray-500" />
+                        Meghívott sofőrök listája
+                      </h3>
+                    </div>
+
+                    <div className="p-0 overflow-x-auto flex-1">
+                      {driverInvitesLoading && (!driverInvites || driverInvites.length === 0) ? (
+                        <div className="p-12 flex flex-col items-center justify-center text-admin-gray-400">
+                          <div className="w-8 h-8 border-2 border-admin-gray-200 border-t-[#0056D2] rounded-full animate-spin mb-4"></div>
+                          <span className="text-sm font-bold tracking-wider uppercase">Betöltés folyamatban...</span>
+                        </div>
+                      ) : !driverInvites || driverInvites.length === 0 ? (
+                        <div className="p-16 flex flex-col items-center justify-center text-center">
+                          <div className="w-16 h-16 rounded-2xl bg-admin-gray-50 border-2 border-admin-gray-100 flex items-center justify-center mb-4">
+                            <Users className="w-8 h-8 text-admin-gray-300" />
+                          </div>
+                          <h4 className="text-admin-gray-900 font-bold text-lg mb-1">Nincsenek meghívott sofőrök</h4>
+                          <p className="text-admin-gray-500 font-medium text-sm">Még nem küldtél meghívót egyetlen sofőrnek sem.</p>
+                        </div>
+                      ) : (
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="bg-admin-gray-50/80 text-admin-gray-500 text-[10px] uppercase tracking-widest font-black border-b border-admin-gray-200">
+                              <th className="px-6 py-4">Fiók</th>
+                              <th className="px-6 py-4">Státusz</th>
+                              <th className="px-6 py-4 text-right">Műveletek</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-admin-gray-100">
+                            {driverInvites.map((u: any, idx: number) => {
+                              const activated = u.isActivated && u.hasPassword;
+                              const isLocked = u.isLocked;
+                              return (
+                                <tr key={u._id || u.id || idx} className="hover:bg-admin-gray-50/50 transition-colors group">
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-10 h-10 rounded-full bg-admin-gray-100 flex items-center justify-center text-admin-gray-600 font-bold text-sm">
+                                        {(u.name || u.email || "?")[0].toUpperCase()}
+                                      </div>
+                                      <div>
+                                        <div className="font-bold text-admin-gray-900 text-sm">
+                                          {u.name || u.email.split("@")[0]}
+                                        </div>
+                                        <div className="text-xs font-medium text-admin-gray-500">
+                                          {u.email}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    {isLocked ? (
+                                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-200">
+                                        Letiltva
+                                      </span>
+                                    ) : activated ? (
+                                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200">
+                                        Aktív
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-600 border border-amber-200">
+                                        Függőben
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="px-6 py-4 text-right">
+                                    <button
+                                      onClick={() => handleDeleteDriverUser(u._id || u.id, u.email)}
+                                      disabled={driverInviteDeleting === (u._id || u.id)}
+                                      className="w-8 h-8 rounded-lg inline-flex items-center justify-center text-admin-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-all disabled:opacity-50"
+                                      title="Törlés"
+                                    >
+                                      {driverInviteDeleting === (u._id || u.id) ? (
+                                        <div className="w-4 h-4 border-2 border-rose-200 border-t-rose-600 rounded-full animate-spin"></div>
+                                      ) : (
+                                        <Trash2 className="w-4 h-4" />
+                                      )}
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : active === "profiles" ? (
             <div className="max-w-7xl mx-auto w-full">
