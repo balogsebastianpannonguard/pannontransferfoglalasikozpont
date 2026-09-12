@@ -101,7 +101,7 @@ export default function AdminDashboard() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [dbStatus, setDbStatus] = useState<"loading" | "connected" | "disconnected">("loading");
   const [sessionEmail, setSessionEmail] = useState<string>("");
-  const [activeTermsSubpage, setActiveTermsSubpage] = useState<"list" | "catl">("list");
+  const [activeTermsSubpage, setActiveTermsSubpage] = useState<"list" | "catl" | "ecopro" | "eccoino" | "vitesco" | "schaeffler" | "krones" | "enterair" | "tama" | "ni">("list");
 
   useEffect(() => {
     setActiveTermsSubpage("list");
@@ -109,6 +109,8 @@ export default function AdminDashboard() {
 
   const [editMode, setEditMode] = useState(false);
   const [catlPricingDraft, setCatlPricingDraft] = useState<any>(null);
+  const [activePartnerDraft, setActivePartnerDraft] = useState<any>(null);
+  const [activePartnerLoading, setActivePartnerLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
@@ -197,6 +199,45 @@ export default function AdminDashboard() {
   const [catlInvite2FA, setCatlInvite2FA] = useState(false);
   const [catlInviteSending, setCatlInviteSending] = useState(false);
   const [catlInviteDeleting, setCatlInviteDeleting] = useState<string | null>(null);
+  const [catlInviteResending, setCatlInviteResending] = useState<string | null>(null);
+  const [ecoproInvites, setEcoproInvites] = useState<any[] | null>(null);
+  const [ecoproInvitesMeta, setEcoproInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
+  const [ecoproInvitesLoading, setEcoproInvitesLoading] = useState(false);
+  const displayEcoproInvites: any[] =
+    ecoproInvites && ecoproInvites.length > 0 ? ecoproInvites : [];
+  const derivedEcoproMeta = (() => {
+    if (ecoproInvitesLoading || displayEcoproInvites.length === 0) {
+      if (ecoproInvitesLoading) {
+        return {
+          total: null as number | null,
+          activated: null as number | null,
+          pending: null as number | null,
+          require2fa: null as number | null,
+        };
+      }
+      return {
+        total: ecoproInvitesMeta?.total ?? 0,
+        activated: ecoproInvitesMeta?.activated ?? 0,
+        pending: ecoproInvitesMeta?.pending ?? 0,
+        require2fa: ecoproInvitesMeta?.require2fa ?? 0,
+      };
+    }
+    const total = displayEcoproInvites.length;
+    let activated = 0;
+    let pending = 0;
+    let require2fa = 0;
+    for (const u of displayEcoproInvites) {
+      if (u?.requireTwoFactor) require2fa++;
+      if (u?.isActivated) activated++;
+      else pending++;
+    }
+    return { total, activated, pending, require2fa };
+  })();
+  const [ecoproInviteRecipients, setEcoproInviteRecipients] = useState("");
+  const [ecoproInvite2FA, setEcoproInvite2FA] = useState(false);
+  const [ecoproInviteSending, setEcoproInviteSending] = useState(false);
+  const [ecoproInviteDeleting, setEcoproInviteDeleting] = useState<string | null>(null);
+  const [ecoproInviteResending, setEcoproInviteResending] = useState<string | null>(null);
 
   const [staffInviteRecipients, setStaffInviteRecipients] = useState("");
   const [staffInviteRole, setStaffInviteRole] = useState<"admin" | "dispatcher">("dispatcher");
@@ -244,21 +285,56 @@ export default function AdminDashboard() {
     }
   }
 
+  async function handleDeleteEcoproUser(id: string, email: string) {
+    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt EcoPro hozzáférést?\n\nA művelet nem visszavonható.`)) {
+      return;
+    }
+    setEcoproInviteDeleting(id);
+    try {
+      const res = await fetch("/api/ecopro-invites/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "EcoPro felhasználó törölve." });
+        const listRes = await fetch("/api/ecopro-invites/list", { cache: "no-store" });
+        const listJson = await listRes.json().catch(() => null);
+        if (listRes.ok && listJson?.success) {
+          setEcoproInvites(listJson.users || []);
+          setEcoproInvitesMeta(listJson.counts || ecoproInvitesMeta);
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba törlés közben." });
+    } finally {
+      setEcoproInviteDeleting(null);
+    }
+  }
+
 
   useEffect(() => {
     setEditMode(false);
     setCatlPricingDraft(null);
+    setActivePartnerDraft(null);
     (async () => {
-      if (active === "terms" && activeTermsSubpage === "catl") {
+      if (active === "terms" && activeTermsSubpage !== "list") {
+        const key = activeTermsSubpage;
+        setActivePartnerLoading(true);
         try {
-          const res = await fetch("/api/partner-pricing?partnerKey=catl", { cache: "no-store" });
+          const res = await fetch(`/api/partner-pricing?partnerKey=${key}`, { cache: "no-store" });
           if (res.ok) {
             const json = await res.json();
             if (json?.success && json.data) {
-              setCatlPricingDraft(json.data);
+              if (key === "catl") setCatlPricingDraft(json.data);
+              setActivePartnerDraft(json.data);
             }
           }
         } catch {}
+        finally { setActivePartnerLoading(false); }
       }
     })();
   }, [active, activeTermsSubpage]);
@@ -313,6 +389,29 @@ export default function AdminDashboard() {
         setCatlInvites(null);
       } finally {
         setCatlInvitesLoading(false);
+      }
+    })();
+  }, [active]);
+
+  useEffect(() => {
+    if (active !== "ecopro-invites") return;
+    setEcoproInvitesLoading(true);
+    (async () => {
+      try {
+        const res = await fetch("/api/ecopro-invites/list", { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.success && Array.isArray(json.users)) {
+            setEcoproInvites(json.users);
+            setEcoproInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
+          } else {
+            setEcoproInvites(null);
+          }
+        } else setEcoproInvites(null);
+      } catch {
+        setEcoproInvites(null);
+      } finally {
+        setEcoproInvitesLoading(false);
       }
     })();
   }, [active]);
@@ -412,7 +511,8 @@ export default function AdminDashboard() {
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.success) {
-        setToast({ type: "error", message: json?.message || "Hiba történt a küldés közben." });
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
       } else {
         setToast({ type: "success", message: json.message || "Sikeres küldés." });
         setCatlInviteRecipients("");
@@ -430,6 +530,165 @@ export default function AdminDashboard() {
       setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
     } finally {
       setCatlInviteSending(false);
+    }
+  }
+
+  async function handleSendEcoproInvite() {
+    const recipients = ecoproInviteRecipients
+      .split(/[,;\n]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (recipients.length === 0) {
+      setToast({ type: "error", message: "Legalább egy címzett email címét add meg." });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (const e of recipients) {
+      if (!emailRegex.test(e)) {
+        setToast({ type: "error", message: `Érvénytelen email cím: ${e}` });
+        return;
+      }
+    }
+
+    let ecoproPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        ecoproPartnerBase = url.origin;
+      } catch {
+        ecoproPartnerBase = window.location.origin;
+      }
+    }
+
+    setEcoproInviteSending(true);
+    try {
+      const res = await fetch("/api/ecopro-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients,
+          requireTwoFactor: !!ecoproInvite2FA,
+          loginBaseUrl: ecoproPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "EcoPro meghívók sikeresen elküldve." });
+        setEcoproInviteRecipients("");
+        setEcoproInvite2FA(false);
+        const listRes = await fetch("/api/ecopro-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setEcoproInvites(j2.users);
+            setEcoproInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
+    } finally {
+      setEcoproInviteSending(false);
+    }
+  }
+
+  async function handleResendCatlInvite(id: string, email: string, requireTwoFactor: boolean) {
+    let catlPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        catlPartnerBase = url.origin;
+      } catch {
+        catlPartnerBase = window.location.origin;
+      }
+    }
+
+    setCatlInviteResending(id);
+    try {
+      const res = await fetch("/api/catl-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients: [email],
+          requireTwoFactor,
+          loginBaseUrl: catlPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "A meghívó újraküldése nem sikerült." });
+      } else {
+        setToast({ type: "success", message: `${email} részére a CATL meghívó újra kiküldve.` });
+        const listRes = await fetch("/api/catl-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setCatlInvites(j2.users);
+            setCatlInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a meghívó újraküldése közben." });
+    } finally {
+      setCatlInviteResending(null);
+    }
+  }
+
+  async function handleResendEcoproInvite(id: string, email: string, requireTwoFactor: boolean) {
+    let ecoproPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        ecoproPartnerBase = url.origin;
+      } catch {
+        ecoproPartnerBase = window.location.origin;
+      }
+    }
+
+    setEcoproInviteResending(id);
+    try {
+      const res = await fetch("/api/ecopro-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients: [email],
+          requireTwoFactor,
+          loginBaseUrl: ecoproPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "Az EcoPro meghívó újraküldése nem sikerült." });
+      } else {
+        setToast({ type: "success", message: `${email} részére az EcoPro meghívó újra kiküldve.` });
+        const listRes = await fetch("/api/ecopro-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setEcoproInvites(j2.users);
+            setEcoproInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba az EcoPro meghívó újraküldése közben." });
+    } finally {
+      setEcoproInviteResending(null);
     }
   }
 
@@ -653,12 +912,20 @@ export default function AdminDashboard() {
   }, []);
 
   function updateVehicle(idx: number, patch: any) {
-    setCatlPricingDraft((prev: any) => {
+    setActivePartnerDraft((prev: any) => {
       if (!prev) return prev;
       const vehicles = [...prev.vehicles];
       vehicles[idx] = { ...vehicles[idx], ...patch };
       return { ...prev, vehicles };
     });
+    if (activeTermsSubpage === "catl") {
+      setCatlPricingDraft((prev: any) => {
+        if (!prev) return prev;
+        const vehicles = [...prev.vehicles];
+        vehicles[idx] = { ...vehicles[idx], ...patch };
+        return { ...prev, vehicles };
+      });
+    }
   }
 
   function addVehicle() {
@@ -666,7 +933,7 @@ export default function AdminDashboard() {
     const empty = {
       id: newId,
       name: "Új jármű",
-      capacity: "0 passenger",
+      capacity: "0 utas",
       bpBudAirport: 0,
       dbDbAirport: null,
       newPrice2026: 0,
@@ -677,34 +944,101 @@ export default function AdminDashboard() {
       extraWaitingPerHour: 0,
       dailyRate: 0,
     };
-    setCatlPricingDraft((prev: any) => prev ? { ...prev, vehicles: [...prev.vehicles, empty] } : prev);
+    setActivePartnerDraft((prev: any) => prev ? { ...prev, vehicles: [...prev.vehicles, empty] } : prev);
+    if (activeTermsSubpage === "catl") setCatlPricingDraft((prev: any) => prev ? { ...prev, vehicles: [...prev.vehicles, empty] } : prev);
   }
 
   function removeVehicle(idx: number) {
-    setCatlPricingDraft((prev: any) => {
+    setActivePartnerDraft((prev: any) => {
       if (!prev) return prev;
       const vehicles = prev.vehicles.filter((_: any, i: number) => i !== idx);
       return { ...prev, vehicles };
     });
+    if (activeTermsSubpage === "catl") {
+      setCatlPricingDraft((prev: any) => {
+        if (!prev) return prev;
+        const vehicles = prev.vehicles.filter((_: any, i: number) => i !== idx);
+        return { ...prev, vehicles };
+      });
+    }
+  }
+
+  function updatePartnerMeta(mutator: (meta: any) => any) {
+    setActivePartnerDraft((prev: any) => {
+      if (!prev) return prev;
+      const nextMeta = mutator(JSON.parse(JSON.stringify(prev.meta || {})));
+      return { ...prev, meta: nextMeta };
+    });
+  }
+
+  function updateNiRow(section: "standardTransfers" | "vipVClass" | "vipSClass", idx: number, patch: any) {
+    updatePartnerMeta((meta) => {
+      const rows = Array.isArray(meta?.[section]) ? [...meta[section]] : [];
+      rows[idx] = { ...(rows[idx] || {}), ...patch };
+      return { ...meta, [section]: rows };
+    });
+  }
+
+  function addNiRow(section: "standardTransfers" | "vipVClass" | "vipSClass") {
+    const emptyRow =
+      section === "standardTransfers"
+        ? {
+            origin: "Uj indulasi pont",
+            destination: "Uj erkezesi pont",
+            oldNet: 0,
+            currentNet: 0,
+            grossOnePerson: 0,
+            twoPersonNetTotal: 0,
+            twoPersonNetPerPerson: 0,
+            twoPersonGrossPerPerson: 0,
+            threePersonNetTotal: 0,
+            threePersonNetPerPerson: 0,
+            threePersonGrossPerPerson: 0,
+            fourPlusGrossPerPerson: 0,
+          }
+        : {
+            origin: "Uj indulasi pont",
+            destination: "Uj erkezesi pont",
+            oldNet: 0,
+            currentNet: 0,
+            gross: 0,
+          };
+
+    updatePartnerMeta((meta) => {
+      const rows = Array.isArray(meta?.[section]) ? [...meta[section]] : [];
+      rows.push(emptyRow);
+      return { ...meta, [section]: rows };
+    });
+  }
+
+  function removeNiRow(section: "standardTransfers" | "vipVClass" | "vipSClass", idx: number) {
+    updatePartnerMeta((meta) => {
+      const rows = Array.isArray(meta?.[section]) ? meta[section].filter((_: any, rowIdx: number) => rowIdx !== idx) : [];
+      return { ...meta, [section]: rows };
+    });
   }
 
   async function handleSave() {
-    if (!catlPricingDraft) return;
+    const draft = activePartnerDraft;
+    const key = activeTermsSubpage;
+    if (!draft || key === "list") return;
     setLoading(true);
     try {
-      const res = await fetch("/api/partner-pricing?partnerKey=catl", {
+      const res = await fetch(`/api/partner-pricing?partnerKey=${key}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          partnerName: catlPricingDraft.partnerName,
-          isActive: catlPricingDraft.isActive,
-          vehicles: catlPricingDraft.vehicles,
-          terms: catlPricingDraft.terms,
+          partnerName: draft.partnerName,
+          isActive: draft.isActive,
+          vehicles: draft.vehicles,
+          terms: draft.terms,
+          meta: draft.meta,
         }),
       });
       const data = await res.json();
       if (data.success) {
-        setCatlPricingDraft(data.data);
+        setActivePartnerDraft(data.data);
+        if (key === "catl") setCatlPricingDraft(data.data);
         setEditMode(false);
         setToast({ type: "success", message: "✓ Módosítások sikeresen elmentve az adatbázisba." });
       } else {
@@ -719,12 +1053,17 @@ export default function AdminDashboard() {
 
   function handleCancel() {
     setEditMode(false);
+    const key = activeTermsSubpage;
+    if (key === "list") return;
     (async () => {
       try {
-        const res = await fetch("/api/partner-pricing?partnerKey=catl", { cache: "no-store" });
+        const res = await fetch(`/api/partner-pricing?partnerKey=${key}`, { cache: "no-store" });
         if (res.ok) {
           const json = await res.json();
-          if (json?.success && json.data) setCatlPricingDraft(json.data);
+          if (json?.success && json.data) {
+            setActivePartnerDraft(json.data);
+            if (key === "catl") setCatlPricingDraft(json.data);
+          }
         }
       } catch {}
     })();
@@ -739,6 +1078,131 @@ export default function AdminDashboard() {
     router.push("/login");
     router.refresh();
   }
+
+  const featuredClients: Array<{
+    key: string;
+    name: string;
+    shortLabel: string;
+    color: string;
+    colorSecondary: string;
+    tag: string;
+    description: string;
+    portalPath: string;
+    accessLabel: string;
+    isLive: boolean;
+    onAccess?: () => void;
+  }> = [
+    {
+      key: "catl",
+      name: "CATL Hungary Kft.",
+      shortLabel: "CATL",
+      color: "#0047BA",
+      colorSecondary: "#00B4D8",
+      tag: "Enterprise",
+      description: "Hivatalos delegációs és dolgozói transzferek. Speciális árazás és feltételek.",
+      portalPath: "/catl",
+      accessLabel: "CATL Meghívások",
+      isLive: true,
+      onAccess: () => setActive("catl-invites"),
+    },
+    {
+      key: "ecopro",
+      name: "EcoPro Global",
+      shortLabel: "EP",
+      color: "#00B4D8",
+      colorSecondary: "#0096B4",
+      tag: "Ipari",
+      description: "Debrecen-Budapest és repülőtéri transzferek vállalati kezelőfelülete.",
+      portalPath: "/ecopro",
+        accessLabel: "EcoPro Meghívások",
+        isLive: true,
+        onAccess: () => setActive("ecopro-invites"),
+    },
+    {
+      key: "eccoino",
+      name: "Eccoino",
+      shortLabel: "EC",
+      color: "#60B8FF",
+      colorSecondary: "#3A9FEE",
+      tag: "Nemzetközi",
+      description: "Nemzetközi Wien útvonalak és partnerfoglalások előkészített felülete.",
+      portalPath: "/eccoino",
+      accessLabel: "Eccoino Hozzáférések",
+      isLive: false,
+    },
+    {
+      key: "vitesco",
+      name: "Vitesco Technologies",
+      shortLabel: "VT",
+      color: "#E30613",
+      colorSecondary: "#B80010",
+      tag: "Autóipar",
+      description: "Debrecen-Budapest vállalati transzferek és partnerbeállítások felülete.",
+      portalPath: "/vitesco",
+      accessLabel: "Vitesco Hozzáférések",
+      isLive: false,
+    },
+    {
+      key: "schaeffler",
+      name: "Schaeffler",
+      shortLabel: "SCH",
+      color: "#009A44",
+      colorSecondary: "#007A35",
+      tag: "Autóipar",
+      description: "Schaeffler céges fuvarok és delegációs igények kezelőnézete.",
+      portalPath: "/schaeffler",
+      accessLabel: "Schaeffler Hozzáférések",
+      isLive: false,
+    },
+    {
+      key: "krones",
+      name: "Krones AG",
+      shortLabel: "KR",
+      color: "#003F8A",
+      colorSecondary: "#002D6A",
+      tag: "Gyártás",
+      description: "Db-Db és Debrecen-Budapest vállalati transzferek dedikált felülete.",
+      portalPath: "/krones",
+      accessLabel: "Krones Hozzáférések",
+      isLive: false,
+    },
+    {
+      key: "enterair",
+      name: "Enter Air",
+      shortLabel: "EA",
+      color: "#005BAA",
+      colorSecondary: "#0078D4",
+      tag: "Légi",
+      description: "Euro alapú csoportos transzferek és partnerhozzáférések előnézete.",
+      portalPath: "/enterair",
+      accessLabel: "Enter Air Hozzáférések",
+      isLive: false,
+    },
+    {
+      key: "tama",
+      name: "Tama",
+      shortLabel: "TM",
+      color: "#5CA700",
+      colorSecondary: "#438000",
+      tag: "Logisztika",
+      description: "Debrecen, Budapest és B.újfalu útvonalak partnerkártyás megjelenítése.",
+      portalPath: "/tama",
+      accessLabel: "Tama Hozzáférések",
+      isLive: false,
+    },
+    {
+      key: "ni",
+      name: "NI",
+      shortLabel: "NI",
+      color: "#F5D000",
+      colorSecondary: "#D8A800",
+      tag: "Technológia",
+      description: "Standard transzfer és VIP Mercedes tarifák vizuális partnerfelülete.",
+      portalPath: "/ni",
+      accessLabel: "NI Hozzáférések",
+      isLive: false,
+    },
+  ];
 
   return (
     <section className="relative min-h-screen w-full bg-admin-gray-50 text-admin-gray-900 font-sans flex selection:bg-admin-red selection:text-white">
@@ -935,118 +1399,146 @@ export default function AdminDashboard() {
 
               {/* Client Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                
-                {/* PREMIUM CATL Card */}
-                <div className="bg-white rounded-3xl p-1 border border-admin-gray-100 shadow-[0_20px_60px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_80px_rgba(0,0,0,0.1)] transition-all duration-500 group relative overflow-hidden flex flex-col min-h-[340px]">
-                  
-                  {/* Subtle inner border and padding container */}
-                  <div className="absolute inset-1 rounded-[22px] bg-gradient-to-b from-white to-admin-gray-50/50 -z-10" />
-                  
-                  {/* Glowing top accent line */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[2px] bg-gradient-to-r from-transparent via-[#0047BA] to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
-                  
-                  {/* Decorative background glow */}
-                  <div className="absolute -top-24 -right-24 w-56 h-56 bg-gradient-to-br from-[#0047BA]/10 to-[#00B4D8]/10 rounded-full blur-[40px] group-hover:scale-150 transition-transform duration-700 pointer-events-none" />
-                  
-                  <div className="p-7 flex flex-col h-full relative z-10">
-                    <div className="flex items-start justify-between mb-8">
-                      <div className="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-[#0047BA] to-[#00B4D8] flex items-center justify-center shadow-lg shadow-[#0047BA]/20 relative">
-                        <div className="absolute inset-0 rounded-[1.25rem] bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <span className="text-white font-black text-xl tracking-tighter relative z-10">CATL</span>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <span className="px-3 py-1 bg-green-50 text-green-600 border border-green-100 rounded-full text-[10px] font-black tracking-widest uppercase flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                          Aktív
-                        </span>
-                        <span className="text-[10px] font-bold text-admin-gray-400 tracking-wider uppercase">
-                          Enterprise
-                        </span>
-                      </div>
-                    </div>
+                {featuredClients.map((client) => (
+                  <div key={client.key} className="bg-white rounded-3xl p-1 border border-admin-gray-100 shadow-[0_20px_60px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_80px_rgba(0,0,0,0.1)] transition-all duration-500 group relative overflow-hidden flex flex-col min-h-[340px]">
+                    <div className="absolute inset-1 rounded-[22px] bg-gradient-to-b from-white to-admin-gray-50/50 -z-10" />
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[2px] opacity-60 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `linear-gradient(to right, transparent, ${client.color}, transparent)` }} />
+                    <div className="absolute -top-24 -right-24 w-56 h-56 rounded-full blur-[40px] group-hover:scale-150 transition-transform duration-700 pointer-events-none" style={{ background: `linear-gradient(135deg, ${client.color}1A, ${client.colorSecondary}1A)` }} />
 
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-admin-gray-900 mb-2">CATL Hungary Kft.</h3>
-                      <p className="text-sm text-admin-gray-500 leading-relaxed mb-5">
-                        Hivatalos delegációs és dolgozói transzferek. Speciális árazás és feltételek.
-                      </p>
-                      
-                    </div>
-
-                    <div className="mt-6 pt-6 border-t border-admin-gray-100/80">
-                      <div className="flex items-center justify-between mb-6">
-                        <span className="text-xs font-bold tracking-widest uppercase text-admin-gray-400">Portál elérés</span>
-                        <a href="http://localhost:3000/catl" target="_blank" rel="noopener noreferrer" className="group/link flex items-center gap-1.5">
-                          <span className="text-sm font-bold text-[#0047BA] group-hover/link:text-[#00B4D8] transition-colors">/catl</span>
-                          <div className="w-6 h-6 rounded-full bg-[#0047BA]/5 flex items-center justify-center group-hover/link:bg-[#00B4D8]/10 transition-colors">
-                            <svg className="w-3 h-3 text-[#0047BA] group-hover/link:text-[#00B4D8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                            </svg>
-                          </div>
-                        </a>
-                      </div>
-
-                      {/* ULTRA-MINIMALIST YET SPECTACULAR PREMIUM BUTTON */}
-                      <motion.button 
-                        onClick={() => setActive("catl-invites")}
-                        whileHover="hover"
-                        whileTap={{ scale: 0.97 }}
-                        className="relative w-full h-[68px] mb-6 rounded-2xl bg-white border border-admin-gray-200 overflow-hidden group/vip flex items-center justify-between px-5 transition-all duration-500 hover:border-[#0047BA]/30 hover:shadow-[0_12px_40px_rgba(0,71,186,0.12)]"
-                      >
-                        {/* Subtle, elegant gradient glow that fades in */}
-                        <div className="absolute inset-0 opacity-0 group-hover/vip:opacity-100 transition-opacity duration-700 pointer-events-none">
-                          <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-bl from-[#0047BA]/10 to-transparent rounded-full blur-2xl transform translate-x-1/2 -translate-y-1/2" />
-                          <div className="absolute left-0 bottom-0 w-24 h-24 bg-gradient-to-tr from-[#00B4D8]/10 to-transparent rounded-full blur-xl transform -translate-x-1/2 translate-y-1/2" />
+                    <div className="p-7 flex flex-col h-full relative z-10">
+                      <div className="flex items-start justify-between mb-8">
+                        <div className="w-16 h-16 rounded-[1.25rem] flex items-center justify-center shadow-lg relative" style={{ background: `linear-gradient(135deg, ${client.color}, ${client.colorSecondary})`, boxShadow: `0 10px 30px ${client.color}30` }}>
+                          <div className="absolute inset-0 rounded-[1.25rem] bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          <span className="text-white font-black text-base tracking-tighter relative z-10">{client.shortLabel}</span>
                         </div>
-                        
-                        {/* Liquid sweep - highly elegant */}
-                        <motion.div 
-                          className="absolute top-0 bottom-0 w-[200%] bg-gradient-to-r from-transparent via-[#0047BA]/[0.03] to-transparent skew-x-[-20deg]"
-                          variants={{
-                            hover: { left: ["-100%", "100%"] }
-                          }}
-                          initial={{ left: "-100%" }}
-                          transition={{ duration: 1.5, ease: "easeInOut", repeat: Infinity, repeatDelay: 0.5 }}
-                        />
+                        <div className="flex flex-col items-end gap-2">
+                          <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase flex items-center gap-1.5 border ${client.isLive ? "bg-green-50 text-green-600 border-green-100" : "bg-amber-50 text-amber-700 border-amber-100"}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${client.isLive ? "bg-green-500 animate-pulse" : "bg-amber-500"}`} />
+                            {client.isLive ? "Aktív" : "Előkészítés"}
+                          </span>
+                          <span className="text-[10px] font-bold text-admin-gray-400 tracking-wider uppercase">
+                            {client.tag}
+                          </span>
+                        </div>
+                      </div>
 
-                        <div className="relative flex items-center gap-4 z-10">
-                          {/* Minimalist Icon */}
-                          <div className="w-12 h-12 rounded-[14px] bg-admin-gray-50 flex items-center justify-center group-hover/vip:bg-[#0047BA]/5 transition-colors duration-500">
-                            <MailOpen className="w-5 h-5 text-admin-gray-700 group-hover/vip:text-[#0047BA] transition-colors duration-500" />
-                          </div>
-                          
-                          <div className="flex flex-col text-left">
-                            <span className="text-[10px] font-bold tracking-[0.2em] text-admin-gray-400 uppercase leading-none mb-1.5 transition-colors duration-500 group-hover/vip:text-[#0047BA]/70">
-                              Hozzáférések kezelése
-                            </span>
-                            <span className="text-admin-gray-900 font-extrabold tracking-wide text-[16px] leading-none transition-colors duration-500">
-                              CATL Meghívások
-                            </span>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-admin-gray-900 mb-2">{client.name}</h3>
+                        <p className="text-sm text-admin-gray-500 leading-relaxed mb-5">
+                          {client.description}
+                        </p>
+                      </div>
+
+                      <div className="mt-6 pt-6 border-t border-admin-gray-100/80">
+                        <div className="flex items-center justify-between mb-6">
+                          <span className="text-xs font-bold tracking-widest uppercase text-admin-gray-400">Portál elérés</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-bold transition-colors" style={{ color: client.color }}>{client.portalPath}</span>
+                            <div className="w-6 h-6 rounded-full flex items-center justify-center transition-colors" style={{ backgroundColor: `${client.color}0D` }}>
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ color: client.color }}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                              </svg>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Elegant Action Button inside the button */}
-                        <div className="relative z-10 flex items-center justify-center w-10 h-10 rounded-full bg-admin-gray-50 border border-admin-gray-100 transition-all duration-500 group-hover/vip:bg-[#0047BA] group-hover/vip:border-[#0047BA] group-hover/vip:scale-110 shadow-sm">
-                          <ArrowRight className="w-4.5 h-4.5 text-admin-gray-600 transition-colors duration-500 group-hover/vip:text-white" />
-                        </div>
-                      </motion.button>
+                        <motion.button
+                          onClick={() => client.onAccess?.()}
+                          whileHover={client.isLive ? "hover" : undefined}
+                          whileTap={client.isLive ? { scale: 0.97 } : undefined}
+                          disabled={!client.isLive}
+                          className={`relative w-full h-[68px] mb-6 rounded-2xl bg-white border overflow-hidden group/vip flex items-center justify-between px-5 transition-all duration-500 ${client.isLive ? "border-admin-gray-200 cursor-pointer" : "border-admin-gray-100 cursor-default opacity-90"}`}
+                        >
+                          {client.isLive && (
+                            <>
+                              <div className="absolute inset-0 opacity-0 group-hover/vip:opacity-100 transition-opacity duration-700 pointer-events-none">
+                                <div className="absolute right-0 top-0 w-32 h-32 rounded-full blur-2xl transform translate-x-1/2 -translate-y-1/2" style={{ background: `linear-gradient(to bottom left, ${client.color}1A, transparent)` }} />
+                                <div className="absolute left-0 bottom-0 w-24 h-24 rounded-full blur-xl transform -translate-x-1/2 translate-y-1/2" style={{ background: `linear-gradient(to top right, ${client.colorSecondary}1A, transparent)` }} />
+                              </div>
+                              <motion.div
+                                className="absolute top-0 bottom-0 w-[200%] skew-x-[-20deg]"
+                                style={{ background: `linear-gradient(to right, transparent, ${client.color}08, transparent)` }}
+                                variants={{ hover: { left: ["-100%", "100%"] } }}
+                                initial={{ left: "-100%" }}
+                                transition={{ duration: 1.5, ease: "easeInOut", repeat: Infinity, repeatDelay: 0.5 }}
+                              />
+                            </>
+                          )}
 
-                      <div className="flex gap-3 mt-4">
-                        <button className="flex-1 py-3 bg-white hover:bg-admin-gray-50 text-admin-gray-900 rounded-xl text-xs font-bold tracking-wider uppercase transition-colors border border-admin-gray-200 shadow-sm">
-                          Beállítások
-                        </button>
-                        <button className="flex-1 py-3 bg-admin-gray-900 hover:bg-admin-black text-white rounded-xl text-xs font-bold tracking-wider uppercase transition-colors shadow-[0_4px_14px_rgba(0,0,0,0.1)]">
-                          Foglalások
-                        </button>
+                          <div className="relative flex items-center gap-4 z-10">
+                            <div className="w-12 h-12 rounded-[14px] bg-admin-gray-50 flex items-center justify-center">
+                              <MailOpen className="w-5 h-5 text-admin-gray-700" />
+                            </div>
+
+                            <div className="flex flex-col text-left">
+                              <span className="text-[10px] font-bold tracking-[0.2em] text-admin-gray-400 uppercase leading-none mb-1.5">
+                                {client.isLive ? "Hozzáférések kezelése" : "Hamarosan"}
+                              </span>
+                              <span className="text-admin-gray-900 font-extrabold tracking-wide text-[16px] leading-none">
+                                {client.isLive ? client.accessLabel : `${client.shortLabel} Felület`}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="relative z-10 flex items-center justify-center w-10 h-10 rounded-full bg-admin-gray-50 border border-admin-gray-100 shadow-sm">
+                            <ArrowRight className="w-4.5 h-4.5 text-admin-gray-600" />
+                          </div>
+                        </motion.button>
+
+                        <div className="flex gap-3 mt-4">
+                          <button disabled={!client.isLive} className={`flex-1 py-3 rounded-xl text-xs font-bold tracking-wider uppercase transition-colors border shadow-sm ${client.isLive ? "bg-white hover:bg-admin-gray-50 text-admin-gray-900 border-admin-gray-200" : "bg-admin-gray-50 text-admin-gray-400 border-admin-gray-100 cursor-default"}`}>
+                            Beállítások
+                          </button>
+                          <button disabled={!client.isLive} className={`flex-1 py-3 rounded-xl text-xs font-bold tracking-wider uppercase transition-colors ${client.isLive ? "bg-admin-gray-900 hover:bg-admin-black text-white shadow-[0_4px_14px_rgba(0,0,0,0.1)]" : "bg-admin-gray-100 text-admin-gray-400 cursor-default"}`}>
+                            Foglalások
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-
+                ))}
               </div>
             </div>
-          ) : active === "catl-invites" ? (
-            <div className="max-w-7xl mx-auto w-full">
+          ) : active === "catl-invites" || active === "ecopro-invites" ? (
+            (() => {
+              const inviteIsEcopro = active === "ecopro-invites";
+              const invitePortalKey = inviteIsEcopro ? "ecopro" : "catl";
+              const inviteTitle = inviteIsEcopro ? "EcoPro Meghívások" : "CATL Meghívások";
+              const inviteShortLabel = inviteIsEcopro ? "EcoPro" : "CATL";
+              const inviteDescription = inviteIsEcopro
+                ? "Kezelje az EcoPro portálhoz hozzáféréssel rendelkező felhasználókat és delegációkat."
+                : "Kezelje a CATL portálhoz hozzáféréssel rendelkező felhasználókat és delegációkat.";
+              const inviteRecipients = inviteIsEcopro ? ecoproInviteRecipients : catlInviteRecipients;
+              const setInviteRecipients = inviteIsEcopro ? setEcoproInviteRecipients : setCatlInviteRecipients;
+              const invite2FA = inviteIsEcopro ? ecoproInvite2FA : catlInvite2FA;
+              const setInvite2FA = inviteIsEcopro ? setEcoproInvite2FA : setCatlInvite2FA;
+              const inviteSending = inviteIsEcopro ? ecoproInviteSending : catlInviteSending;
+              const inviteDeleting = inviteIsEcopro ? ecoproInviteDeleting : catlInviteDeleting;
+              const inviteResending = inviteIsEcopro ? ecoproInviteResending : catlInviteResending;
+              const inviteLoading = inviteIsEcopro ? ecoproInvitesLoading : catlInvitesLoading;
+              const inviteUsers = inviteIsEcopro ? ecoproInvites : catlInvites;
+              const derivedInviteMeta = inviteIsEcopro ? derivedEcoproMeta : derivedCatlMeta;
+              const handleSendInvite = inviteIsEcopro ? handleSendEcoproInvite : handleSendCatlInvite;
+              const handleDeleteInviteUser = inviteIsEcopro ? handleDeleteEcoproUser : handleDeleteCatlUser;
+              const handleResendInviteUser = inviteIsEcopro ? handleResendEcoproInvite : handleResendCatlInvite;
+              const inviteColor = inviteIsEcopro ? "#00B4D8" : "#0047BA";
+              const inviteSecondaryColor = inviteIsEcopro ? "#0096B4" : "#00B4D8";
+              const inviteCheckboxId = inviteIsEcopro ? "ecopro-2fa-flag" : "catl-2fa-flag";
+              const invitePlaceholder = inviteIsEcopro
+                ? "partner@ecopro.hu, manager@ecopro.hu; dolgozo@pannon.hu"
+                : "pelda@catl.hu, catl.ugyvezeto@hu.com; dolgozo@pannon.hu";
+              const invitePortalUrl = (() => {
+                if (typeof window === "undefined") return `http://localhost:3001/${invitePortalKey}`;
+                try {
+                  const u = new URL(window.location.origin);
+                  if (u.hostname === "localhost" || u.hostname === "127.0.0.1") u.port = "3001";
+                  return `${u.origin}/${invitePortalKey}`;
+                } catch {
+                  return `http://localhost:3001/${invitePortalKey}`;
+                }
+              })();
+
+              return <div className="max-w-7xl mx-auto w-full">
               <div className="mb-10 flex items-center gap-4">
                 <button
                   onClick={() => setActive("clients")}
@@ -1058,10 +1550,10 @@ export default function AdminDashboard() {
                 </button>
                 <div>
                   <h2 className="font-serif text-3xl font-bold tracking-tight text-admin-gray-900 mb-2">
-                    CATL Meghívások
+                    {inviteTitle}
                   </h2>
                   <p className="text-admin-gray-500 font-medium">
-                    Kezelje a CATL portálhoz hozzáféréssel rendelkező felhasználókat és delegációkat.
+                    {inviteDescription}
                   </p>
                 </div>
               </div>
@@ -1070,13 +1562,13 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <div className="bg-white border border-admin-gray-200 rounded-3xl p-6 shadow-sm">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-[#0047BA]/10 flex items-center justify-center">
-                      <Users className="w-6 h-6 text-[#0047BA]" />
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${inviteColor}1A` }}>
+                      <Users className="w-6 h-6" style={{ color: inviteColor }} />
                     </div>
                     <div>
                       <div className="text-sm font-medium text-admin-gray-500">Összes profil</div>
                       <div className="text-2xl font-black text-admin-gray-900 mt-0.5">
-                        {derivedCatlMeta.total === null ? "—" : (derivedCatlMeta.total ?? 0)}
+                        {derivedInviteMeta.total === null ? "—" : (derivedInviteMeta.total ?? 0)}
                       </div>
                     </div>
                   </div>
@@ -1091,7 +1583,7 @@ export default function AdminDashboard() {
                     <div>
                       <div className="text-sm font-medium text-admin-gray-500">Aktív / Aktivált</div>
                       <div className="text-2xl font-black text-admin-gray-900 mt-0.5">
-                        {derivedCatlMeta.activated === null ? "—" : (derivedCatlMeta.activated ?? 0)}
+                        {derivedInviteMeta.activated === null ? "—" : (derivedInviteMeta.activated ?? 0)}
                       </div>
                     </div>
                   </div>
@@ -1106,7 +1598,7 @@ export default function AdminDashboard() {
                     <div>
                       <div className="text-sm font-medium text-admin-gray-500">Függőben (jelszó)</div>
                       <div className="text-2xl font-black text-admin-gray-900 mt-0.5">
-                        {derivedCatlMeta.pending === null ? "—" : (derivedCatlMeta.pending ?? 0)}
+                        {derivedInviteMeta.pending === null ? "—" : (derivedInviteMeta.pending ?? 0)}
                       </div>
                     </div>
                   </div>
@@ -1121,7 +1613,7 @@ export default function AdminDashboard() {
                     <div>
                       <div className="text-sm font-medium text-admin-gray-500">2FA kötelező</div>
                       <div className="text-2xl font-black text-admin-gray-900 mt-0.5">
-                        {derivedCatlMeta.require2fa === null ? "—" : (derivedCatlMeta.require2fa ?? 0)}
+                        {derivedInviteMeta.require2fa === null ? "—" : (derivedInviteMeta.require2fa ?? 0)}
                       </div>
                     </div>
                   </div>
@@ -1131,13 +1623,13 @@ export default function AdminDashboard() {
               {/* Invite Form */}
               <div className="bg-white border border-admin-gray-200 rounded-3xl p-8 shadow-sm mb-10">
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-50 to-rose-50 flex items-center justify-center border border-amber-100">
-                    <MailOpen className="w-7 h-7 text-amber-700" />
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center border" style={{ background: `linear-gradient(135deg, ${inviteColor}12, ${inviteSecondaryColor}16)`, borderColor: `${inviteColor}25` }}>
+                    <MailOpen className="w-7 h-7" style={{ color: inviteColor }} />
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold text-admin-gray-900 font-serif mb-1">Új Meghívó Küldés</h3>
                     <p className="text-admin-gray-500 font-medium">
-                      Küldj meghívót a CATL dedikált portál felhasználók számára.
+                      {`Küldj meghívót a ${inviteShortLabel} dedikált portál felhasználók számára.`}
                     </p>
                   </div>
                 </div>
@@ -1149,15 +1641,16 @@ export default function AdminDashboard() {
                         Címzettek
                       </label>
                       <span className="text-xs font-bold text-admin-gray-400">
-                        {catlInviteRecipients.split(/[,;\n]/).map((s) => s.trim()).filter(Boolean).length} címzett
+                        {inviteRecipients.split(/[,;\n]/).map((s) => s.trim()).filter(Boolean).length} címzett
                       </span>
                     </div>
                     <textarea
-                      value={catlInviteRecipients}
-                      onChange={(e) => setCatlInviteRecipients(e.target.value)}
+                      value={inviteRecipients}
+                      onChange={(e) => setInviteRecipients(e.target.value)}
                       rows={3}
-                      placeholder="pelda@catl.hu, catl.ugyvezeto@hu.com; dolgozo@pannon.hu"
-                      className="w-full px-5 py-4 bg-admin-gray-50 border border-admin-gray-200 rounded-2xl text-admin-gray-900 placeholder:text-admin-gray-400 font-medium focus:outline-none focus:ring-2 focus:ring-[#0047BA]/20 focus:border-[#0047BA] transition-all resize-y min-h-[90px]"
+                      placeholder={invitePlaceholder}
+                      className="w-full px-5 py-4 bg-admin-gray-50 border border-admin-gray-200 rounded-2xl text-admin-gray-900 placeholder:text-admin-gray-400 font-medium transition-all resize-y min-h-[90px]"
+                      style={{ outline: "none" }}
                     />
                     <p className="text-xs text-admin-gray-400 mt-2 pl-1">
                       Több email cím is megadható vesszővel (,) , pontosvesszővel (;) vagy új sorral elválasztva.
@@ -1170,13 +1663,14 @@ export default function AdminDashboard() {
                         <div className="relative flex items-center mt-1">
                           <div className="relative">
                             <input
-                              id="catl-2fa-flag"
+                              id={inviteCheckboxId}
                               type="checkbox"
-                              checked={catlInvite2FA}
-                              onChange={(e) => setCatlInvite2FA(e.target.checked)}
-                              className="w-6 h-6 rounded-lg border-2 border-admin-gray-300 bg-white text-[#0047BA] focus:ring-[#0047BA] cursor-pointer appearance-none checked:bg-[#0047BA] checked:border-[#0047BA] transition-colors"
+                              checked={invite2FA}
+                              onChange={(e) => setInvite2FA(e.target.checked)}
+                              className="w-6 h-6 rounded-lg border-2 border-admin-gray-300 bg-white cursor-pointer appearance-none transition-colors"
+                              style={{ accentColor: inviteColor }}
                             />
-                            {catlInvite2FA && (
+                            {invite2FA && (
                               <svg
                                 className="absolute inset-0 w-6 h-6 p-1.5 text-white pointer-events-none"
                                 fill="none"
@@ -1191,7 +1685,7 @@ export default function AdminDashboard() {
                         </div>
                         <div className="flex-1">
                           <label
-                            htmlFor="catl-2fa-flag"
+                            htmlFor={inviteCheckboxId}
                             className="block font-bold text-admin-gray-900 mb-1 cursor-pointer select-none"
                           >
                             Kétfaktoros hitelesítés kötelező (2FA)
@@ -1210,16 +1704,7 @@ export default function AdminDashboard() {
                           Belépési URL (A link az emailben lesz)
                         </label>
                         <div className="px-4 py-3 bg-white border border-admin-gray-200 rounded-xl text-xs font-mono text-admin-gray-700 break-all">
-                          {(() => {
-                            if (typeof window === "undefined") return "http://localhost:3001/catl";
-                            try {
-                              const u = new URL(window.location.origin);
-                              if (u.hostname === "localhost" || u.hostname === "127.0.0.1") u.port = "3001";
-                              return `${u.origin}/catl`;
-                            } catch {
-                              return "http://localhost:3001/catl";
-                            }
-                          })()}
+                          {invitePortalUrl}
                         </div>
                       </div>
                       <p className="text-xs text-admin-gray-400">
@@ -1230,11 +1715,12 @@ export default function AdminDashboard() {
 
                   <div className="flex items-center justify-end pt-2">
                     <button
-                      onClick={handleSendCatlInvite}
-                      disabled={catlInviteSending}
-                      className="h-[56px] px-8 rounded-2xl bg-gradient-to-r from-[#0047BA] via-[#0052CC] to-[#00B4D8] text-white font-black text-sm tracking-widest uppercase shadow-[0_10px_30px_rgba(0,71,186,0.25)] hover:shadow-[0_15px_40px_rgba(0,71,186,0.4)] hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[0_10px_30px_rgba(0,71,186,0.25)] flex items-center gap-3"
+                      onClick={handleSendInvite}
+                      disabled={inviteSending}
+                      className="h-[56px] px-8 rounded-2xl text-white font-black text-sm tracking-widest uppercase hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center gap-3"
+                      style={{ background: `linear-gradient(to right, ${inviteColor}, ${inviteSecondaryColor})`, boxShadow: `0 10px 30px ${inviteColor}40` }}
                     >
-                      {catlInviteSending ? (
+                      {inviteSending ? (
                         <>
                           <svg
                             className="w-4.5 h-4.5 animate-spin text-white"
@@ -1273,15 +1759,15 @@ export default function AdminDashboard() {
                 <h3 className="font-serif text-2xl font-bold text-admin-gray-900">
                   Meghívott felhasználók
                 </h3>
-                {catlInvitesLoading && (
+                {inviteLoading && (
                   <span className="text-sm text-admin-gray-400 font-medium animate-pulse">Betöltés...</span>
                 )}
               </div>
 
-              {catlInvitesLoading ? (
+              {inviteLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                   {[0, 1, 2].map((i) => (
-                    <div key={`catl-sk-${i}`} className="bg-white border border-admin-gray-200 rounded-3xl p-6 shadow-sm animate-pulse">
+                    <div key={`${invitePortalKey}-sk-${i}`} className="bg-white border border-admin-gray-200 rounded-3xl p-6 shadow-sm animate-pulse">
                       <div className="flex items-start gap-4 mb-5">
                         <div className="w-14 h-14 rounded-2xl bg-admin-gray-100" />
                         <div className="flex-1 space-y-2.5">
@@ -1296,19 +1782,19 @@ export default function AdminDashboard() {
                     </div>
                   ))}
                 </div>
-              ) : !catlInvites || catlInvites.length === 0 ? (
+              ) : !inviteUsers || inviteUsers.length === 0 ? (
                 <div className="py-20 flex flex-col items-center text-center">
-                  <div className="w-20 h-20 rounded-2xl bg-[#0047BA]/5 border border-[#0047BA]/10 flex items-center justify-center mb-6">
-                    <MailOpen className="w-9 h-9 text-[#0047BA]" />
+                  <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6 border" style={{ backgroundColor: `${inviteColor}0D`, borderColor: `${inviteColor}20` }}>
+                    <MailOpen className="w-9 h-9" style={{ color: inviteColor }} />
                   </div>
                   <h3 className="font-serif text-2xl font-bold text-admin-gray-900 mb-2">Még nincs meghívott felhasználó</h3>
                   <p className="text-admin-gray-500 font-medium max-w-md mb-8 leading-relaxed">
-                    Küldj ki egyedi meghívót a CATL felhasználók számára az oldalon levő űrlapon keresztül — itt fognak megjelenni a lista elején amint elkészült a meghívás.
+                    {`Küldj ki egyedi meghívót a ${inviteShortLabel} felhasználók számára az oldalon levő űrlapon keresztül — itt fognak megjelenni a lista elején amint elkészült a meghívás.`}
                   </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {catlInvites.map((u: any, idx: number) => {
+                  {inviteUsers.map((u: any, idx: number) => {
                     const monogram = (u.email.split("@")[0] || "U")
                       .split(/[._-]/)
                       .map((s: string) => s[0])
@@ -1318,13 +1804,13 @@ export default function AdminDashboard() {
                     const activated = !!u.isActivated;
                     return (
                       <div
-                        key={u.id || `catl-${idx}`}
+                        key={u.id || `${invitePortalKey}-${idx}`}
                         className="bg-white border border-admin-gray-200 rounded-3xl p-6 shadow-sm hover:shadow-[0_15px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-500 relative overflow-hidden"
                       >
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-[2px] bg-gradient-to-r from-transparent via-[#0047BA]/40 to-transparent opacity-40" />
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-[2px] opacity-40" style={{ background: `linear-gradient(to right, transparent, ${inviteColor}66, transparent)` }} />
                         <div className="flex items-start gap-4 mb-5">
-                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0047BA]/15 to-[#00B4D8]/15 flex items-center justify-center border border-[#0047BA]/10 shadow-inner">
-                            <span className="font-black text-[#0047BA] text-xl tracking-tight">
+                          <div className="w-14 h-14 rounded-2xl flex items-center justify-center border shadow-inner" style={{ background: `linear-gradient(135deg, ${inviteColor}26, ${inviteSecondaryColor}26)`, borderColor: `${inviteColor}20` }}>
+                            <span className="font-black text-xl tracking-tight" style={{ color: inviteColor }}>
                               {monogram || "U"}
                             </span>
                           </div>
@@ -1355,17 +1841,17 @@ export default function AdminDashboard() {
                               </div>
                               {u.id && (
                                 <button
-                                  onClick={() => handleDeleteCatlUser(u.id as string, u.email)}
-                                  disabled={catlInviteDeleting === u.id}
+                                  onClick={() => handleDeleteInviteUser(u.id as string, u.email)}
+                                  disabled={inviteDeleting === u.id}
                                   title="Felhasználó és hozzáférés törlése"
                                   className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
-                                    catlInviteDeleting === u.id
+                                    inviteDeleting === u.id
                                       ? "bg-rose-100 text-rose-400 cursor-progress"
                                       : "text-admin-gray-400 hover:text-rose-600 hover:bg-rose-50 hover:border hover:border-rose-200"
                                   }`}
                                 >
                                   <Trash2
-                                    className={`w-4 h-4 ${catlInviteDeleting === u.id ? "animate-pulse" : ""}`}
+                                    className={`w-4 h-4 ${inviteDeleting === u.id ? "animate-pulse" : ""}`}
                                   />
                                 </button>
                               )}
@@ -1419,22 +1905,27 @@ export default function AdminDashboard() {
                             <button className="flex-1 h-11 bg-admin-gray-50 hover:bg-admin-gray-100 border border-admin-gray-200 rounded-xl text-admin-gray-800 text-xs font-black tracking-wider uppercase transition-colors">
                               Beállítások
                             </button>
-                            <button className="flex-1 h-11 bg-white hover:bg-[#0047BA]/5 border border-[#0047BA]/20 hover:border-[#0047BA]/40 rounded-xl text-[#0047BA] text-xs font-black tracking-wider uppercase transition-colors">
-                              {activated ? "Új jelszó" : "Meghívás újra"}
+                            <button
+                              onClick={() => handleResendInviteUser(u.id as string, u.email, !!u.requireTwoFactor)}
+                              disabled={inviteResending === u.id || inviteDeleting === u.id}
+                              className="flex-1 h-11 bg-white border rounded-xl text-xs font-black tracking-wider uppercase transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                              style={{ borderColor: `${inviteColor}33`, color: inviteColor }}
+                            >
+                              {inviteResending === u.id ? "Küldés..." : activated ? "Új jelszó" : "Meghívás újra"}
                             </button>
                           </div>
                           {u.id && (
                             <button
-                              onClick={() => handleDeleteCatlUser(u.id as string, u.email)}
-                              disabled={catlInviteDeleting === u.id}
+                              onClick={() => handleDeleteInviteUser(u.id as string, u.email)}
+                              disabled={inviteDeleting === u.id}
                               className={`w-full h-11 flex items-center justify-center gap-2 border rounded-xl text-xs font-black tracking-wider uppercase transition-colors ${
-                                catlInviteDeleting === u.id
+                                inviteDeleting === u.id
                                   ? "bg-rose-100 border-rose-200 text-rose-400 cursor-progress"
                                   : "bg-white border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300"
                               }`}
                             >
-                              <Trash2 className={`w-4 h-4 ${catlInviteDeleting === u.id ? "animate-pulse" : ""}`} />
-                              {catlInviteDeleting === u.id ? "Törlés..." : "Felhasználó törlése"}
+                              <Trash2 className={`w-4 h-4 ${inviteDeleting === u.id ? "animate-pulse" : ""}`} />
+                              {inviteDeleting === u.id ? "Törlés..." : "Felhasználó törlése"}
                             </button>
                           )}
                         </div>
@@ -1443,587 +1934,632 @@ export default function AdminDashboard() {
                   })}
                 </div>
               )}
-            </div>
+            </div>;
+            })()
           ) : active === "terms" ? (
-
-            <div className="max-w-7xl mx-auto w-full">
-              
-              {activeTermsSubpage === "list" ? (
-                <>
-                  <div className="mb-10">
-                    <h2 className="font-serif text-3xl font-bold tracking-tight text-admin-gray-900 mb-2">Utazási feltételek</h2>
-                    <p className="text-admin-gray-500 font-medium">Válasszon egy partnert a részletes árak és foglalási feltételek megtekintéséhez.</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    
-                    <button
-                      onClick={() => setActiveTermsSubpage("catl")}
-                      className="group text-left bg-white rounded-3xl p-1 border border-admin-gray-100 shadow-[0_20px_60px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_80px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-500 relative overflow-hidden flex flex-col min-h-[380px]"
-                    >
-                      <div className="absolute inset-1 rounded-[22px] bg-gradient-to-b from-white to-admin-gray-50/50 -z-10" />
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[2px] bg-gradient-to-r from-transparent via-[#0047BA] to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
-                      <div className="absolute -top-24 -right-24 w-56 h-56 bg-gradient-to-br from-[#0047BA]/12 to-[#00B4D8]/10 rounded-full blur-[40px] group-hover:scale-150 transition-transform duration-700 pointer-events-none" />
-                      
-                      <div className="p-7 flex flex-col h-full relative z-10">
-                        <div className="flex items-start justify-between mb-8">
-                          <div className="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-[#0047BA] to-[#00B4D8] flex items-center justify-center shadow-lg shadow-[#0047BA]/25 relative">
-                            <div className="absolute inset-0 rounded-[1.25rem] bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                            <span className="text-white font-black text-xl tracking-tighter relative z-10">CATL</span>
-                          </div>
-                          <div className="flex flex-col items-end gap-2">
-                            <span className="px-3 py-1 bg-green-50 text-green-600 border border-green-100 rounded-full text-[10px] font-black tracking-widest uppercase flex items-center gap-1.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                              Aktív 2026
-                            </span>
-                            <span className="text-[10px] font-bold text-admin-gray-400 tracking-wider uppercase">
-                              Enterprise
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex-1">
-                          <h3 className="text-xl font-bold text-admin-gray-900 mb-2 group-hover:text-[#0047BA] transition-colors duration-300">CATL utazási feltételek</h3>
-                          <p className="text-sm text-admin-gray-500 leading-relaxed mb-6">
-                            CATL Hungary Kft. delegációs és dolgozói transzferekhez kötött egyedi vállalati szerződés. Részletes árak és feltételek.
-                          </p>
-                          
-                        </div>
-
-                        <div className="mt-6 pt-6 border-t border-admin-gray-100/80 flex items-center justify-between">
-                          <span className="text-xs font-bold tracking-widest uppercase text-admin-gray-400">Részletek megtekintése</span>
-                          <div className="w-10 h-10 rounded-full bg-[#0047BA]/5 flex items-center justify-center group-hover:bg-[#0047BA] group-hover:shadow-lg group-hover:shadow-[#0047BA]/25 transition-all duration-300">
-                            <svg className="w-4 h-4 text-[#0047BA] group-hover:text-white transition-colors duration-300 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                            </svg>
-                          </div>
-                        </div>
+            (() => {
+              const PARTNER_CONFIGS: Record<string, { key: string; name: string; shortLabel: string; color: string; colorSecondary: string; textColor: string; description: string; currency: string; tag: string; }> = {
+                catl: { key: "catl", name: "CATL Hungary Kft.", shortLabel: "CATL", color: "#0047BA", colorSecondary: "#00B4D8", textColor: "#0047BA", description: "Delegációs és dolgozói transzferekhez kötött egyedi vállalati szerződés.", currency: "HUF", tag: "Enterprise" },
+                ecopro: { key: "ecopro", name: "EcoPro Global", shortLabel: "EP", color: "#00B4D8", colorSecondary: "#0096B4", textColor: "#006E8A", description: "Debrecen-Budapest és repülőtéri transzferek, 130%/150% módosítási feltételekkel.", currency: "HUF", tag: "Ipari" },
+                eccoino: { key: "eccoino", name: "Eccoino", shortLabel: "EC", color: "#60B8FF", colorSecondary: "#3A9FEE", textColor: "#1A6FB8", description: "Debrecen-Wien és Budapest-Wien útvonalak, ÁFA nélküli árakkal.", currency: "HUF", tag: "Nemzetközi" },
+                vitesco: { key: "vitesco", name: "Vitesco Technologies", shortLabel: "VT", color: "#E30613", colorSecondary: "#B80010", textColor: "#B80010", description: "Debrecen-Budapest nettó és bruttó vállalati transzferárak.", currency: "HUF", tag: "Autóipar" },
+                schaeffler: { key: "schaeffler", name: "Schaeffler", shortLabel: "SCH", color: "#009A44", colorSecondary: "#007A35", textColor: "#007A35", description: "Debrecen-Budapest nettó és bruttó vállalati transzferárak.", currency: "HUF", tag: "Autóipar" },
+                krones: { key: "krones", name: "Krones AG", shortLabel: "KR", color: "#003F8A", colorSecondary: "#002D6A", textColor: "#002D6A", description: "Db-Db és Debrecen-Budapest (utalás) vállalati szállítási árak.", currency: "HUF", tag: "Gyártás" },
+                enterair: { key: "enterair", name: "Enter Air", shortLabel: "EA", color: "#005BAA", colorSecondary: "#0078D4", textColor: "#005BAA", description: "Csoportméret alapú Euro árak több útvonalra (Db-Nv, Db-Bp, Db-Db, Db-Kassa).", currency: "EUR", tag: "Légi" },
+                tama: { key: "tama", name: "Tama", shortLabel: "TM", color: "#5CA700", colorSecondary: "#438000", textColor: "#3A6F00", description: "Debrecen-B.újfalu, Debrecen-Budapest, Budapest-B.újfalu útvonalak.", currency: "HUF", tag: "Logisztika" },
+                ni: { key: "ni", name: "NI", shortLabel: "NI", color: "#F5D000", colorSecondary: "#D8A800", textColor: "#8A6A00", description: "Standard transzfer / fo, valamint VIP Mercedes V es S osztaly arak Debrecen, Nyiregyhaza es Miskolc indulassal.", currency: "HUF", tag: "Technologia" },
+              };
+              const PARTNER_ORDER = ["catl","ecopro","eccoino","vitesco","schaeffler","krones","enterair","tama","ni"];
+              const activeCfg = activeTermsSubpage !== "list" ? PARTNER_CONFIGS[activeTermsSubpage] : null;
+              const draft = activePartnerDraft;
+              const primaryColor = activeCfg?.color || "#0047BA";
+              const secondaryColor = activeCfg?.colorSecondary || "#00B4D8";
+              const isEur = activeCfg?.currency === "EUR";
+              const isNiPartner = activeCfg?.key === "ni";
+              const niMeta = (draft?.meta || {}) as any;
+              const formatPrice = (n: number) => isEur
+                ? new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n)
+                : formatHuf(n);
+              return (
+                <div className="max-w-7xl mx-auto w-full">
+                  {activeTermsSubpage === "list" ? (
+                    <>
+                      <div className="mb-10">
+                        <h2 className="font-serif text-3xl font-bold tracking-tight text-admin-gray-900 mb-2">Utazási feltételek</h2>
+                        <p className="text-admin-gray-500 font-medium">Válasszon egy partnert a részletes árak és feltételek megtekintéséhez.</p>
                       </div>
-                    </button>
-
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="mb-8">
-                    <button
-                      onClick={() => setActiveTermsSubpage("list")}
-                      className="group inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-admin-gray-200 bg-white hover:bg-admin-gray-50 hover:border-admin-gray-300 text-admin-gray-700 hover:text-admin-gray-900 transition-all duration-300 shadow-sm mb-5"
-                    >
-                      <svg className="w-4 h-4 text-admin-gray-500 group-hover:text-[#0047BA] group-hover:-translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                      </svg>
-                      <span className="text-xs font-bold tracking-wider uppercase">Vissza az áttekintéshez</span>
-                    </button>
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
-                      <div>
-                        <div className="flex items-center gap-2 text-xs font-semibold text-admin-gray-500 mb-2">
-                          <span>Utazási feltételek</span>
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                          </svg>
-                          <span className="text-admin-gray-900">CATL részletek</span>
-                        </div>
-                        <h2 className="font-serif text-3xl font-bold tracking-tight text-admin-gray-900 mb-2">
-                          {editMode ? "CATL utazási feltételek — Szerkesztés" : "CATL utazási feltételek"}
-                        </h2>
-                        <p className="text-admin-gray-500 font-medium">
-                          {editMode
-                            ? "Módosítsa az árakat és feltételeket. A mentés után az adatok közvetlenül az adatbázisban frissülnek mindkét projekt számára."
-                            : "CATL Hungary Kft. egyedi vállalati árazásának és foglalási feltételeinek részletes áttekintése."}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2.5 shrink-0">
-                        {editMode ? (
-                          <>
-                            <button
-                              onClick={handleCancel}
-                              disabled={loading}
-                              className="px-5 py-3 rounded-xl border border-admin-gray-200 bg-white hover:bg-admin-gray-50 text-admin-gray-700 hover:text-admin-gray-900 transition-all text-xs font-bold tracking-wider uppercase shadow-sm disabled:opacity-50"
-                            >
-                              Mégse
-                            </button>
-                            <button
-                              onClick={handleSave}
-                              disabled={loading}
-                              className="px-6 py-3 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white transition-all text-xs font-bold tracking-wider uppercase shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 disabled:opacity-50 flex items-center gap-2"
-                            >
-                              {loading ? (
-                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                </svg>
-                              ) : (
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                </svg>
-                              )}
-                              {loading ? "Mentés..." : "Mentés az adatbázisba"}
-                            </button>
-                          </>
-                        ) : (
-                          <button
-                            onClick={() => setEditMode(true)}
-                            className="px-6 py-3 rounded-xl bg-gradient-to-br from-admin-gray-800 to-admin-gray-900 hover:from-admin-gray-900 hover:to-black text-white transition-all text-xs font-bold tracking-wider uppercase shadow-lg shadow-admin-gray-900/20 hover:shadow-xl flex items-center gap-2"
-                          >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                            </svg>
-                            Szerkesztés
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
-                    
-                    <div className={`xl:col-span-3 bg-white rounded-3xl p-1 border shadow-[0_20px_60px_rgba(0,0,0,0.05)] relative overflow-hidden group transition-all ${editMode ? "border-amber-200 ring-2 ring-amber-200/40" : "border-admin-gray-100"}`}>
-                      <div className="absolute inset-1 rounded-[22px] bg-gradient-to-b from-white to-admin-gray-50/30 -z-10" />
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[2px] bg-gradient-to-r from-transparent via-[#0047BA] to-transparent opacity-70" />
-                      <div className="absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-br from-[#0047BA]/8 to-[#00B4D8]/5 rounded-full blur-[60px] pointer-events-none" />
-                      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-gradient-to-tr from-[#0047BA]/5 to-[#00B4D8]/5 rounded-full blur-[60px] pointer-events-none" />
-                      {editMode && (
-                        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[10px] font-black tracking-widest uppercase shadow-lg shadow-amber-500/30 flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                          Szerkesztési mód aktív
-                        </div>
-                      )}
-
-                      <div className="p-8 md:p-10 relative z-10">
-                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10 pb-8 border-b border-admin-gray-100">
-                          <div className="flex items-center gap-5">
-                            <div className="w-20 h-20 rounded-[1.5rem] bg-gradient-to-br from-[#0047BA] to-[#00B4D8] flex items-center justify-center shadow-xl shadow-[#0047BA]/25 relative shrink-0">
-                              <div className="absolute inset-0 rounded-[1.5rem] bg-gradient-to-t from-white/10 to-transparent" />
-                              <span className="text-white font-black text-2xl tracking-tighter relative z-10">CATL</span>
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-3 mb-2 flex-wrap">
-                                {editMode ? (
-                                  <input
-                                    type="text"
-                                    value={catlPricingDraft?.partnerName || ""}
-                                    onChange={(e) => setCatlPricingDraft((prev: any) => prev ? { ...prev, partnerName: e.target.value } : prev)}
-                                    className="font-serif text-2xl font-bold tracking-tight text-admin-gray-900 bg-white border-2 border-amber-200 focus:border-amber-400 outline-none rounded-xl px-4 py-2 w-80 shadow-sm"
-                                    placeholder="Partner neve..."
-                                  />
-                                ) : (
-                                  <h3 className="font-serif text-2xl font-bold tracking-tight text-admin-gray-900">
-                                    {(catlPricingDraft?.partnerName as string) || "CATL Hungary Kft."} szerződés
-                                  </h3>
-                                )}
-                                {editMode ? (
-                                  <label className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border-2 border-amber-200 text-[10px] font-black tracking-widest uppercase text-admin-gray-700 cursor-pointer hover:bg-amber-50 transition">
-                                    <input
-                                      type="checkbox"
-                                      checked={!!catlPricingDraft?.isActive}
-                                      onChange={(e) => setCatlPricingDraft((prev: any) => prev ? { ...prev, isActive: e.target.checked } : prev)}
-                                      className="w-3.5 h-3.5 rounded accent-emerald-500"
-                                    />
-                                    Aktív
-                                  </label>
-                                ) : (
-                                  <span className={`px-3 py-1 border rounded-full text-[10px] font-black tracking-widest uppercase flex items-center gap-1.5 ${catlPricingDraft?.isActive !== false ? "bg-green-50 text-green-600 border-green-100" : "bg-admin-gray-50 text-admin-gray-500 border-admin-gray-200"}`}>
-                                    <span className={`w-1.5 h-1.5 rounded-full ${catlPricingDraft?.isActive !== false ? "bg-green-500 animate-pulse" : "bg-admin-gray-400"}`} />
-                                    {catlPricingDraft?.isActive !== false ? "Aktív 2026" : "Inaktív"}
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {PARTNER_ORDER.map((key) => {
+                          const cfg = PARTNER_CONFIGS[key];
+                          return (
+                            <button key={key} onClick={() => setActiveTermsSubpage(key as any)}
+                              className="group text-left bg-white rounded-3xl p-1 border border-admin-gray-100 shadow-[0_20px_60px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_80px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-500 relative overflow-hidden flex flex-col min-h-[320px]">
+                              <div className="absolute inset-1 rounded-[22px] bg-gradient-to-b from-white to-admin-gray-50/50 -z-10" />
+                              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[2px] opacity-60 group-hover:opacity-100 transition-opacity duration-500"
+                                style={{ background: `linear-gradient(to right, transparent, ${cfg.color}, transparent)` }} />
+                              <div className="p-7 flex flex-col h-full relative z-10">
+                                <div className="flex items-start justify-between mb-6">
+                                  <div className="w-16 h-16 rounded-[1.25rem] flex items-center justify-center shadow-lg relative"
+                                    style={{ background: `linear-gradient(135deg, ${cfg.color}, ${cfg.colorSecondary})`, boxShadow: `0 10px 30px ${cfg.color}30` }}>
+                                    <div className="absolute inset-0 rounded-[1.25rem] bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                    <span className="text-white font-black text-xs tracking-tighter relative z-10 px-1 text-center leading-tight">{cfg.shortLabel}</span>
+                                  </div>
+                                  <div className="flex flex-col items-end gap-2">
+                                    <span className="px-3 py-1 bg-green-50 text-green-600 border border-green-100 rounded-full text-[10px] font-black tracking-widest uppercase flex items-center gap-1.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />Aktív
+                                    </span>
+                                    <span className="text-[10px] font-bold text-admin-gray-400 tracking-wider uppercase">{cfg.tag}</span>
+                                  </div>
+                                </div>
+                                <div className="flex-1">
+                                  <h3 className="text-xl font-bold text-admin-gray-900 mb-1.5 group-hover:text-[--partner-color] transition-colors duration-300"
+                                    style={{ "--partner-color": cfg.color } as React.CSSProperties}>{cfg.name}</h3>
+                                  <p className="text-sm text-admin-gray-500 leading-relaxed mb-4">{cfg.description}</p>
+                                  <span className="inline-flex items-center gap-1.5 text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-lg border"
+                                    style={{ color: cfg.textColor, borderColor: `${cfg.color}30`, backgroundColor: `${cfg.color}08` }}>
+                                    {cfg.currency === "EUR" ? "€ Euro" : "Ft HUF"}
                                   </span>
-                                )}
+                                </div>
+                                <div className="mt-5 pt-5 border-t border-admin-gray-100/80 flex items-center justify-between">
+                                  <span className="text-xs font-bold tracking-widest uppercase text-admin-gray-400">Részletek</span>
+                                  <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
+                                    style={{ backgroundColor: `${cfg.color}0D` }}>
+                                    <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                                      style={{ color: cfg.color }}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                                    </svg>
+                                  </div>
+                                </div>
                               </div>
-                              <p className="text-admin-gray-500 font-medium max-w-xl">
-                                Delegációs és dolgozói transzferekhez kötött egyedi vállalati szerződés. Bruttó árak, módosítási és lemondási feltételek.
-                              </p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : activeCfg ? (
+                    <>
+                      <div className="mb-8">
+                        <button onClick={() => { setActiveTermsSubpage("list"); setEditMode(false); }}
+                          className="group inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-admin-gray-200 bg-white hover:bg-admin-gray-50 hover:border-admin-gray-300 text-admin-gray-700 hover:text-admin-gray-900 transition-all duration-300 shadow-sm mb-5">
+                          <svg className="w-4 h-4 text-admin-gray-500 group-hover:-translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                          </svg>
+                          <span className="text-xs font-bold tracking-wider uppercase">Vissza az áttekintéshez</span>
+                        </button>
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
+                          <div>
+                            <div className="flex items-center gap-2 text-xs font-semibold text-admin-gray-500 mb-2">
+                              <span>Utazási feltételek</span>
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                              </svg>
+                              <span className="text-admin-gray-900">{activeCfg.name}</span>
                             </div>
+                            <h2 className="font-serif text-3xl font-bold tracking-tight text-admin-gray-900 mb-2">
+                              {editMode ? `${activeCfg.name} — Szerkesztés` : `${activeCfg.name} utazási feltételek`}
+                            </h2>
+                            <p className="text-admin-gray-500 font-medium">
+                              {editMode ? "Módosítsa az árakat és feltételeket. Mentés után az adatbázisban frissülnek." : `${activeCfg.name} vállalati árazásának és feltételeinek áttekintése.`}
+                            </p>
                           </div>
-                        </div>
-
-                        <div className="mb-10">
-                          <div className="flex flex-col md:flex-row md:items-center gap-3 mb-6">
-                            <div className="flex items-center gap-3 flex-1">
-                              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0047BA] to-[#00B4D8] flex items-center justify-center shadow-md shadow-[#0047BA]/20 shrink-0">
-                                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+                          <div className="flex items-center gap-2.5 shrink-0">
+                            {editMode ? (
+                              <>
+                                <button onClick={handleCancel} disabled={loading}
+                                  className="px-5 py-3 rounded-xl border border-admin-gray-200 bg-white hover:bg-admin-gray-50 text-admin-gray-700 transition-all text-xs font-bold tracking-wider uppercase shadow-sm disabled:opacity-50">
+                                  Mégse
+                                </button>
+                                <button onClick={handleSave} disabled={loading}
+                                  className="px-6 py-3 rounded-xl text-white transition-all text-xs font-bold tracking-wider uppercase shadow-lg disabled:opacity-50 flex items-center gap-2"
+                                  style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`, boxShadow: `0 4px 20px ${primaryColor}40` }}>
+                                  {loading ? (
+                                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                    </svg>
+                                  ) : (
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                    </svg>
+                                  )}
+                                  {loading ? "Mentés..." : "Mentés az adatbázisba"}
+                                </button>
+                              </>
+                            ) : (
+                              <button onClick={() => setEditMode(true)}
+                                className="px-6 py-3 rounded-xl bg-gradient-to-br from-admin-gray-800 to-admin-gray-900 hover:from-admin-gray-900 hover:to-black text-white transition-all text-xs font-bold tracking-wider uppercase shadow-lg hover:shadow-xl flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                                 </svg>
-                              </div>
-                              <h4 className="font-bold text-lg tracking-tight text-admin-gray-900">Járműkategóriák és árak</h4>
-                              <div className="hidden md:block flex-1 h-px bg-gradient-to-r from-admin-gray-200 to-transparent" />
-                            </div>
-                            {editMode && (
-                              <button
-                                onClick={addVehicle}
-                                className="px-4 py-2 rounded-xl bg-gradient-to-br from-[#0047BA]/5 to-[#00B4D8]/5 hover:from-[#0047BA]/10 hover:to-[#00B4D8]/10 border border-[#0047BA]/20 text-[#0047BA] transition-all text-xs font-bold tracking-wider uppercase shadow-sm flex items-center gap-2"
-                              >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                </svg>
-                                Új jármű hozzáadása
+                                Szerkesztés
                               </button>
                             )}
                           </div>
-
-                          <div className="overflow-hidden rounded-2xl border border-admin-gray-100 shadow-sm">
-                            <div className="grid grid-cols-[2fr_1.5fr_1.5fr_1.5fr_2fr_0.7fr] bg-admin-gray-900 text-white px-5 py-4 text-[10px] font-black tracking-widest uppercase min-w-[1100px]">
-                              <div>Járműtípus / ID / Kapacitás</div>
-                              <div className="text-right">BP Airport</div>
-                              <div className="text-right">DB Airport</div>
-                              <div className="text-right">2026 Bruttó alapár</div>
-                              <div className="text-right">Módosítás / Lemondás</div>
-                              {editMode && <div className="text-center">Törlés</div>}
-                            </div>
-                            {(catlPricingDraft?.vehicles?.length ? catlPricingDraft.vehicles : Object.values(CATL_PRICING)).map((vehicle: any, idx: number) => {
-                              const palette = [
-                                "from-gray-700 to-gray-900",
-                                "from-slate-600 to-slate-800",
-                                "from-indigo-600 to-violet-800",
-                                "from-amber-600 to-orange-700",
-                                "from-emerald-700 to-teal-800",
-                                "from-purple-700 to-fuchsia-800",
-                                "from-pink-600 to-rose-700",
-                                "from-cyan-700 to-sky-800",
-                              ];
-                              const monograms = ["Šk", "O/F", "V", "S", "M", "Új", "X", "Y", "Z"];
-                              const gradient = palette[idx % palette.length];
-                              const mono = vehicle.name?.substring(0, 2) || monograms[idx % monograms.length];
-                              return (
-                                <div
-                                  key={vehicle.id || idx}
-                                  className={`grid grid-cols-[2fr_1.5fr_1.5fr_1.5fr_2fr_0.7fr] items-center px-5 py-5 text-sm transition-colors hover:bg-[#0047BA]/[0.02] min-w-[1100px] ${
-                                    idx % 2 === 0 ? "bg-white" : "bg-admin-gray-50/40"
-                                  } ${
-                                    idx !== (catlPricingDraft?.vehicles?.length ?? Object.values(CATL_PRICING).length) - 1
-                                      ? "border-b border-admin-gray-100/70"
-                                      : ""
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-4 pr-3">
-                                    <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0 shadow-md`}>
-                                      <span className="text-white font-black text-xs">
-                                        {mono.length > 3 ? mono.substring(0,3).toUpperCase() : mono.toUpperCase()}
-                                      </span>
-                                    </div>
-                                    <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                                      {editMode ? (
-                                        <>
-                                          <input
-                                            type="text"
-                                            value={vehicle.name}
-                                            onChange={(e) => updateVehicle(idx, { name: e.target.value })}
-                                            className="w-full font-bold text-admin-gray-900 bg-white border border-amber-200 focus:border-amber-400 outline-none rounded-lg px-3 py-1.5 text-sm shadow-sm"
-                                            placeholder="Név..."
-                                          />
-                                          <div className="flex gap-2">
-                                            <input
-                                              type="text"
-                                              value={vehicle.id}
-                                              onChange={(e) => updateVehicle(idx, { id: e.target.value })}
-                                              className="flex-1 text-[11px] font-mono font-semibold text-admin-gray-500 bg-admin-gray-50 border border-amber-200 focus:border-amber-400 outline-none rounded-md px-2.5 py-1"
-                                              placeholder="azonosító"
-                                            />
-                                            <input
-                                              type="text"
-                                              value={vehicle.capacity}
-                                              onChange={(e) => updateVehicle(idx, { capacity: e.target.value })}
-                                              className="flex-1 text-[11px] font-semibold text-admin-gray-700 bg-admin-gray-50 border border-amber-200 focus:border-amber-400 outline-none rounded-md px-2.5 py-1"
-                                              placeholder="kapacitás"
-                                            />
-                                          </div>
-                                        </>
-                                      ) : (
-                                        <>
-                                          <span className="font-bold text-admin-gray-900 truncate">{vehicle.name}</span>
-                                          <div className="flex gap-2 items-center">
-                                            <span className="px-2 py-0.5 rounded-md bg-admin-gray-100 text-admin-gray-500 font-mono font-bold text-[10px]">{vehicle.id}</span>
-                                            <span className="px-2.5 py-1 rounded-lg bg-admin-gray-100 text-admin-gray-700 font-semibold text-[11px] inline-block">
-                                              {vehicle.capacity}
-                                            </span>
-                                          </div>
-                                        </>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div className="text-right pl-2">
-                                    {editMode ? (
-                                      <input
-                                        type="number"
-                                        value={vehicle.bpBudAirport ?? 0}
-                                        onChange={(e) => updateVehicle(idx, { bpBudAirport: Number(e.target.value) || 0 })}
-                                        className="w-full text-right font-mono font-bold text-admin-gray-800 bg-white border border-amber-200 focus:border-amber-400 outline-none rounded-lg px-3 py-2 text-[12px] shadow-sm"
-                                      />
-                                    ) : (
-                                      <span className="font-mono font-semibold text-admin-gray-800 text-[13px]">{formatHuf(vehicle.bpBudAirport)}</span>
-                                    )}
-                                  </div>
-                                  <div className="text-right pl-2">
-                                    {editMode ? (
-                                      <div className="flex flex-col gap-1">
-                                        <label className="text-[9px] font-bold tracking-wider uppercase text-admin-gray-400 text-right">null = nincs</label>
-                                        <input
-                                          type="number"
-                                          value={vehicle.dbDbAirport ?? ""}
-                                          placeholder="null"
-                                          onChange={(e) =>
-                                            updateVehicle(idx, {
-                                              dbDbAirport: e.target.value === "" ? null : Number(e.target.value) || null,
-                                            })
-                                          }
-                                          className="w-full text-right font-mono font-bold text-admin-gray-800 bg-white border border-amber-200 focus:border-amber-400 outline-none rounded-lg px-3 py-2 text-[12px] shadow-sm placeholder:text-admin-gray-400 placeholder:italic"
-                                        />
-                                      </div>
-                                    ) : (
-                                      <div className="font-mono font-semibold text-[13px]">
-                                        {vehicle.dbDbAirport ? (
-                                          <span className="text-admin-gray-800">{formatHuf(vehicle.dbDbAirport)}</span>
-                                        ) : (
-                                          <span className="text-admin-gray-400 italic">—</span>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="text-right pl-2">
-                                    {editMode ? (
-                                      <input
-                                        type="number"
-                                        value={vehicle.newPrice2026 ?? 0}
-                                        onChange={(e) => updateVehicle(idx, { newPrice2026: Number(e.target.value) || 0 })}
-                                        className="w-full text-right font-mono font-black bg-gradient-to-br from-[#0047BA]/5 to-[#00B4D8]/5 border border-[#0047BA]/25 focus:border-[#0047BA] text-[#0047BA] outline-none rounded-xl px-3 py-2 text-[13px] shadow-sm"
-                                      />
-                                    ) : (
-                                      <span className="inline-block px-3 py-1.5 rounded-xl bg-gradient-to-br from-[#0047BA]/10 to-[#00B4D8]/10 border border-[#0047BA]/15 text-[#0047BA] font-black text-sm font-mono tracking-tight">
-                                        {formatHuf(vehicle.newPrice2026)}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="pl-2 pr-1">
-                                    {editMode ? (
-                                      <div className="grid grid-cols-2 gap-1.5">
-                                        <input
-                                          type="number"
-                                          title="Módosítás 12-24h"
-                                          value={vehicle.modification12to24h ?? 0}
-                                          onChange={(e) => updateVehicle(idx, { modification12to24h: Number(e.target.value) || 0 })}
-                                          className="w-full text-right font-mono text-[11px] font-semibold text-admin-gray-700 bg-white border border-amber-200 focus:border-amber-400 outline-none rounded px-2 py-1 shadow-sm"
-                                          placeholder="M12-24"
-                                        />
-                                        <input
-                                          type="number"
-                                          title="Módosítás 0-12h"
-                                          value={vehicle.modification0to12h ?? 0}
-                                          onChange={(e) => updateVehicle(idx, { modification0to12h: Number(e.target.value) || 0 })}
-                                          className="w-full text-right font-mono text-[11px] font-semibold text-admin-gray-700 bg-white border border-amber-200 focus:border-amber-400 outline-none rounded px-2 py-1 shadow-sm"
-                                          placeholder="M0-12"
-                                        />
-                                        <input
-                                          type="number"
-                                          title="Lemondás 12-24h"
-                                          value={vehicle.cancellation12to24h ?? 0}
-                                          onChange={(e) => updateVehicle(idx, { cancellation12to24h: Number(e.target.value) || 0 })}
-                                          className="w-full text-right font-mono text-[11px] font-semibold text-admin-gray-700 bg-white border border-amber-200 focus:border-amber-400 outline-none rounded px-2 py-1 shadow-sm"
-                                          placeholder="L12-24"
-                                        />
-                                        <input
-                                          type="number"
-                                          title="Lemondás 0-12h"
-                                          value={vehicle.cancellation0to12h ?? 0}
-                                          onChange={(e) => updateVehicle(idx, { cancellation0to12h: Number(e.target.value) || 0 })}
-                                          className="w-full text-right font-mono text-[11px] font-semibold text-admin-gray-700 bg-white border border-amber-200 focus:border-amber-400 outline-none rounded px-2 py-1 shadow-sm"
-                                          placeholder="L0-12"
-                                        />
-                                      </div>
-                                    ) : (
-                                      <div className="text-[10px] space-y-0.5">
-                                        <div className="flex justify-between font-semibold">
-                                          <span className="text-amber-700">Mód 12-24:</span>
-                                          <span className="font-mono text-admin-gray-800">{formatHuf(vehicle.modification12to24h)}</span>
-                                        </div>
-                                        <div className="flex justify-between font-semibold">
-                                          <span className="text-rose-700">Mód 0-12:</span>
-                                          <span className="font-mono text-admin-gray-800">{formatHuf(vehicle.modification0to12h)}</span>
-                                        </div>
-                                        <div className="flex justify-between font-semibold">
-                                          <span className="text-sky-700">Lem 12-24:</span>
-                                          <span className="font-mono text-admin-gray-800">{formatHuf(vehicle.cancellation12to24h)}</span>
-                                        </div>
-                                        <div className="flex justify-between font-semibold">
-                                          <span className="text-indigo-700">Lem 0-12:</span>
-                                          <span className="font-mono text-admin-gray-800">{formatHuf(vehicle.cancellation0to12h)}</span>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                  {editMode && (
-                                    <div className="flex items-center justify-center">
-                                      <button
-                                        onClick={() => removeVehicle(idx)}
-                                        className="w-10 h-10 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 flex items-center justify-center transition-all group"
-                                        title={`${vehicle.name} törlése`}
-                                      >
-                                        <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.3}>
-                                          <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                        </svg>
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
                         </div>
+                      </div>
 
-                        <div className="mb-2">
-                          <div className="flex items-center gap-3 mb-6">
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-md shadow-violet-500/20 shrink-0">
-                              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                              </svg>
-                            </div>
-                            <h4 className="font-bold text-lg tracking-tight text-admin-gray-900">Foglalási feltételek (százalékos táblázat)</h4>
-                            <div className="flex-1 h-px bg-gradient-to-r from-admin-gray-200 to-transparent" />
+                      <div className={`bg-white rounded-3xl p-1 border shadow-[0_20px_60px_rgba(0,0,0,0.05)] relative overflow-hidden transition-all ${editMode ? "border-amber-200 ring-2 ring-amber-200/40" : "border-admin-gray-100"}`}>
+                        <div className="absolute inset-1 rounded-[22px] bg-gradient-to-b from-white to-admin-gray-50/30 -z-10" />
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[2px] opacity-70"
+                          style={{ background: `linear-gradient(to right, transparent, ${primaryColor}, transparent)` }} />
+                        {editMode && (
+                          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[10px] font-black tracking-widest uppercase shadow-lg flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            Szerkesztési mód aktív
                           </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-                            {[
-                              { key: "mod", sub: "12-24h", title: "Módosítás 12-24h", color: "amber", gradient: "from-amber-50 to-orange-50", border: "border-amber-100", badge: "from-amber-500 to-orange-600", shadow: "shadow-amber-500/30", text: "text-amber-700", textStrong: "text-amber-900" },
-                              { key: "mod", sub: "0-12h", title: "Módosítás 0-12h", color: "rose", gradient: "from-rose-50 to-red-50", border: "border-rose-100", badge: "from-rose-500 to-red-600", shadow: "shadow-rose-500/30", text: "text-rose-700", textStrong: "text-rose-900" },
-                              { key: "cancel", sub: "12-24h", title: "Lemondás 12-24h", color: "sky", gradient: "from-sky-50 to-blue-50", border: "border-sky-100", badge: "from-sky-500 to-blue-600", shadow: "shadow-sky-500/30", text: "text-sky-700", textStrong: "text-sky-900" },
-                              { key: "cancel", sub: "0-12h", title: "Lemondás 0-12h", color: "indigo", gradient: "from-indigo-50 to-violet-50", border: "border-indigo-100", badge: "from-indigo-500 to-violet-600", shadow: "shadow-indigo-500/30", text: "text-indigo-700", textStrong: "text-indigo-900" },
-                            ].map((spec) => {
-                              const section = spec.key === "mod" ? "modification" : "cancellation";
-                              const subKey = spec.sub as "12-24h" | "0-12h";
-                              const value =
-                                (((catlPricingDraft?.terms as any)?.[section] as any)?.[subKey] as any) ??
-                                (CATL_TERMS as any)[section][subKey];
-                              return (
-                                <div key={spec.key + spec.sub} className={`rounded-2xl bg-gradient-to-br ${spec.gradient} border ${spec.border} p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300`}>
-                                  <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${spec.badge} opacity-20 rounded-full blur-2xl -translate-y-8 translate-x-8`} />
-                                  <div className="relative z-10">
-                                    <div className="flex items-center justify-between mb-4 gap-2">
-                                      <div className="flex items-center gap-2">
-                                        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${spec.badge} flex items-center justify-center shadow-md ${spec.shadow}`}>
-                                          <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d={spec.sub === "12-24h" ? "M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" : "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z"} />
-                                          </svg>
-                                        </div>
-                                        <span className={`text-[10px] font-black tracking-widest uppercase ${spec.text}`}>{spec.sub} óra</span>
-                                      </div>
-                                      {editMode && (
-                                        <span className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-white border ${spec.border} ${spec.text}`}>
-                                          EDIT
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div className="mb-2 flex items-baseline gap-2 flex-wrap">
-                                      {editMode ? (
-                                        <input
-                                          type="number"
-                                          value={value?.percentage ?? 0}
-                                          onChange={(e) => {
-                                            const pct = Number(e.target.value) || 0;
-                                            setCatlPricingDraft((prev: any) => {
-                                              if (!prev) return prev;
-                                              const next = { ...prev, terms: JSON.parse(JSON.stringify(prev.terms || CATL_TERMS)) };
-                                              next.terms[section][spec.sub].percentage = pct;
-                                              return next;
-                                            });
-                                          }}
-                                          className={`w-24 font-black bg-white border-2 focus:outline-none rounded-xl px-3 py-2 text-2xl shadow-sm ${spec.textStrong} border-${spec.color}-200 focus:border-${spec.color}-400`}
-                                        />
-                                      ) : (
-                                        <span className={`text-3xl font-black ${spec.textStrong}`}>{value?.percentage}%</span>
-                                      )}
-                                    </div>
-                                    <div className={`text-xs font-bold ${spec.text} mb-1 uppercase tracking-wider`}>
-                                      {spec.key === "mod" ? "Módosítás felár" : "Lemondás kötbér"}
-                                    </div>
-                                    {editMode ? (
-                                      <input
-                                        type="text"
-                                        value={value?.description ?? ""}
-                                        onChange={(e) => {
-                                          setCatlPricingDraft((prev: any) => {
-                                            if (!prev) return prev;
-                                            const next = { ...prev, terms: JSON.parse(JSON.stringify(prev.terms || CATL_TERMS)) };
-                                            next.terms[section][spec.sub].description = e.target.value;
-                                            return next;
-                                          });
-                                        }}
-                                        className={`w-full text-[11px] font-medium leading-relaxed bg-white border-2 ${spec.border} focus:outline-none rounded-lg px-2.5 py-1.5 ${spec.text}`}
-                                      />
-                                    ) : (
-                                      <p className={`text-[11px] ${spec.text}/80 font-medium leading-relaxed`}>
-                                        {value?.description} az alapárból
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        <div className="mt-10 pt-8 border-t border-admin-gray-100 grid grid-cols-1 md:grid-cols-2 gap-5">
-                          {(catlPricingDraft?.vehicles?.length ? catlPricingDraft.vehicles : Object.values(CATL_PRICING)).map((vRef: any, idx: number) => {
-                            if (idx > 1) return null;
-                            const vehicle = (catlPricingDraft?.vehicles?.length ? catlPricingDraft.vehicles : Object.values(CATL_PRICING))[idx === 0 ? 0 : 3] as any;
-                            const isDaily = idx === 1;
-                            const label = isDaily ? "Napi díj (S class felső határ)" : "Extra várakozás (Skoda alap)";
-                            const field = isDaily ? "dailyRate" : "extraWaitingPerHour";
-                            const suffix = isDaily ? "" : "/óra";
-                            const iconLeft = isDaily
-                              ? "from-[#0047BA] to-[#00B4D8]"
-                              : "from-admin-gray-800 to-admin-gray-900";
-                            const iconSvg = isDaily
-                              ? "M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-                              : "M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z";
-                            return (
-                              <div key={label} className="rounded-2xl bg-white border border-admin-gray-100 p-6 flex items-center gap-5 hover:border-admin-gray-200 transition-colors shadow-sm">
-                                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${iconLeft} flex items-center justify-center shadow-md shrink-0`}>
-                                  <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d={iconSvg} />
-                                  </svg>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="text-[10px] font-black tracking-widest uppercase text-admin-gray-400 mb-1">{label}</div>
+                        )}
+                        <div className="p-8 md:p-10 relative z-10">
+                          {/* Header */}
+                          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10 pb-8 border-b border-admin-gray-100">
+                            <div className="flex items-center gap-5">
+                              <div className="w-20 h-20 rounded-[1.5rem] flex items-center justify-center shadow-xl relative shrink-0"
+                                style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`, boxShadow: `0 12px 40px ${primaryColor}30` }}>
+                                <div className="absolute inset-0 rounded-[1.5rem] bg-gradient-to-t from-white/10 to-transparent" />
+                                <span className="text-white font-black text-base tracking-tighter relative z-10 px-1 text-center leading-tight">{activeCfg.shortLabel}</span>
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-3 mb-2 flex-wrap">
                                   {editMode ? (
-                                    <div className="flex items-baseline gap-2 flex-wrap">
-                                      <input
-                                        type="number"
-                                        value={vehicle?.[field] ?? 0}
-                                        onChange={(e) => {
-                                          const source = catlPricingDraft?.vehicles?.length ? catlPricingDraft.vehicles : Object.values(CATL_PRICING);
-                                          const targetIdx = catlPricingDraft?.vehicles?.length ? (isDaily ? 3 : 0) : (isDaily ? 3 : 0);
-                                          if (source[targetIdx]) {
-                                            updateVehicle(targetIdx, { [field]: Number(e.target.value) || 0 });
-                                          }
-                                        }}
-                                        className="text-xl font-black text-admin-gray-900 font-mono bg-white border border-amber-200 focus:border-amber-400 outline-none rounded-lg px-3 py-2 shadow-sm w-40"
-                                      />
-                                      {suffix && <span className="text-sm font-semibold text-admin-gray-500">{suffix}</span>}
-                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-admin-gray-100 text-admin-gray-500 uppercase tracking-wider">+ Áfa</span>
-                                    </div>
+                                    <input type="text" value={draft?.partnerName || ""}
+                                      onChange={(e) => setActivePartnerDraft((prev: any) => prev ? { ...prev, partnerName: e.target.value } : prev)}
+                                      className="font-serif text-2xl font-bold tracking-tight text-admin-gray-900 bg-white border-2 border-amber-200 focus:border-amber-400 outline-none rounded-xl px-4 py-2 w-72 shadow-sm" />
                                   ) : (
-                                    <div className="flex items-baseline gap-2 flex-wrap">
-                                      <span className="text-xl font-black text-admin-gray-900 font-mono">
-                                        {isDaily
-                                          ? `${formatHuf((catlPricingDraft?.vehicles?.[0]?.dailyRate ?? CATL_PRICING.skoda.dailyRate) || 0)} – ${formatHuf((catlPricingDraft?.vehicles?.[3]?.dailyRate ?? CATL_PRICING.s_class.dailyRate) || 0)}`
-                                          : formatHuf(vehicle?.[field] ?? 0)
-                                        }
-                                      </span>
-                                      {suffix && <span className="text-sm font-semibold text-admin-gray-500">{suffix}</span>}
-                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-admin-gray-100 text-admin-gray-500 uppercase tracking-wider">+ Áfa</span>
-                                    </div>
+                                    <h3 className="font-serif text-2xl font-bold tracking-tight text-admin-gray-900">{draft?.partnerName || activeCfg.name} szerződés</h3>
                                   )}
+                                  {editMode ? (
+                                    <label className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border-2 border-amber-200 text-[10px] font-black tracking-widest uppercase text-admin-gray-700 cursor-pointer hover:bg-amber-50 transition">
+                                      <input type="checkbox" checked={!!draft?.isActive}
+                                        onChange={(e) => setActivePartnerDraft((prev: any) => prev ? { ...prev, isActive: e.target.checked } : prev)}
+                                        className="w-3.5 h-3.5 rounded accent-emerald-500" />
+                                      Aktív
+                                    </label>
+                                  ) : (
+                                    <span className={`px-3 py-1 border rounded-full text-[10px] font-black tracking-widest uppercase flex items-center gap-1.5 ${draft?.isActive !== false ? "bg-green-50 text-green-600 border-green-100" : "bg-admin-gray-50 text-admin-gray-500 border-admin-gray-200"}`}>
+                                      <span className={`w-1.5 h-1.5 rounded-full ${draft?.isActive !== false ? "bg-green-500 animate-pulse" : "bg-admin-gray-400"}`} />
+                                      {draft?.isActive !== false ? "Aktív 2026" : "Inaktív"}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-admin-gray-500 font-medium max-w-xl">{activeCfg.description}</p>
+                                {isEur && (
+                                  <p className="mt-2 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-1.5 inline-block">
+                                    ⚡ Árak Euro-ban (EUR) értendők
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {isNiPartner ? (
+                            <div className="space-y-8">
+                              <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50 px-5 py-4">
+                                <div className="flex items-start gap-3">
+                                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#F5D000] to-[#D8A800] flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0">
+                                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                  </div>
+                                  <div>
+                                    <h4 className="font-bold text-admin-gray-900">NI artabla</h4>
+                                    <p className="text-sm text-admin-gray-600">
+                                      Standard transzfer per fo, valamint VIP Mercedes V es S osztaly. Minden ertek adatbazisba mentheto.
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            );
-                          })}
+
+                              <div className="rounded-2xl border border-admin-gray-100 bg-white shadow-sm overflow-hidden">
+                                <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-admin-gray-100">
+                                  <div>
+                                    <h4 className="font-bold text-lg text-admin-gray-900">Standard transzfer (/ fo)</h4>
+                                    <p className="text-sm text-admin-gray-500">1 fo, 2 fo, 3 fo es 4+ fo arak egy tablaban.</p>
+                                  </div>
+                                  {editMode && (
+                                    <button
+                                      onClick={() => addNiRow("standardTransfers")}
+                                      className="px-4 py-2 rounded-xl border text-xs font-bold tracking-wider uppercase shadow-sm flex items-center gap-2 transition-all"
+                                      style={{ borderColor: `${primaryColor}30`, color: activeCfg.textColor, backgroundColor: `${primaryColor}10` }}
+                                    >
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                      </svg>
+                                      Uj sor
+                                    </button>
+                                  )}
+                                </div>
+                                <div className="overflow-x-auto">
+                                  <table className="min-w-[1480px] w-full text-sm">
+                                    <thead style={{ backgroundColor: primaryColor }}>
+                                      <tr className="text-white text-[10px] font-black tracking-widest uppercase">
+                                        <th className="px-4 py-3 text-left">Indulas</th>
+                                        <th className="px-4 py-3 text-left">Erkezes</th>
+                                        <th className="px-4 py-3 text-right">Regi netto</th>
+                                        <th className="px-4 py-3 text-right">Jelenlegi netto</th>
+                                        <th className="px-4 py-3 text-right">Brutto 1 fo</th>
+                                        <th className="px-4 py-3 text-right">2 fo netto ossz.</th>
+                                        <th className="px-4 py-3 text-right">2 fo netto / fo</th>
+                                        <th className="px-4 py-3 text-right">2 fo brutto / fo</th>
+                                        <th className="px-4 py-3 text-right">3 fo netto ossz.</th>
+                                        <th className="px-4 py-3 text-right">3 fo netto / fo</th>
+                                        <th className="px-4 py-3 text-right">3 fo brutto / fo</th>
+                                        <th className="px-4 py-3 text-right">4+ brutto / fo</th>
+                                        {editMode && <th className="px-4 py-3 text-center">Del</th>}
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {(niMeta.standardTransfers || []).map((row: any, idx: number) => (
+                                        <tr key={`ni-standard-${idx}`} className={idx % 2 === 0 ? "bg-white" : "bg-admin-gray-50/40"}>
+                                          <td className="px-4 py-3 min-w-[220px]">
+                                            {editMode ? (
+                                              <input type="text" value={row.origin || ""} onChange={(e) => updateNiRow("standardTransfers", idx, { origin: e.target.value })}
+                                                className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm font-semibold text-admin-gray-800 outline-none focus:border-amber-400" />
+                                            ) : (
+                                              <span className="font-semibold text-admin-gray-900">{row.origin}</span>
+                                            )}
+                                          </td>
+                                          <td className="px-4 py-3 min-w-[240px]">
+                                            {editMode ? (
+                                              <input type="text" value={row.destination || ""} onChange={(e) => updateNiRow("standardTransfers", idx, { destination: e.target.value })}
+                                                className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm font-semibold text-admin-gray-800 outline-none focus:border-amber-400" />
+                                            ) : (
+                                              <span className="font-semibold text-admin-gray-700">{row.destination}</span>
+                                            )}
+                                          </td>
+                                          {([
+                                            "oldNet",
+                                            "currentNet",
+                                            "grossOnePerson",
+                                            "twoPersonNetTotal",
+                                            "twoPersonNetPerPerson",
+                                            "twoPersonGrossPerPerson",
+                                            "threePersonNetTotal",
+                                            "threePersonNetPerPerson",
+                                            "threePersonGrossPerPerson",
+                                            "fourPlusGrossPerPerson",
+                                          ] as const).map((field) => (
+                                            <td key={field} className="px-4 py-3 text-right">
+                                              {editMode ? (
+                                                <input type="number" value={row[field] ?? 0} onChange={(e) => updateNiRow("standardTransfers", idx, { [field]: Number(e.target.value) || 0 })}
+                                                  className="w-28 rounded-lg border border-amber-200 px-3 py-2 text-right text-sm font-mono font-bold text-admin-gray-800 outline-none focus:border-amber-400" />
+                                              ) : (
+                                                <span className={`font-mono font-bold ${field === "grossOnePerson" || field === "twoPersonGrossPerPerson" || field === "threePersonGrossPerPerson" || field === "fourPlusGrossPerPerson" ? "text-[#8A6A00]" : "text-admin-gray-800"}`}>
+                                                  {formatHuf(row[field] ?? 0)}
+                                                </span>
+                                              )}
+                                            </td>
+                                          ))}
+                                          {editMode && (
+                                            <td className="px-4 py-3 text-center">
+                                              <button onClick={() => removeNiRow("standardTransfers", idx)}
+                                                className="w-10 h-10 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 inline-flex items-center justify-center transition-all">
+                                                <Trash2 className="w-4 h-4" />
+                                              </button>
+                                            </td>
+                                          )}
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+
+                              {([
+                                { key: "vipVClass", title: "VIP - Mercedes V Osztaly", subtitle: "VIP transzfer tarifa", accent: "from-amber-400 to-yellow-500" },
+                                { key: "vipSClass", title: "VIP - Mercedes S Osztaly", subtitle: "VIP premium tarifa", accent: "from-yellow-500 to-amber-600" },
+                              ] as const).map((section) => (
+                                <div key={section.key} className="rounded-2xl border border-admin-gray-100 bg-white shadow-sm overflow-hidden">
+                                  <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-admin-gray-100">
+                                    <div className="flex items-center gap-3">
+                                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${section.accent} flex items-center justify-center shadow-md shadow-amber-500/20`}>
+                                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+                                        </svg>
+                                      </div>
+                                      <div>
+                                        <h4 className="font-bold text-lg text-admin-gray-900">{section.title}</h4>
+                                        <p className="text-sm text-admin-gray-500">{section.subtitle}</p>
+                                      </div>
+                                    </div>
+                                    {editMode && (
+                                      <button
+                                        onClick={() => addNiRow(section.key)}
+                                        className="px-4 py-2 rounded-xl border text-xs font-bold tracking-wider uppercase shadow-sm flex items-center gap-2 transition-all"
+                                        style={{ borderColor: `${primaryColor}30`, color: activeCfg.textColor, backgroundColor: `${primaryColor}10` }}
+                                      >
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                        </svg>
+                                        Uj sor
+                                      </button>
+                                    )}
+                                  </div>
+                                  <div className="overflow-x-auto">
+                                    <table className="min-w-[860px] w-full text-sm">
+                                      <thead style={{ backgroundColor: primaryColor }}>
+                                        <tr className="text-white text-[10px] font-black tracking-widest uppercase">
+                                          <th className="px-4 py-3 text-left">Indulas</th>
+                                          <th className="px-4 py-3 text-left">Erkezes</th>
+                                          <th className="px-4 py-3 text-right">Regi netto</th>
+                                          <th className="px-4 py-3 text-right">Jelenlegi netto</th>
+                                          <th className="px-4 py-3 text-right">Brutto</th>
+                                          {editMode && <th className="px-4 py-3 text-center">Del</th>}
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {(niMeta[section.key] || []).map((row: any, idx: number) => (
+                                          <tr key={`${section.key}-${idx}`} className={idx % 2 === 0 ? "bg-white" : "bg-admin-gray-50/40"}>
+                                            <td className="px-4 py-3 min-w-[220px]">
+                                              {editMode ? (
+                                                <input type="text" value={row.origin || ""} onChange={(e) => updateNiRow(section.key, idx, { origin: e.target.value })}
+                                                  className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm font-semibold text-admin-gray-800 outline-none focus:border-amber-400" />
+                                              ) : (
+                                                <span className="font-semibold text-admin-gray-900">{row.origin}</span>
+                                              )}
+                                            </td>
+                                            <td className="px-4 py-3 min-w-[240px]">
+                                              {editMode ? (
+                                                <input type="text" value={row.destination || ""} onChange={(e) => updateNiRow(section.key, idx, { destination: e.target.value })}
+                                                  className="w-full rounded-lg border border-amber-200 px-3 py-2 text-sm font-semibold text-admin-gray-800 outline-none focus:border-amber-400" />
+                                              ) : (
+                                                <span className="font-semibold text-admin-gray-700">{row.destination}</span>
+                                              )}
+                                            </td>
+                                            {(["oldNet", "currentNet", "gross"] as const).map((field) => (
+                                              <td key={field} className="px-4 py-3 text-right">
+                                                {editMode ? (
+                                                  <input type="number" value={row[field] ?? 0} onChange={(e) => updateNiRow(section.key, idx, { [field]: Number(e.target.value) || 0 })}
+                                                    className="w-32 rounded-lg border border-amber-200 px-3 py-2 text-right text-sm font-mono font-bold text-admin-gray-800 outline-none focus:border-amber-400" />
+                                                ) : (
+                                                  <span className={`font-mono font-bold ${field === "gross" ? "text-[#8A6A00]" : "text-admin-gray-800"}`}>
+                                                    {formatHuf(row[field] ?? 0)}
+                                                  </span>
+                                                )}
+                                              </td>
+                                            ))}
+                                            {editMode && (
+                                              <td className="px-4 py-3 text-center">
+                                                <button onClick={() => removeNiRow(section.key, idx)}
+                                                  className="w-10 h-10 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 inline-flex items-center justify-center transition-all">
+                                                  <Trash2 className="w-4 h-4" />
+                                                </button>
+                                              </td>
+                                            )}
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <>
+                              {/* Vehicles */}
+                              <div className="mb-10">
+                                <div className="flex flex-col md:flex-row md:items-center gap-3 mb-6">
+                                  <div className="flex items-center gap-3 flex-1">
+                                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-md shrink-0"
+                                      style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}>
+                                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+                                      </svg>
+                                    </div>
+                                    <h4 className="font-bold text-lg tracking-tight text-admin-gray-900">Jarmukategoriak es arak</h4>
+                                    <div className="hidden md:block flex-1 h-px bg-gradient-to-r from-admin-gray-200 to-transparent" />
+                                  </div>
+                                  {editMode && (
+                                    <button onClick={addVehicle}
+                                      className="px-4 py-2 rounded-xl border text-xs font-bold tracking-wider uppercase shadow-sm flex items-center gap-2 transition-all"
+                                      style={{ borderColor: `${primaryColor}30`, color: primaryColor, backgroundColor: `${primaryColor}08` }}>
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                      </svg>
+                                      Uj jarmu
+                                    </button>
+                                  )}
+                                </div>
+                                {activePartnerLoading ? (
+                                  <div className="h-40 rounded-2xl border border-admin-gray-100 flex items-center justify-center">
+                                    <svg className="w-7 h-7 animate-spin" fill="none" viewBox="0 0 24 24" style={{ color: primaryColor }}>
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                    </svg>
+                                  </div>
+                                ) : (
+                                  <div className="overflow-x-auto rounded-2xl border border-admin-gray-100 shadow-sm">
+                                    <div className={`grid text-white px-5 py-4 text-[10px] font-black tracking-widest uppercase min-w-[860px] ${editMode ? "grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1.8fr_0.6fr]" : "grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1.8fr]"}`}
+                                      style={{ backgroundColor: primaryColor }}>
+                                      <div>Jarmu / ID / Kapacitas</div>
+                                      <div className="text-right">Alap / BP</div>
+                                      <div className="text-right">DB / Helyi</div>
+                                      <div className="text-right">2026 Ar ({activeCfg.currency})</div>
+                                      <div className="text-right">Modositas / Lemondas</div>
+                                      {editMode && <div className="text-center">Del</div>}
+                                    </div>
+                                    {(draft?.vehicles || []).map((vehicle: any, idx: number) => (
+                                      <div key={vehicle.id || idx}
+                                        className={`grid px-5 py-4 text-sm min-w-[860px] ${editMode ? "grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1.8fr_0.6fr]" : "grid-cols-[2fr_1.2fr_1.2fr_1.2fr_1.8fr]"} items-center ${idx % 2 === 0 ? "bg-white" : "bg-admin-gray-50/40"} ${idx !== (draft?.vehicles?.length || 1) - 1 ? "border-b border-admin-gray-100/70" : ""}`}>
+                                        <div className="flex items-center gap-4 pr-3">
+                                          <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-md"
+                                            style={{ background: `linear-gradient(135deg, ${primaryColor}CC, ${secondaryColor}CC)` }}>
+                                            <span className="text-white font-black text-xs">{(vehicle.name?.substring(0,3) || "V").toUpperCase()}</span>
+                                          </div>
+                                          <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                                            {editMode ? (
+                                              <>
+                                                <input type="text" value={vehicle.name} onChange={(e) => updateVehicle(idx, { name: e.target.value })}
+                                                  className="w-full font-bold text-admin-gray-900 bg-white border border-amber-200 focus:border-amber-400 outline-none rounded-lg px-3 py-1.5 text-sm shadow-sm" />
+                                                <div className="flex gap-2">
+                                                  <input type="text" value={vehicle.id} onChange={(e) => updateVehicle(idx, { id: e.target.value })}
+                                                    className="flex-1 text-[11px] font-mono font-semibold text-admin-gray-500 bg-admin-gray-50 border border-amber-200 focus:border-amber-400 outline-none rounded-md px-2.5 py-1" />
+                                                  <input type="text" value={vehicle.capacity} onChange={(e) => updateVehicle(idx, { capacity: e.target.value })}
+                                                    className="flex-1 text-[11px] font-semibold text-admin-gray-700 bg-admin-gray-50 border border-amber-200 focus:border-amber-400 outline-none rounded-md px-2.5 py-1" />
+                                                </div>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <span className="font-bold text-admin-gray-900 truncate">{vehicle.name}</span>
+                                                <div className="flex gap-2 items-center flex-wrap">
+                                                  <span className="px-2 py-0.5 rounded-md bg-admin-gray-100 text-admin-gray-500 font-mono font-bold text-[10px]">{vehicle.id}</span>
+                                                  <span className="px-2.5 py-1 rounded-lg bg-admin-gray-100 text-admin-gray-700 font-semibold text-[11px]">{vehicle.capacity}</span>
+                                                </div>
+                                              </>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div className="text-right pl-2">
+                                          {editMode ? (
+                                            <input type="number" value={vehicle.bpBudAirport ?? 0} onChange={(e) => updateVehicle(idx, { bpBudAirport: Number(e.target.value) || 0 })}
+                                              className="w-full text-right font-mono font-bold text-admin-gray-800 bg-white border border-amber-200 focus:border-amber-400 outline-none rounded-lg px-3 py-2 text-[12px] shadow-sm" />
+                                          ) : (
+                                            <span className="font-mono font-semibold text-admin-gray-800 text-[13px]">{formatPrice(vehicle.bpBudAirport)}</span>
+                                          )}
+                                        </div>
+                                        <div className="text-right pl-2">
+                                          {editMode ? (
+                                            <input type="number" value={vehicle.dbDbAirport ?? ""} placeholder="null"
+                                              onChange={(e) => updateVehicle(idx, { dbDbAirport: e.target.value === "" ? null : Number(e.target.value) || null })}
+                                              className="w-full text-right font-mono font-bold text-admin-gray-800 bg-white border border-amber-200 focus:border-amber-400 outline-none rounded-lg px-3 py-2 text-[12px] shadow-sm placeholder:text-admin-gray-400 placeholder:italic" />
+                                          ) : (
+                                            <div className="font-mono font-semibold text-[13px]">
+                                              {vehicle.dbDbAirport != null ? <span className="text-admin-gray-800">{formatPrice(vehicle.dbDbAirport)}</span> : <span className="text-admin-gray-400 italic">-</span>}
+                                            </div>
+                                          )}
+                                        </div>
+                                        <div className="text-right pl-2">
+                                          {editMode ? (
+                                            <input type="number" value={vehicle.newPrice2026 ?? 0} onChange={(e) => updateVehicle(idx, { newPrice2026: Number(e.target.value) || 0 })}
+                                              className="w-full text-right font-mono font-black bg-white border-2 focus:outline-none rounded-xl px-3 py-2 text-[13px] shadow-sm"
+                                              style={{ borderColor: `${primaryColor}40`, color: primaryColor }} />
+                                          ) : (
+                                            <span className="inline-block px-3 py-1.5 rounded-xl font-black text-sm font-mono tracking-tight"
+                                              style={{ backgroundColor: `${primaryColor}12`, border: `1px solid ${primaryColor}20`, color: primaryColor }}>
+                                              {formatPrice(vehicle.newPrice2026)}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div className="pl-2 pr-1">
+                                          {editMode ? (
+                                            <div className="grid grid-cols-2 gap-1.5">
+                                              {(["modification12to24h","modification0to12h","cancellation12to24h","cancellation0to12h"] as const).map((field) => (
+                                                <input key={field} type="number" value={vehicle[field] ?? 0} onChange={(e) => updateVehicle(idx, { [field]: Number(e.target.value) || 0 })}
+                                                  className="w-full text-right font-mono text-[11px] font-semibold text-admin-gray-700 bg-white border border-amber-200 focus:border-amber-400 outline-none rounded px-2 py-1 shadow-sm" />
+                                              ))}
+                                            </div>
+                                          ) : (
+                                            <div className="text-[10px] space-y-0.5">
+                                              <div className="flex justify-between font-semibold"><span className="text-amber-700">Mod 12-24:</span><span className="font-mono">{formatPrice(vehicle.modification12to24h)}</span></div>
+                                              <div className="flex justify-between font-semibold"><span className="text-rose-700">Mod 0-12:</span><span className="font-mono">{formatPrice(vehicle.modification0to12h)}</span></div>
+                                              <div className="flex justify-between font-semibold"><span className="text-sky-700">Lem 12-24:</span><span className="font-mono">{formatPrice(vehicle.cancellation12to24h)}</span></div>
+                                              <div className="flex justify-between font-semibold"><span className="text-indigo-700">Lem 0-12:</span><span className="font-mono">{formatPrice(vehicle.cancellation0to12h)}</span></div>
+                                            </div>
+                                          )}
+                                        </div>
+                                        {editMode && (
+                                          <div className="flex items-center justify-center">
+                                            <button onClick={() => removeVehicle(idx)}
+                                              className="w-10 h-10 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 flex items-center justify-center transition-all group">
+                                              <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.3}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                              </svg>
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Terms cards */}
+                              <div className="mb-2">
+                                <div className="flex items-center gap-3 mb-6">
+                                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-md shadow-violet-500/20 shrink-0">
+                                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                                    </svg>
+                                  </div>
+                                  <h4 className="font-bold text-lg tracking-tight text-admin-gray-900">Foglalasi feltetelek</h4>
+                                  <div className="flex-1 h-px bg-gradient-to-r from-admin-gray-200 to-transparent" />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+                                  {([
+                                    { key: "mod", sub: "12-24h", gradient: "from-amber-50 to-orange-50", border: "border-amber-100", badge: "from-amber-500 to-orange-600", shadow: "shadow-amber-500/30", text: "text-amber-700", textStrong: "text-amber-900", bFocus: "border-amber-200" },
+                                    { key: "mod", sub: "0-12h", gradient: "from-rose-50 to-red-50", border: "border-rose-100", badge: "from-rose-500 to-red-600", shadow: "shadow-rose-500/30", text: "text-rose-700", textStrong: "text-rose-900", bFocus: "border-rose-200" },
+                                    { key: "cancel", sub: "12-24h", gradient: "from-sky-50 to-blue-50", border: "border-sky-100", badge: "from-sky-500 to-blue-600", shadow: "shadow-sky-500/30", text: "text-sky-700", textStrong: "text-sky-900", bFocus: "border-sky-200" },
+                                    { key: "cancel", sub: "0-12h", gradient: "from-indigo-50 to-violet-50", border: "border-indigo-100", badge: "from-indigo-500 to-violet-600", shadow: "shadow-indigo-500/30", text: "text-indigo-700", textStrong: "text-indigo-900", bFocus: "border-indigo-200" },
+                                  ] as const).map((spec) => {
+                                    const section = spec.key === "mod" ? "modification" : "cancellation";
+                                    const subKey = spec.sub as "12-24h" | "0-12h";
+                                    const value = (draft?.terms as any)?.[section]?.[subKey];
+                                    return (
+                                      <div key={spec.key + spec.sub} className={`rounded-2xl bg-gradient-to-br ${spec.gradient} border ${spec.border} p-6 relative overflow-hidden group hover:shadow-lg transition-all duration-300`}>
+                                        <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${spec.badge} opacity-20 rounded-full blur-2xl -translate-y-8 translate-x-8`} />
+                                        <div className="relative z-10">
+                                          <div className="flex items-center justify-between mb-4 gap-2">
+                                            <div className="flex items-center gap-2">
+                                              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${spec.badge} flex items-center justify-center shadow-md ${spec.shadow}`}>
+                                                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                  <path strokeLinecap="round" strokeLinejoin="round" d={spec.sub === "12-24h" ? "M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" : "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z"} />
+                                                </svg>
+                                              </div>
+                                              <span className={`text-[10px] font-black tracking-widest uppercase ${spec.text}`}>{spec.sub}</span>
+                                            </div>
+                                            {editMode && <span className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-white border ${spec.border} ${spec.text}`}>EDIT</span>}
+                                          </div>
+                                          <div className="mb-2 flex items-baseline gap-2 flex-wrap">
+                                            {editMode ? (
+                                              <input type="number" value={value?.percentage ?? 0}
+                                                onChange={(e) => {
+                                                  const pct = Number(e.target.value) || 0;
+                                                  setActivePartnerDraft((prev: any) => {
+                                                    if (!prev) return prev;
+                                                    const next = { ...prev, terms: JSON.parse(JSON.stringify(prev.terms || {})) };
+                                                    if (!next.terms[section]) next.terms[section] = {};
+                                                    if (!next.terms[section][subKey]) next.terms[section][subKey] = {};
+                                                    next.terms[section][subKey].percentage = pct;
+                                                    return next;
+                                                  });
+                                                }}
+                                                className={`w-24 font-black bg-white border-2 focus:outline-none rounded-xl px-3 py-2 text-2xl shadow-sm ${spec.textStrong} ${spec.bFocus}`} />
+                                            ) : (
+                                              <span className={`text-3xl font-black ${spec.textStrong}`}>{value?.percentage ?? "-" }%</span>
+                                            )}
+                                          </div>
+                                          <div className={`text-xs font-bold ${spec.text} mb-1 uppercase tracking-wider`}>
+                                            {spec.key === "mod" ? "Modositas felar" : "Lemondas kotber"}
+                                          </div>
+                                          {editMode ? (
+                                            <input type="text" value={value?.description ?? ""}
+                                              onChange={(e) => {
+                                                setActivePartnerDraft((prev: any) => {
+                                                  if (!prev) return prev;
+                                                  const next = { ...prev, terms: JSON.parse(JSON.stringify(prev.terms || {})) };
+                                                  if (!next.terms[section]) next.terms[section] = {};
+                                                  if (!next.terms[section][subKey]) next.terms[section][subKey] = {};
+                                                  next.terms[section][subKey].description = e.target.value;
+                                                  return next;
+                                                });
+                                              }}
+                                              className={`w-full text-[11px] font-medium leading-relaxed bg-white border-2 ${spec.border} focus:outline-none rounded-lg px-2.5 py-1.5 ${spec.text}`} />
+                                          ) : (
+                                            <p className={`text-[11px] ${spec.text} font-medium leading-relaxed`}>{value?.description} az alaparbol</p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </>
+                          )}
                         </div>
-
                       </div>
-                    </div>
-
-                  </div>
-                </>
-              )}
-            </div>
+                    </>
+                  ) : null}
+                </div>
+              );
+            })()
           ) : active === "admin-accounts" ? (
             <div className="max-w-7xl mx-auto w-full">
               <div className="mb-10 flex flex-col md:flex-row md:items-start gap-5 md:justify-between">
