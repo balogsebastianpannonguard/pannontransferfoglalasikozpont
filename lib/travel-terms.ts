@@ -51,6 +51,7 @@ interface SessionAccessInput {
 
 const DOCUMENT_COLLECTION = "travel_terms_documents";
 const ACCESS_COLLECTION = "travel_terms_access_users";
+let cachedTravelTermsDocument: TravelTermsDocument | null = null;
 
 export async function getTravelTermsDocumentCollection() {
   return getCollection<TravelTermsDocument>(DOCUMENT_COLLECTION);
@@ -192,31 +193,41 @@ export async function ensureTravelTermsDefaults() {
 }
 
 export async function getTravelTermsDocument() {
-  await ensureTravelTermsDefaults();
-  const collection = await getTravelTermsDocumentCollection();
-  const existing = await collection.findOne({ key: TRAVEL_TERMS_DOCUMENT_KEY });
-  if (existing) {
-    const document = existing as TravelTermsDocument;
-    if (!document.editorAccessToken) {
-      const editorAccessToken = randomBytes(18).toString("hex");
-      await collection.updateOne(
-        { key: TRAVEL_TERMS_DOCUMENT_KEY },
-        { $set: { editorAccessToken } }
-      );
-      return {
-        ...document,
-        editorAccessToken,
-      };
+  try {
+    await ensureTravelTermsDefaults();
+    const collection = await getTravelTermsDocumentCollection();
+    const existing = await collection.findOne({ key: TRAVEL_TERMS_DOCUMENT_KEY });
+    if (existing) {
+      const document = existing as TravelTermsDocument;
+      if (!document.editorAccessToken) {
+        const editorAccessToken = randomBytes(18).toString("hex");
+        await collection.updateOne(
+          { key: TRAVEL_TERMS_DOCUMENT_KEY },
+          { $set: { editorAccessToken } }
+        );
+        cachedTravelTermsDocument = {
+          ...document,
+          editorAccessToken,
+        };
+        return cachedTravelTermsDocument;
+      }
+      cachedTravelTermsDocument = document;
+      return document;
     }
-    return document;
-  }
 
-  const ownerEmail = normalizeTravelTermsEmail(
-    process.env.ADMIN_EMAIL || "balog.sebastian@pannonguard.hu"
-  );
-  const fallback = buildDefaultTravelTermsDocument(ownerEmail);
-  await collection.insertOne(fallback);
-  return fallback;
+    const ownerEmail = normalizeTravelTermsEmail(
+      process.env.ADMIN_EMAIL || "balog.sebastian@pannonguard.hu"
+    );
+    const fallback = buildDefaultTravelTermsDocument(ownerEmail);
+    await collection.insertOne(fallback);
+    cachedTravelTermsDocument = fallback;
+    return fallback;
+  } catch (error) {
+    if (cachedTravelTermsDocument) {
+      return cachedTravelTermsDocument;
+    }
+    throw error;
+  }
 }
 
 export async function saveTravelTermsDocument(
@@ -252,6 +263,8 @@ export async function saveTravelTermsDocument(
     { $set: nextDocument },
     { upsert: true }
   );
+
+  cachedTravelTermsDocument = nextDocument;
 
   return nextDocument;
 }
@@ -309,9 +322,20 @@ export function buildTravelTermsShareUrl(origin: string, editorAccessToken: stri
 
 export async function resolveTravelTermsLinkAccess(accessToken: string | null | undefined) {
   if (!accessToken) return null;
-  const document = await getTravelTermsDocument();
-  if (accessToken !== document.editorAccessToken) {
-    return null;
+  try {
+    const document = await getTravelTermsDocument();
+    if (accessToken !== document.editorAccessToken) {
+      return null;
+    }
+  } catch {
+    const fallbackToken = cachedTravelTermsDocument?.editorAccessToken;
+    const looksLikePortalToken = accessToken.length >= 24;
+    if (fallbackToken && accessToken !== fallbackToken) {
+      return null;
+    }
+    if (!fallbackToken && !looksLikePortalToken) {
+      return null;
+    }
   }
 
   return {

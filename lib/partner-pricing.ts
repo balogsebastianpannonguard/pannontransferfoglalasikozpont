@@ -1,5 +1,6 @@
 import { getCollection } from "./db";
 import type { ObjectId } from "mongodb";
+import { PARTNER_PORTAL_ORDER } from "./partner-pricing-config";
 
 export interface PricingVehicle {
   id: string;
@@ -1050,6 +1051,18 @@ const DEFAULT_PRICING_MAP: Record<string, Omit<PartnerPricing, "_id" | "createdA
   ni: DEFAULT_NI_PRICING,
 };
 
+export function getDefaultPartnerPricingRecords(): PartnerPricing[] {
+  const now = Date.now();
+  return PARTNER_PORTAL_ORDER.map((partnerKey) => {
+    const source = DEFAULT_PRICING_MAP[partnerKey];
+    return {
+      ...source,
+      createdAt: now,
+      updatedAt: now,
+    };
+  });
+}
+
 // ============================================================
 // DATABASE FUNCTIONS
 // ============================================================
@@ -1072,6 +1085,19 @@ export async function getAllPartnerPricing(): Promise<PartnerPricing[]> {
   await initPricingIndexes();
   const docs = await collection.find({}).sort({ updatedAt: -1 }).toArray();
   return docs.map((d) => ({ ...d, _id: d._id.toString() }) as unknown as PartnerPricing);
+}
+
+export async function ensureDefaultPartnerPricing() {
+  await Promise.all(
+    PARTNER_PORTAL_ORDER.map((partnerKey) =>
+      getPartnerPricingByKey(partnerKey, { seedIfMissing: true })
+    )
+  );
+}
+
+export async function getAllPartnerPricingWithDefaults(): Promise<PartnerPricing[]> {
+  await ensureDefaultPartnerPricing();
+  return getAllPartnerPricing();
 }
 
 export async function getPartnerPricingByKey(

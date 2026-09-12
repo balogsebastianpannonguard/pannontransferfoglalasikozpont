@@ -10,13 +10,5 @@ export default async function TravelTermsPortalPage({
   const accessTokenParam = resolvedSearchParams[TRAVEL_TERMS_ACCESS_QUERY_PARAM];
   const accessToken = Array.isArray(accessTokenParam) ? accessTokenParam[0] : accessTokenParam;
 
-  return (
-    <TravelTermsPortalClient
-      initialDocument={null}
-      initialAccessUsers={[]}
-      initialSessionUser={null}
-      initialShareUrl=""
-      accessToken={accessToken || null}
-    />
-  );
+  return <TravelTermsPortalClient accessToken={accessToken || null} />;
 }
