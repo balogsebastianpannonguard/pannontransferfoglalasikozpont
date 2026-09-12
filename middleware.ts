@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { TRAVEL_TERMS_PORTAL_PATH } from "@/lib/travel-terms-config";
 
 const AUTH_COOKIE_NAME = "pannon_admin_session";
 const ADMIN_COOKIE_SECRET =
@@ -48,6 +49,7 @@ export function middleware(request: NextRequest) {
   // ---------- CRM Admin védelm ----------
   const isAdminRoute = pathname.startsWith("/admin");
   const isLoginRoute = pathname.startsWith("/login");
+  const isTravelTermsRoute = pathname.startsWith(TRAVEL_TERMS_PORTAL_PATH);
 
   const crmToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
   const isCrmAuthenticated = isValidJwt(crmToken, ADMIN_COOKIE_SECRET);
@@ -61,6 +63,12 @@ export function middleware(request: NextRequest) {
   if (isLoginRoute && isCrmAuthenticated) {
     const adminUrl = new URL("/admin", request.url);
     return NextResponse.redirect(adminUrl);
+  }
+
+  if (isTravelTermsRoute && !isCrmAuthenticated) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   // ---------- Email Admin védelm ----------
@@ -88,6 +96,8 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/login",
+    "/holdhid-feltetelek-x7q/:path*",
+    "/holdhid-feltetelek-x7q",
     "/email-admin/dashboard/:path*",
     "/email-admin/dashboard",
     "/email-admin/login",
