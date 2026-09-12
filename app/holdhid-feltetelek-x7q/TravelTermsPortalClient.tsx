@@ -15,15 +15,17 @@ interface PortalUser {
 }
 
 interface Props {
-  initialDocument: TravelTermsDocument;
+  initialDocument: TravelTermsDocument | null;
   initialAccessUsers: TravelTermsAccessUser[];
-  sessionUser: PortalUser;
-  shareUrl: string;
+  initialSessionUser: PortalUser | null;
+  initialShareUrl: string;
+  accessToken: string | null;
 }
 
 interface StreamSnapshotPayload {
   document?: TravelTermsDocument;
   accessUsers?: TravelTermsAccessUser[];
+  shareUrl?: string;
 }
 
 function sectionToneLabel(tone: TravelTermsSection["tone"]) {
@@ -44,14 +46,20 @@ function emptySection(index: number): TravelTermsSection {
 export default function TravelTermsPortalClient({
   initialDocument,
   initialAccessUsers,
-  sessionUser,
-  shareUrl,
+  initialSessionUser,
+  initialShareUrl,
+  accessToken,
 }: Props) {
-  const [document, setDocument] = useState<TravelTermsDocument>(initialDocument);
+  const [document, setDocument] = useState<TravelTermsDocument | null>(initialDocument);
   const [accessUsers, setAccessUsers] = useState<TravelTermsAccessUser[]>(initialAccessUsers);
+  const [sessionUser, setSessionUser] = useState<PortalUser | null>(initialSessionUser);
+  const [shareUrl, setShareUrl] = useState(initialShareUrl);
+  const [loading, setLoading] = useState(!initialDocument);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [statusText, setStatusText] = useState("Minden változás szinkronban.");
+  const [statusText, setStatusText] = useState(
+    initialDocument ? "Minden változás szinkronban." : "Betöltés folyamatban..."
+  );
   const [incomingRemoteDocument, setIncomingRemoteDocument] = useState<TravelTermsDocument | null>(null);
   const [inviteState, setInviteState] = useState({
     email: "",
@@ -62,28 +70,75 @@ export default function TravelTermsPortalClient({
     info: "",
   });
 
-  const isOwner = sessionUser.portalRole === "owner";
-  const canEdit = sessionUser.portalRole === "owner" || sessionUser.portalRole === "editor";
+  const isOwner = sessionUser?.portalRole === "owner";
+  const canEdit = sessionUser?.portalRole === "owner" || sessionUser?.portalRole === "editor";
   const lastUpdatedLabel = useMemo(
     () =>
-      new Date(document.updatedAt || Date.now()).toLocaleString("hu-HU", {
+      new Date(document?.updatedAt || Date.now()).toLocaleString("hu-HU", {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
         hour: "2-digit",
         minute: "2-digit",
       }),
-    [document.updatedAt]
+    [document?.updatedAt]
   );
 
   useEffect(() => {
-    const events = new EventSource("/api/travel-terms/stream");
+    let cancelled = false;
+
+    async function loadPortal() {
+      try {
+        const response = await fetch("/api/travel-terms", {
+          headers: accessToken ? { "x-travel-terms-access": accessToken } : undefined,
+        });
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || "Nem sikerült betölteni az oldalt.");
+        }
+
+        if (cancelled) return;
+        setDocument(data.document);
+        setAccessUsers(data.accessUsers || []);
+        setSessionUser(data.sessionUser || null);
+        setShareUrl(data.shareUrl || window.location.href);
+        setStatusText("Minden változás szinkronban.");
+      } catch (error) {
+        if (cancelled) return;
+        setStatusText(error instanceof Error ? error.message : "Nem sikerült betölteni az oldalt.");
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    if (!initialDocument) {
+      loadPortal();
+    } else {
+      setLoading(false);
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken, initialDocument]);
+
+  useEffect(() => {
+    if (!document) return;
+
+    const streamUrl = accessToken
+      ? `/api/travel-terms/stream?kulcs=${encodeURIComponent(accessToken)}`
+      : "/api/travel-terms/stream";
+    const events = new EventSource(streamUrl);
 
     const applySnapshot = (payload: StreamSnapshotPayload) => {
       if (payload?.accessUsers) setAccessUsers(payload.accessUsers);
       if (!payload?.document) return;
 
       const nextDocument = payload.document as TravelTermsDocument;
+      if (payload?.shareUrl) setShareUrl(payload.shareUrl);
       if (dirty && nextDocument.version !== document.version) {
         setIncomingRemoteDocument(nextDocument);
         setStatusText("Távoli módosítás érkezett. Döntsd el, hogy átveszed-e.");
@@ -118,18 +173,20 @@ export default function TravelTermsPortalClient({
     return () => {
       events.close();
     };
-  }, [dirty, document.version]);
+  }, [accessToken, dirty, document]);
 
   function updateField<K extends keyof TravelTermsDocument>(key: K, value: TravelTermsDocument[K]) {
-    setDocument((current) => ({ ...current, [key]: value }));
+    if (!document) return;
+    setDocument((current) => (current ? { ...current, [key]: value } : current));
     setDirty(true);
     setStatusText("Mentésre váró módosítások.");
   }
 
   function updateSection(index: number, patch: Partial<TravelTermsSection>) {
+    if (!document) return;
     setDocument((current) => ({
-      ...current,
-      sections: current.sections.map((section, sectionIndex) =>
+      ...(current as TravelTermsDocument),
+      sections: (current?.sections || []).map((section, sectionIndex) =>
         sectionIndex === index ? { ...section, ...patch } : section
       ),
     }));
@@ -138,30 +195,35 @@ export default function TravelTermsPortalClient({
   }
 
   function addSection() {
+    if (!document) return;
     setDocument((current) => ({
-      ...current,
-      sections: [...current.sections, emptySection(current.sections.length)],
+      ...(current as TravelTermsDocument),
+      sections: [...(current?.sections || []), emptySection((current?.sections || []).length)],
     }));
     setDirty(true);
   }
 
   function removeSection(index: number) {
+    if (!document) return;
     setDocument((current) => ({
-      ...current,
-      sections: current.sections.filter((_, sectionIndex) => sectionIndex !== index),
+      ...(current as TravelTermsDocument),
+      sections: (current?.sections || []).filter((_, sectionIndex) => sectionIndex !== index),
     }));
     setDirty(true);
   }
 
   async function saveDocument() {
-    if (!canEdit) return;
+    if (!canEdit || !document) return;
     setSaving(true);
     setStatusText("Mentés folyamatban...");
 
     try {
       const response = await fetch("/api/travel-terms", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? { "x-travel-terms-access": accessToken } : {}),
+        },
         body: JSON.stringify({ document }),
       });
       const data = await response.json();
@@ -226,11 +288,25 @@ export default function TravelTermsPortalClient({
 
   async function copyShareUrl() {
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(shareUrl || window.location.href);
       setStatusText("A megosztható link a vágólapra került.");
     } catch {
       setStatusText("A link másolása most nem sikerült.");
     }
+  }
+
+  if (loading || !document) {
+    return (
+      <main className="min-h-screen bg-[#F7F7F5] px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl rounded-[28px] border border-black/5 bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.05)]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">
+            Utazási feltételek
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight">Szerkesztő felület betöltése</h1>
+          <p className="mt-3 text-sm leading-6 text-slate-600">{statusText}</p>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -249,11 +325,13 @@ export default function TravelTermsPortalClient({
                   megjelennek minden megnyitott nézetben.
                 </p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                <div className="font-medium text-slate-900">{sessionUser.displayName}</div>
-                <div>{sessionUser.email}</div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                  <div className="font-medium text-slate-900">
+                    {sessionUser?.displayName || "Megosztott szerkeszto link"}
+                  </div>
+                  <div>{sessionUser?.email || "titkos-megosztott-link"}</div>
                 <div className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">
-                  {sessionUser.portalRole}
+                    {sessionUser?.portalRole || "editor"}
                 </div>
               </div>
             </div>
@@ -281,7 +359,7 @@ export default function TravelTermsPortalClient({
             </div>
             <h2 className="mt-2 text-xl font-semibold">Rejtettebb külön oldal</h2>
             <p className="mt-3 text-sm leading-6 text-white/70">
-              A link szabadon küldhető, de a tartalomhoz csak a hozzáadott felhasználók férnek hozzá.
+              Ezt a titkos linket elkuldheted barkinek, es a link birtokaban azonnal szerkeszthet.
             </p>
             <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm break-all">
               {shareUrl}
@@ -294,7 +372,7 @@ export default function TravelTermsPortalClient({
               Link másolása
             </button>
             <p className="mt-3 text-xs leading-5 text-white/55">
-              Bejelentkezés után nyitható meg. A route neve nem publikus a fő navigációban.
+              Nem kell kulon admin belepes, a linkben levo kulcs maga adja a szerkesztesi jogot.
             </p>
           </section>
         </div>

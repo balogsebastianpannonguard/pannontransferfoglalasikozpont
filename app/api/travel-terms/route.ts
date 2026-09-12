@@ -1,25 +1,45 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentSession } from "@/lib/auth";
 import {
+  buildTravelTermsShareUrl,
   getTravelTermsDocument,
   hasTravelTermsRole,
   listTravelTermsAccessUsers,
+  resolveTravelTermsLinkAccess,
   resolveTravelTermsAccessForSession,
   saveTravelTermsDocument,
   type TravelTermsRole,
 } from "@/lib/travel-terms";
-import { TRAVEL_TERMS_PORTAL_PATH } from "@/lib/travel-terms-config";
+import { TRAVEL_TERMS_ACCESS_QUERY_PARAM } from "@/lib/travel-terms-config";
 import { publishTravelTermsEvent } from "@/lib/travel-terms-realtime";
 
 export const dynamic = "force-dynamic";
 
-async function requireTravelTermsUser(requiredRoles: TravelTermsRole[] = ["viewer"]) {
+function getTravelTermsAccessToken(request: NextRequest) {
+  return (
+    request.nextUrl.searchParams.get(TRAVEL_TERMS_ACCESS_QUERY_PARAM) ||
+    request.headers.get("x-travel-terms-access")
+  );
+}
+
+async function requireTravelTermsUser(
+  request: NextRequest,
+  requiredRoles: TravelTermsRole[] = ["viewer"]
+) {
   const session = await getCurrentSession();
-  if (!session) {
-    return { error: NextResponse.json({ success: false, message: "Nincs aktív munkamenet." }, { status: 401 }) };
+  const linkAccess = await resolveTravelTermsLinkAccess(getTravelTermsAccessToken(request));
+  const sessionAccess = session ? await resolveTravelTermsAccessForSession(session) : null;
+  const accessUser = linkAccess || sessionAccess;
+
+  if (!session && !linkAccess) {
+    return {
+      error: NextResponse.json(
+        { success: false, message: "Nincs aktiv munkamenet vagy megosztott link." },
+        { status: 401 }
+      ),
+    };
   }
 
-  const accessUser = await resolveTravelTermsAccessForSession(session);
   if (!accessUser || !accessUser.isActive) {
     return {
       error: NextResponse.json(
@@ -38,11 +58,15 @@ async function requireTravelTermsUser(requiredRoles: TravelTermsRole[] = ["viewe
     };
   }
 
-  return { session, accessUser };
+  return {
+    session,
+    accessUser,
+    actorEmail: linkAccess ? "megosztott-link@pannontransfer.local" : session?.email || "megosztott-link@pannontransfer.local",
+  };
 }
 
 export async function GET(request: NextRequest) {
-  const auth = await requireTravelTermsUser(["viewer"]);
+  const auth = await requireTravelTermsUser(request, ["viewer"]);
   if ("error" in auth) return auth.error;
 
   const document = await getTravelTermsDocument();
@@ -54,21 +78,21 @@ export async function GET(request: NextRequest) {
     document,
     accessUsers,
     sessionUser: {
-      email: auth.session.email,
+      email: auth.actorEmail,
       portalRole: auth.accessUser.role,
       displayName: auth.accessUser.displayName,
     },
-    shareUrl: `${origin}${TRAVEL_TERMS_PORTAL_PATH}`,
+    shareUrl: buildTravelTermsShareUrl(origin, document.editorAccessToken),
   });
 }
 
 export async function PUT(request: NextRequest) {
-  const auth = await requireTravelTermsUser(["editor"]);
+  const auth = await requireTravelTermsUser(request, ["editor"]);
   if ("error" in auth) return auth.error;
 
   try {
     const body = await request.json();
-    const nextDocument = await saveTravelTermsDocument(body?.document || body, auth.session.email);
+    const nextDocument = await saveTravelTermsDocument(body?.document || body, auth.actorEmail);
     const accessUsers = await listTravelTermsAccessUsers();
     const origin = new URL(request.url).origin;
 
@@ -78,11 +102,11 @@ export async function PUT(request: NextRequest) {
         document: nextDocument,
         accessUsers,
         sessionUser: {
-          email: auth.session.email,
+          email: auth.actorEmail,
           portalRole: auth.accessUser.role,
           displayName: auth.accessUser.displayName,
         },
-        shareUrl: `${origin}${TRAVEL_TERMS_PORTAL_PATH}`,
+        shareUrl: buildTravelTermsShareUrl(origin, nextDocument.editorAccessToken),
       },
     });
 
@@ -90,7 +114,7 @@ export async function PUT(request: NextRequest) {
       success: true,
       document: nextDocument,
       accessUsers,
-      shareUrl: `${origin}${TRAVEL_TERMS_PORTAL_PATH}`,
+      shareUrl: buildTravelTermsShareUrl(origin, nextDocument.editorAccessToken),
     });
   } catch (error) {
     return NextResponse.json(

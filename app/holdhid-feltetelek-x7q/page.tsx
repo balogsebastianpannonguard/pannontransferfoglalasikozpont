@@ -1,51 +1,22 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import TravelTermsPortalClient from "./TravelTermsPortalClient";
-import { getCurrentSession } from "@/lib/auth";
-import {
-  getTravelTermsDocument,
-  listTravelTermsAccessUsers,
-  resolveTravelTermsAccessForSession,
-} from "@/lib/travel-terms";
-import { TRAVEL_TERMS_PORTAL_PATH } from "@/lib/travel-terms-config";
+import { TRAVEL_TERMS_ACCESS_QUERY_PARAM } from "@/lib/travel-terms-config";
 
-function resolveOrigin(headerList: Headers) {
-  const forwardedProto = headerList.get("x-forwarded-proto");
-  const forwardedHost = headerList.get("x-forwarded-host");
-  const host = forwardedHost || headerList.get("host") || "localhost:3000";
-  const protocol = forwardedProto || (host.includes("localhost") ? "http" : "https");
-  return `${protocol}://${host}`;
-}
-
-export default async function TravelTermsPortalPage() {
-  const session = await getCurrentSession();
-  if (!session) {
-    redirect(`/login?redirect=${encodeURIComponent(TRAVEL_TERMS_PORTAL_PATH)}`);
-  }
-
-  const accessUser = await resolveTravelTermsAccessForSession(session);
-  if (!accessUser || !accessUser.isActive) {
-    redirect("/admin");
-  }
-
-  const [document, accessUsers, headerList] = await Promise.all([
-    getTravelTermsDocument(),
-    listTravelTermsAccessUsers(),
-    headers(),
-  ]);
-
-  const shareUrl = `${resolveOrigin(headerList)}${TRAVEL_TERMS_PORTAL_PATH}`;
+export default async function TravelTermsPortalPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const accessTokenParam = resolvedSearchParams[TRAVEL_TERMS_ACCESS_QUERY_PARAM];
+  const accessToken = Array.isArray(accessTokenParam) ? accessTokenParam[0] : accessTokenParam;
 
   return (
     <TravelTermsPortalClient
-      initialDocument={document}
-      initialAccessUsers={accessUsers}
-      sessionUser={{
-        email: session.email,
-        portalRole: accessUser.role,
-        displayName: accessUser.displayName,
-      }}
-      shareUrl={shareUrl}
+      initialDocument={null}
+      initialAccessUsers={[]}
+      initialSessionUser={null}
+      initialShareUrl=""
+      accessToken={accessToken || null}
     />
   );
 }

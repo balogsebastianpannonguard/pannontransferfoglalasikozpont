@@ -1,11 +1,13 @@
 import { type NextRequest } from "next/server";
 import { getCurrentSession } from "@/lib/auth";
 import {
+  buildTravelTermsShareUrl,
   getTravelTermsDocument,
   listTravelTermsAccessUsers,
+  resolveTravelTermsLinkAccess,
   resolveTravelTermsAccessForSession,
 } from "@/lib/travel-terms";
-import { TRAVEL_TERMS_PORTAL_PATH } from "@/lib/travel-terms-config";
+import { TRAVEL_TERMS_ACCESS_QUERY_PARAM } from "@/lib/travel-terms-config";
 import {
   publishTravelTermsEvent,
   subscribeToTravelTerms,
@@ -18,13 +20,19 @@ function formatSseEvent(event: string, payload: unknown) {
   return `event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`;
 }
 
+function getTravelTermsAccessToken(request: NextRequest) {
+  return request.nextUrl.searchParams.get(TRAVEL_TERMS_ACCESS_QUERY_PARAM);
+}
+
 export async function GET(request: NextRequest) {
   const session = await getCurrentSession();
-  if (!session) {
+  const linkAccess = await resolveTravelTermsLinkAccess(getTravelTermsAccessToken(request));
+  const sessionAccess = session ? await resolveTravelTermsAccessForSession(session) : null;
+  const accessUser = linkAccess || sessionAccess;
+
+  if (!session && !linkAccess) {
     return new Response("Unauthorized", { status: 401 });
   }
-
-  const accessUser = await resolveTravelTermsAccessForSession(session);
   if (!accessUser || !accessUser.isActive) {
     return new Response("Forbidden", { status: 403 });
   }
@@ -43,7 +51,7 @@ export async function GET(request: NextRequest) {
       send("snapshot", {
         document: bootstrapDocument,
         accessUsers,
-        shareUrl: `${origin}${TRAVEL_TERMS_PORTAL_PATH}`,
+        shareUrl: buildTravelTermsShareUrl(origin, bootstrapDocument.editorAccessToken),
       });
 
       const unsubscribe = subscribeToTravelTerms((event) => {

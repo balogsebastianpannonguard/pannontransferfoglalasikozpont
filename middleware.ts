@@ -1,5 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { TRAVEL_TERMS_PORTAL_PATH } from "@/lib/travel-terms-config";
+import {
+  TRAVEL_TERMS_ACCESS_QUERY_PARAM,
+  TRAVEL_TERMS_PORTAL_PATH,
+} from "@/lib/travel-terms-config";
 
 const AUTH_COOKIE_NAME = "pannon_admin_session";
 const ADMIN_COOKIE_SECRET =
@@ -50,6 +53,9 @@ export function middleware(request: NextRequest) {
   const isAdminRoute = pathname.startsWith("/admin");
   const isLoginRoute = pathname.startsWith("/login");
   const isTravelTermsRoute = pathname.startsWith(TRAVEL_TERMS_PORTAL_PATH);
+  const hasTravelTermsLinkToken = !!request.nextUrl.searchParams.get(
+    TRAVEL_TERMS_ACCESS_QUERY_PARAM
+  );
 
   const crmToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
   const isCrmAuthenticated = isValidJwt(crmToken, ADMIN_COOKIE_SECRET);
@@ -65,7 +71,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(adminUrl);
   }
 
-  if (isTravelTermsRoute && !isCrmAuthenticated) {
+  if (isTravelTermsRoute && !isCrmAuthenticated && !hasTravelTermsLinkToken) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);

@@ -1,5 +1,10 @@
+import { randomBytes } from "node:crypto";
 import { getCollection } from "@/lib/db";
-import { TRAVEL_TERMS_DOCUMENT_KEY, TRAVEL_TERMS_PORTAL_PATH } from "@/lib/travel-terms-config";
+import {
+  TRAVEL_TERMS_ACCESS_QUERY_PARAM,
+  TRAVEL_TERMS_DOCUMENT_KEY,
+  TRAVEL_TERMS_PORTAL_PATH,
+} from "@/lib/travel-terms-config";
 
 export type TravelTermsRole = "owner" | "editor" | "viewer";
 
@@ -12,6 +17,7 @@ export interface TravelTermsSection {
 
 export interface TravelTermsDocument {
   key: string;
+  editorAccessToken: string;
   pageTitle: string;
   lead: string;
   highlight: string;
@@ -83,6 +89,7 @@ export function buildDefaultTravelTermsDocument(updatedBy: string): TravelTermsD
   const now = Date.now();
   return {
     key: TRAVEL_TERMS_DOCUMENT_KEY,
+    editorAccessToken: randomBytes(18).toString("hex"),
     pageTitle: "Utazási feltételek",
     lead:
       "Ezen a felületen a Pannon Transfer utazási feltételei egységesen, valós időben szerkeszthetők. A módosítások azonnal megjelennek minden megnyitott nézetben.",
@@ -188,7 +195,21 @@ export async function getTravelTermsDocument() {
   await ensureTravelTermsDefaults();
   const collection = await getTravelTermsDocumentCollection();
   const existing = await collection.findOne({ key: TRAVEL_TERMS_DOCUMENT_KEY });
-  if (existing) return existing as TravelTermsDocument;
+  if (existing) {
+    const document = existing as TravelTermsDocument;
+    if (!document.editorAccessToken) {
+      const editorAccessToken = randomBytes(18).toString("hex");
+      await collection.updateOne(
+        { key: TRAVEL_TERMS_DOCUMENT_KEY },
+        { $set: { editorAccessToken } }
+      );
+      return {
+        ...document,
+        editorAccessToken,
+      };
+    }
+    return document;
+  }
 
   const ownerEmail = normalizeTravelTermsEmail(
     process.env.ADMIN_EMAIL || "balog.sebastian@pannonguard.hu"
@@ -210,6 +231,7 @@ export async function saveTravelTermsDocument(
 
   const nextDocument: TravelTermsDocument = {
     key: TRAVEL_TERMS_DOCUMENT_KEY,
+    editorAccessToken: current.editorAccessToken || randomBytes(18).toString("hex"),
     pageTitle: String(input.pageTitle || current.pageTitle).trim() || "Utazási feltételek",
     lead: String(input.lead || current.lead).trim(),
     highlight: String(input.highlight || current.highlight).trim(),
@@ -277,6 +299,27 @@ export async function resolveTravelTermsAccessForSession(session: SessionAccessI
     isActive: true,
     actorEmail: normalizedEmail,
   });
+}
+
+export function buildTravelTermsShareUrl(origin: string, editorAccessToken: string) {
+  const url = new URL(`${origin}${TRAVEL_TERMS_PORTAL_PATH}`);
+  url.searchParams.set(TRAVEL_TERMS_ACCESS_QUERY_PARAM, editorAccessToken);
+  return url.toString();
+}
+
+export async function resolveTravelTermsLinkAccess(accessToken: string | null | undefined) {
+  if (!accessToken) return null;
+  const document = await getTravelTermsDocument();
+  if (accessToken !== document.editorAccessToken) {
+    return null;
+  }
+
+  return {
+    email: "megosztott-link@pannontransfer.local",
+    displayName: "Megosztott szerkeszto link",
+    role: "editor" as TravelTermsRole,
+    isActive: true,
+  };
 }
 
 export async function upsertTravelTermsAccessUser(input: {
