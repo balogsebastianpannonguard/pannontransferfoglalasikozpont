@@ -1,10 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentSession } from "@/lib/auth";
 import {
-  findTravelTermsAccessUserByEmail,
   getTravelTermsDocument,
   hasTravelTermsRole,
   listTravelTermsAccessUsers,
+  resolveTravelTermsAccessForSession,
   saveTravelTermsDocument,
   type TravelTermsRole,
 } from "@/lib/travel-terms";
@@ -19,7 +19,7 @@ async function requireTravelTermsUser(requiredRoles: TravelTermsRole[] = ["viewe
     return { error: NextResponse.json({ success: false, message: "Nincs aktív munkamenet." }, { status: 401 }) };
   }
 
-  const accessUser = await findTravelTermsAccessUserByEmail(session.email);
+  const accessUser = await resolveTravelTermsAccessForSession(session);
   if (!accessUser || !accessUser.isActive) {
     return {
       error: NextResponse.json(

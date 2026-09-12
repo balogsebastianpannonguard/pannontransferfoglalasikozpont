@@ -38,6 +38,11 @@ export interface TravelTermsAccessUser {
   createdBy: string;
 }
 
+interface SessionAccessInput {
+  email: string;
+  role?: "admin" | "user";
+}
+
 const DOCUMENT_COLLECTION = "travel_terms_documents";
 const ACCESS_COLLECTION = "travel_terms_access_users";
 
@@ -245,6 +250,33 @@ export async function findTravelTermsAccessUserByEmail(email: string) {
   const normalizedEmail = normalizeTravelTermsEmail(email);
   const doc = await collection.findOne({ normalizedEmail, isActive: true });
   return (doc as TravelTermsAccessUser | null) || null;
+}
+
+export async function resolveTravelTermsAccessForSession(session: SessionAccessInput) {
+  await ensureTravelTermsDefaults();
+
+  const normalizedEmail = normalizeTravelTermsEmail(session.email);
+  const existing = await findTravelTermsAccessUserByEmail(normalizedEmail);
+
+  if (session.role !== "admin") {
+    return existing;
+  }
+
+  if (existing && existing.isActive && existing.role === "owner") {
+    return existing;
+  }
+
+  const displayName =
+    existing?.displayName ||
+    `${normalizedEmail.split("@")[0].replace(/[._-]+/g, " ")} - admin`.trim();
+
+  return upsertTravelTermsAccessUser({
+    email: normalizedEmail,
+    displayName,
+    role: "owner",
+    isActive: true,
+    actorEmail: normalizedEmail,
+  });
 }
 
 export async function upsertTravelTermsAccessUser(input: {

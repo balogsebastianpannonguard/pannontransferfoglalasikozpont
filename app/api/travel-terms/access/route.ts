@@ -4,8 +4,8 @@ import { createInviteToken } from "@/lib/invite-tokens";
 import { sendEmail } from "@/lib/email";
 import { createPendingInviteUser } from "@/lib/users";
 import {
-  findTravelTermsAccessUserByEmail,
   listTravelTermsAccessUsers,
+  resolveTravelTermsAccessForSession,
   upsertTravelTermsAccessUser,
   type TravelTermsRole,
 } from "@/lib/travel-terms";
@@ -57,7 +57,7 @@ async function requireOwner() {
     return { error: NextResponse.json({ success: false, message: "Nincs aktív munkamenet." }, { status: 401 }) };
   }
 
-  const accessUser = await findTravelTermsAccessUserByEmail(session.email);
+  const accessUser = await resolveTravelTermsAccessForSession(session);
   if (!accessUser || accessUser.role !== "owner") {
     return {
       error: NextResponse.json(

@@ -3,9 +3,9 @@ import { redirect } from "next/navigation";
 import TravelTermsPortalClient from "./TravelTermsPortalClient";
 import { getCurrentSession } from "@/lib/auth";
 import {
-  findTravelTermsAccessUserByEmail,
   getTravelTermsDocument,
   listTravelTermsAccessUsers,
+  resolveTravelTermsAccessForSession,
 } from "@/lib/travel-terms";
 import { TRAVEL_TERMS_PORTAL_PATH } from "@/lib/travel-terms-config";
 
@@ -23,7 +23,7 @@ export default async function TravelTermsPortalPage() {
     redirect(`/login?redirect=${encodeURIComponent(TRAVEL_TERMS_PORTAL_PATH)}`);
   }
 
-  const accessUser = await findTravelTermsAccessUserByEmail(session.email);
+  const accessUser = await resolveTravelTermsAccessForSession(session);
   if (!accessUser || !accessUser.isActive) {
     redirect("/admin");
   }

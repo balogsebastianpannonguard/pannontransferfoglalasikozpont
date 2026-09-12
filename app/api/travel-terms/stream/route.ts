@@ -1,9 +1,9 @@
 import { type NextRequest } from "next/server";
 import { getCurrentSession } from "@/lib/auth";
 import {
-  findTravelTermsAccessUserByEmail,
   getTravelTermsDocument,
   listTravelTermsAccessUsers,
+  resolveTravelTermsAccessForSession,
 } from "@/lib/travel-terms";
 import { TRAVEL_TERMS_PORTAL_PATH } from "@/lib/travel-terms-config";
 import {
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const accessUser = await findTravelTermsAccessUserByEmail(session.email);
+  const accessUser = await resolveTravelTermsAccessForSession(session);
   if (!accessUser || !accessUser.isActive) {
     return new Response("Forbidden", { status: 403 });
   }
