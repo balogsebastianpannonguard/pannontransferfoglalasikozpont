@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentSession } from "@/lib/auth";
 import { sendEmail, testSmtpConnection } from "@/lib/email";
-import { createOrResetNIInvite } from "@/lib/ni-portal-users";
+import { createOrResetNiInvite } from "@/lib/ni-portal-users";
 
 export const dynamic = "force-dynamic";
 

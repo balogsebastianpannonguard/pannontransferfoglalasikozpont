@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 export const metadata = {
   title: "Vitesco Technologies - Jelszó beállítás | Pannon Transfer",
   description: "Vitesco partnerportál jelszó aktiválása.",
@@ -6,5 +8,15 @@ export const metadata = {
 import VitescoSetupPasswordClient from "./VitescoSetupPasswordClient";
 
 export default function VitescoSetupPasswordPage() {
-  return <VitescoSetupPasswordClient />;
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center text-admin-gray-500 font-semibold tracking-wide">
+          Betöltés...
+        </div>
+      }
+    >
+      <VitescoSetupPasswordClient />
+    </Suspense>
+  );
 }
