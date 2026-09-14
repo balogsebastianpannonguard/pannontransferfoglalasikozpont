@@ -2,10 +2,10 @@ import bcrypt from "bcryptjs";
 import { getCollection } from "./db";
 import { ObjectId } from "mongodb";
 
-export const CATL_BCRYPT_ROUNDS = 12;
-export const INVITE_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+export const NI_BCRYPT_ROUNDS = 12;
+export const NI_INVITE_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-export interface CatlPortalUser {
+export interface NiPortalUser {
   _id?: string | ObjectId;
   email: string;
   normalizedEmail: string;
@@ -25,14 +25,14 @@ export interface CatlPortalUser {
   lastLoginAt: number | null;
 }
 
-const COLLECTION_NAME = "catl_portal_users";
+const COLLECTION_NAME = "ni_portal_users";
 
-export async function getCatlPortalCollection() {
-  return getCollection<CatlPortalUser>(COLLECTION_NAME);
+export async function getNiPortalCollection() {
+  return getCollection<NiPortalUser>(COLLECTION_NAME);
 }
 
-export async function initCatlUserIndexes() {
-  const col = await getCatlPortalCollection();
+export async function initNiUserIndexes() {
+  const col = await getNiPortalCollection();
   try {
     await col.createIndex({ normalizedEmail: 1 }, { unique: true });
     await col.createIndex({ inviteTokenHash: 1 });
@@ -40,11 +40,11 @@ export async function initCatlUserIndexes() {
   } catch {}
 }
 
-export function normalizeEmail(email: string) {
+export function normalizeNiEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-export function generateInviteToken() {
+export function generateNiInviteToken() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
   let token = "";
   const arr = new Uint8Array(32);
@@ -57,23 +57,23 @@ export function generateInviteToken() {
   return token;
 }
 
-export async function hashToken(token: string) {
+export async function hashNiToken(token: string) {
   const { createHash } = await import("node:crypto");
   return createHash("sha256").update(token).digest("hex");
 }
 
-export async function createOrResetCatlInvite(
+export async function createOrResetNiInvite(
   email: string,
   opts: { requireTwoFactor: boolean }
-): Promise<{ user: CatlPortalUser; rawToken: string }> {
-  await initCatlUserIndexes();
-  const normalizedEmail = normalizeEmail(email);
-  const col = await getCatlPortalCollection();
+): Promise<{ user: NiPortalUser; rawToken: string }> {
+  await initNiUserIndexes();
+  const normalizedEmail = normalizeNiEmail(email);
+  const col = await getNiPortalCollection();
   const now = Date.now();
 
-  const rawToken = generateInviteToken();
-  const inviteTokenHash = await hashToken(rawToken);
-  const inviteExpiresAt = now + INVITE_TOKEN_TTL_MS;
+  const rawToken = generateNiInviteToken();
+  const inviteTokenHash = await hashNiToken(rawToken);
+  const inviteExpiresAt = now + NI_INVITE_TOKEN_TTL_MS;
 
   const existing = await col.findOne({ normalizedEmail });
   if (existing) {
@@ -97,11 +97,11 @@ export async function createOrResetCatlInvite(
       }
     );
     const fresh = await col.findOne({ _id: existing._id });
-    if (!fresh) throw new Error("CATL user update failed");
-    return { user: fresh as CatlPortalUser, rawToken };
+    if (!fresh) throw new Error("NI user update failed");
+    return { user: fresh as NiPortalUser, rawToken };
   }
 
-  const newUser: CatlPortalUser = {
+  const newUser: NiPortalUser = {
     email: email.trim(),
     normalizedEmail,
     hashedPassword: null,
@@ -121,76 +121,98 @@ export async function createOrResetCatlInvite(
   };
   const r = await col.insertOne(newUser as any);
   const created = await col.findOne({ _id: r.insertedId });
-  if (!created) throw new Error("CATL user insert failed");
-  return { user: created as CatlPortalUser, rawToken };
+  if (!created) throw new Error("NI user insert failed");
+  return { user: created as NiPortalUser, rawToken };
 }
 
-export async function listCatlPortalUsers(): Promise<CatlPortalUser[]> {
-  await initCatlUserIndexes();
-  const col = await getCatlPortalCollection();
+export async function listNiPortalUsers(): Promise<NiPortalUser[]> {
+  await initNiUserIndexes();
+  const col = await getNiPortalCollection();
   const docs = await col.find({}).sort({ createdAt: -1 }).toArray();
-  return docs.map((d) => ({ ...d, _id: d._id.toString() }) as unknown as CatlPortalUser);
+  return docs.map((d) => ({ ...d, _id: d._id.toString() }) as unknown as NiPortalUser);
 }
 
-export async function findCatlUserByInviteToken(
+export async function findNiUserByInviteToken(
   rawToken: string
-): Promise<CatlPortalUser | null> {
-  await initCatlUserIndexes();
-  const col = await getCatlPortalCollection();
-  const hash = await hashToken(rawToken);
+): Promise<NiPortalUser | null> {
+  await initNiUserIndexes();
+  const col = await getNiPortalCollection();
+  const hash = await hashNiToken(rawToken);
   const user = (await col.findOne({
     inviteTokenHash: hash,
     inviteExpiresAt: { $gt: Date.now() },
-  })) as CatlPortalUser | null;
+  })) as NiPortalUser | null;
   return user;
 }
 
-export async function setCatlUserPasswordAndActivate(
+export async function setNiUserPasswordAndActivate(
   id: ObjectId,
   password: string
-): Promise<CatlPortalUser | null> {
-  const col = await getCatlPortalCollection();
-  const hashed = await bcrypt.hash(password, CATL_BCRYPT_ROUNDS);
+): Promise<NiPortalUser | null> {
+  const col = await getNiPortalCollection();
+  const hashed = await bcrypt.hash(password, NI_BCRYPT_ROUNDS);
+  const now = Date.now();
   await col.updateOne(
     { _id: id },
     {
       $set: {
         hashedPassword: hashed,
         isActivated: true,
-        activatedAt: Date.now(),
-        updatedAt: Date.now(),
+        activatedAt: now,
+        updatedAt: now,
+        inviteRawToken: "",
+        inviteTokenHash: "",
+        inviteIssuedAt: now,
+        inviteExpiresAt: now - 1,
       },
     }
   );
   const updated = await col.findOne({ _id: id });
-  return (updated as CatlPortalUser) || null;
+  return (updated as NiPortalUser) || null;
 }
 
-export async function markCatlWelcomeEmailSent(id: ObjectId) {
-  const col = await getCatlPortalCollection();
+export async function markNiWelcomeEmailSent(id: ObjectId) {
+  const col = await getNiPortalCollection();
   await col.updateOne({ _id: id }, { $set: { welcomeEmailSent: true } });
 }
 
-export async function compareCatlPassword(user: CatlPortalUser, password: string) {
+export async function compareNiPassword(user: NiPortalUser, password: string) {
   if (!user.hashedPassword) return false;
   return bcrypt.compare(password, user.hashedPassword);
 }
 
-export async function deleteCatlPortalUser(id: ObjectId) {
-  const col = await getCatlPortalCollection();
+export async function deleteNiPortalUser(id: ObjectId) {
+  const col = await getNiPortalCollection();
   const res = await col.deleteOne({ _id: id });
   return res.deletedCount > 0;
 }
 
-export async function recordCatlSuccessfulLogin(id: ObjectId) {
-  const col = await getCatlPortalCollection();
+export async function recordNiSuccessfulLogin(id: ObjectId) {
+  const col = await getNiPortalCollection();
   await col.updateOne({ _id: id }, { $set: { lastLoginAt: Date.now(), updatedAt: Date.now() } });
 }
 
-export async function findCatlUserByEmail(email: string): Promise<CatlPortalUser | null> {
-  await initCatlUserIndexes();
-  const col = await getCatlPortalCollection();
-  const normalizedEmail = normalizeEmail(email);
-  const user = (await col.findOne({ normalizedEmail })) as CatlPortalUser | null;
-  return user;
+export async function findNiUserByEmail(email: string): Promise<NiPortalUser | null> {
+  await initNiUserIndexes();
+  const col = await getNiPortalCollection();
+  const normalizedEmail = normalizeNiEmail(email);
+  return (await col.findOne({ normalizedEmail })) as NiPortalUser | null;
+}
+
+export async function listNiInvites(): Promise<NiPortalUser[]> {
+  await initNiUserIndexes();
+  const col = await getNiPortalCollection();
+  const docs = await col
+    .find({ inviteExpiresAt: { $gt: Date.now() } })
+    .sort({ createdAt: -1 })
+    .toArray();
+  return docs.map((d) => ({ ...d, _id: d._id.toString() }) as unknown as NiPortalUser);
+}
+
+export async function deleteNiInvite(email: string): Promise<boolean> {
+  await initNiUserIndexes();
+  const col = await getNiPortalCollection();
+  const normalizedEmail = normalizeNiEmail(email);
+  const res = await col.deleteOne({ normalizedEmail });
+  return res.deletedCount > 0;
 }

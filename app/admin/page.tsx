@@ -92,6 +92,87 @@ const sidebarItems: SidebarItem[] = [
       </svg>
     ),
   },
+  {
+    id: "catl-invites",
+    label: "CATL Meghívások",
+    icon: (
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: "ecopro-invites",
+    label: "EcoPro Meghívások",
+    icon: (
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: "eccoino-invites",
+    label: "Eccoino Meghívások",
+    icon: (
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: "vitesco-invites",
+    label: "Vitesco Meghívások",
+    icon: (
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: "schaeffler-invites",
+    label: "Schaeffler Meghívások",
+    icon: (
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: "krones-invites",
+    label: "Krones Meghívások",
+    icon: (
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: "enterair-invites",
+    label: "Enter Air Meghívások",
+    icon: (
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: "tama-invites",
+    label: "Tama Meghívások",
+    icon: (
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: "ni-invites",
+    label: "NI Meghívások",
+    icon: (
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
 ];
 
 export default function AdminDashboard() {
@@ -238,6 +319,83 @@ export default function AdminDashboard() {
   const [ecoproInviteSending, setEcoproInviteSending] = useState(false);
   const [ecoproInviteDeleting, setEcoproInviteDeleting] = useState<string | null>(null);
   const [ecoproInviteResending, setEcoproInviteResending] = useState<string | null>(null);
+
+  // Eccoino invites management
+  const [eccoinoInvites, setEccoinoInvites] = useState<any[] | null>(null);
+  const [eccoinoInvitesMeta, setEccoinoInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
+  const [eccoinoInvitesLoading, setEccoinoInvitesLoading] = useState(false);
+  const displayEccoinoInvites: any[] = eccoinoInvites && eccoinoInvites.length > 0 ? eccoinoInvites : [];
+  const [eccoinoInviteRecipients, setEccoinoInviteRecipients] = useState("");
+  const [eccoinoInvite2FA, setEccoinoInvite2FA] = useState(false);
+  const [eccoinoInviteSending, setEccoinoInviteSending] = useState(false);
+  const [eccoinoInviteDeleting, setEccoinoInviteDeleting] = useState<string | null>(null);
+  const [eccoinoInviteResending, setEccoinoInviteResending] = useState<string | null>(null);
+
+  // Vitesco invites management
+  const [vitescoInvites, setVitescoInvites] = useState<any[] | null>(null);
+  const [vitescoInvitesMeta, setVitescoInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
+  const [vitescoInvitesLoading, setVitescoInvitesLoading] = useState(false);
+  const displayVitescoInvites: any[] = vitescoInvites && vitescoInvites.length > 0 ? vitescoInvites : [];
+  const [vitescoInviteRecipients, setVitescoInviteRecipients] = useState("");
+  const [vitescoInvite2FA, setVitescoInvite2FA] = useState(false);
+  const [vitescoInviteSending, setVitescoInviteSending] = useState(false);
+  const [vitescoInviteDeleting, setVitescoInviteDeleting] = useState<string | null>(null);
+  const [vitescoInviteResending, setVitescoInviteResending] = useState<string | null>(null);
+
+  // Schaeffler invites management
+  const [schaefflerInvites, setSchaefflerInvites] = useState<any[] | null>(null);
+  const [schaefflerInvitesMeta, setSchaefflerInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
+  const [schaefflerInvitesLoading, setSchaefflerInvitesLoading] = useState(false);
+  const displaySchaefflerInvites: any[] = schaefflerInvites && schaefflerInvites.length > 0 ? schaefflerInvites : [];
+  const [schaefflerInviteRecipients, setSchaefflerInviteRecipients] = useState("");
+  const [schaefflerInvite2FA, setSchaefflerInvite2FA] = useState(false);
+  const [schaefflerInviteSending, setSchaefflerInviteSending] = useState(false);
+  const [schaefflerInviteDeleting, setSchaefflerInviteDeleting] = useState<string | null>(null);
+  const [schaefflerInviteResending, setSchaefflerInviteResending] = useState<string | null>(null);
+
+  // Krones invites management
+  const [kronesInvites, setKronesInvites] = useState<any[] | null>(null);
+  const [kronesInvitesMeta, setKronesInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
+  const [kronesInvitesLoading, setKronesInvitesLoading] = useState(false);
+  const displayKronesInvites: any[] = kronesInvites && kronesInvites.length > 0 ? kronesInvites : [];
+  const [kronesInviteRecipients, setKronesInviteRecipients] = useState("");
+  const [kronesInvite2FA, setKronesInvite2FA] = useState(false);
+  const [kronesInviteSending, setKronesInviteSending] = useState(false);
+  const [kronesInviteDeleting, setKronesInviteDeleting] = useState<string | null>(null);
+  const [kronesInviteResending, setKronesInviteResending] = useState<string | null>(null);
+
+  // Enter Air invites management
+  const [enterairInvites, setEnterairInvites] = useState<any[] | null>(null);
+  const [enterairInvitesMeta, setEnterairInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
+  const [enterairInvitesLoading, setEnterairInvitesLoading] = useState(false);
+  const displayEnterairInvites: any[] = enterairInvites && enterairInvites.length > 0 ? enterairInvites : [];
+  const [enterairInviteRecipients, setEnterairInviteRecipients] = useState("");
+  const [enterairInvite2FA, setEnterairInvite2FA] = useState(false);
+  const [enterairInviteSending, setEnterairInviteSending] = useState(false);
+  const [enterairInviteDeleting, setEnterairInviteDeleting] = useState<string | null>(null);
+  const [enterairInviteResending, setEnterairInviteResending] = useState<string | null>(null);
+
+  // Tama invites management
+  const [tamaInvites, setTamaInvites] = useState<any[] | null>(null);
+  const [tamaInvitesMeta, setTamaInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
+  const [tamaInvitesLoading, setTamaInvitesLoading] = useState(false);
+  const displayTamaInvites: any[] = tamaInvites && tamaInvites.length > 0 ? tamaInvites : [];
+  const [tamaInviteRecipients, setTamaInviteRecipients] = useState("");
+  const [tamaInvite2FA, setTamaInvite2FA] = useState(false);
+  const [tamaInviteSending, setTamaInviteSending] = useState(false);
+  const [tamaInviteDeleting, setTamaInviteDeleting] = useState<string | null>(null);
+  const [tamaInviteResending, setTamaInviteResending] = useState<string | null>(null);
+
+  // NI invites management
+  const [niInvites, setNiInvites] = useState<any[] | null>(null);
+  const [niInvitesMeta, setNiInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
+  const [niInvitesLoading, setNiInvitesLoading] = useState(false);
+  const displayNiInvites: any[] = niInvites && niInvites.length > 0 ? niInvites : [];
+  const [niInviteRecipients, setNiInviteRecipients] = useState("");
+  const [niInvite2FA, setNiInvite2FA] = useState(false);
+  const [niInviteSending, setNiInviteSending] = useState(false);
+  const [niInviteDeleting, setNiInviteDeleting] = useState<string | null>(null);
+  const [niInviteResending, setNiInviteResending] = useState<string | null>(null);
 
   const [staffInviteRecipients, setStaffInviteRecipients] = useState("");
   const [staffInviteRole, setStaffInviteRole] = useState<"admin" | "dispatcher">("dispatcher");
@@ -466,6 +624,174 @@ export default function AdminDashboard() {
     })();
   }, [active]);
 
+  // Eccoino useEffect
+  useEffect(() => {
+    if (active !== "eccoino-invites") return;
+    setEccoinoInvitesLoading(true);
+    (async () => {
+      try {
+        const res = await fetch("/api/eccoino-invites/list", { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.success && Array.isArray(json.users)) {
+            setEccoinoInvites(json.users);
+            setEccoinoInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
+          } else {
+            setEccoinoInvites(null);
+          }
+        } else setEccoinoInvites(null);
+      } catch {
+        setEccoinoInvites(null);
+      } finally {
+        setEccoinoInvitesLoading(false);
+      }
+    })();
+  }, [active]);
+
+  // Vitesco useEffect
+  useEffect(() => {
+    if (active !== "vitesco-invites") return;
+    setVitescoInvitesLoading(true);
+    (async () => {
+      try {
+        const res = await fetch("/api/vitesco-invites/list", { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.success && Array.isArray(json.users)) {
+            setVitescoInvites(json.users);
+            setVitescoInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
+          } else {
+            setVitescoInvites(null);
+          }
+        } else setVitescoInvites(null);
+      } catch {
+        setVitescoInvites(null);
+      } finally {
+        setVitescoInvitesLoading(false);
+      }
+    })();
+  }, [active]);
+
+  // Schaeffler useEffect
+  useEffect(() => {
+    if (active !== "schaeffler-invites") return;
+    setSchaefflerInvitesLoading(true);
+    (async () => {
+      try {
+        const res = await fetch("/api/schaeffler-invites/list", { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.success && Array.isArray(json.users)) {
+            setSchaefflerInvites(json.users);
+            setSchaefflerInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
+          } else {
+            setSchaefflerInvites(null);
+          }
+        } else setSchaefflerInvites(null);
+      } catch {
+        setSchaefflerInvites(null);
+      } finally {
+        setSchaefflerInvitesLoading(false);
+      }
+    })();
+  }, [active]);
+
+  // Krones useEffect
+  useEffect(() => {
+    if (active !== "krones-invites") return;
+    setKronesInvitesLoading(true);
+    (async () => {
+      try {
+        const res = await fetch("/api/krones-invites/list", { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.success && Array.isArray(json.users)) {
+            setKronesInvites(json.users);
+            setKronesInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
+          } else {
+            setKronesInvites(null);
+          }
+        } else setKronesInvites(null);
+      } catch {
+        setKronesInvites(null);
+      } finally {
+        setKronesInvitesLoading(false);
+      }
+    })();
+  }, [active]);
+
+  // EnterAir useEffect
+  useEffect(() => {
+    if (active !== "enterair-invites") return;
+    setEnterairInvitesLoading(true);
+    (async () => {
+      try {
+        const res = await fetch("/api/enterair-invites/list", { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.success && Array.isArray(json.users)) {
+            setEnterairInvites(json.users);
+            setEnterairInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
+          } else {
+            setEnterairInvites(null);
+          }
+        } else setEnterairInvites(null);
+      } catch {
+        setEnterairInvites(null);
+      } finally {
+        setEnterairInvitesLoading(false);
+      }
+    })();
+  }, [active]);
+
+  // Tama useEffect
+  useEffect(() => {
+    if (active !== "tama-invites") return;
+    setTamaInvitesLoading(true);
+    (async () => {
+      try {
+        const res = await fetch("/api/tama-invites/list", { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.success && Array.isArray(json.users)) {
+            setTamaInvites(json.users);
+            setTamaInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
+          } else {
+            setTamaInvites(null);
+          }
+        } else setTamaInvites(null);
+      } catch {
+        setTamaInvites(null);
+      } finally {
+        setTamaInvitesLoading(false);
+      }
+    })();
+  }, [active]);
+
+  // NI useEffect
+  useEffect(() => {
+    if (active !== "ni-invites") return;
+    setNiInvitesLoading(true);
+    (async () => {
+      try {
+        const res = await fetch("/api/ni-invites/list", { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.success && Array.isArray(json.users)) {
+            setNiInvites(json.users);
+            setNiInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
+          } else {
+            setNiInvites(null);
+          }
+        } else setNiInvites(null);
+      } catch {
+        setNiInvites(null);
+      } finally {
+        setNiInvitesLoading(false);
+      }
+    })();
+  }, [active]);
+
   async function handleSendCatlInvite() {
     const recipients = catlInviteRecipients
       .split(/[,;\n]/)
@@ -689,6 +1015,864 @@ export default function AdminDashboard() {
       setToast({ type: "error", message: "Hálózati hiba az EcoPro meghívó újraküldése közben." });
     } finally {
       setEcoproInviteResending(null);
+    }
+  }
+
+  // Vitesco handlers
+  async function handleSendVitescoInvite() {
+    const recipients = vitescoInviteRecipients
+      .split(/[,;\n]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (recipients.length === 0) {
+      setToast({ type: "error", message: "Legalább egy címzett email címét add meg." });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (const e of recipients) {
+      if (!emailRegex.test(e)) {
+        setToast({ type: "error", message: `Érvénytelen email cím: ${e}` });
+        return;
+      }
+    }
+
+    let vitescoPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        vitescoPartnerBase = url.origin;
+      } catch {
+        vitescoPartnerBase = window.location.origin;
+      }
+    }
+
+    setVitescoInviteSending(true);
+    try {
+      const res = await fetch("/api/vitesco-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients,
+          requireTwoFactor: !!vitescoInvite2FA,
+          loginBaseUrl: vitescoPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "Vitesco meghívók sikeresen elküldve." });
+        setVitescoInviteRecipients("");
+        setVitescoInvite2FA(false);
+        const listRes = await fetch("/api/vitesco-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setVitescoInvites(j2.users);
+            setVitescoInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
+    } finally {
+      setVitescoInviteSending(false);
+    }
+  }
+
+  async function handleDeleteVitescoUser(id: string, email: string) {
+    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt Vitesco hozzáférést?\n\nA művelet nem visszavonható.`)) {
+      return;
+    }
+    setVitescoInviteDeleting(id);
+    try {
+      const res = await fetch("/api/vitesco-invites/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "Vitesco felhasználó törölve." });
+        const listRes = await fetch("/api/vitesco-invites/list", { cache: "no-store" });
+        const listJson = await listRes.json().catch(() => null);
+        if (listRes.ok && listJson?.success) {
+          setVitescoInvites(listJson.users || []);
+          setVitescoInvitesMeta(listJson.counts || vitescoInvitesMeta);
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba törlés közben." });
+    } finally {
+      setVitescoInviteDeleting(null);
+    }
+  }
+
+  async function handleResendVitescoInvite(id: string, email: string, requireTwoFactor: boolean) {
+    let vitescoPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        vitescoPartnerBase = url.origin;
+      } catch {
+        vitescoPartnerBase = window.location.origin;
+      }
+    }
+
+    setVitescoInviteResending(id);
+    try {
+      const res = await fetch("/api/vitesco-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients: [email],
+          requireTwoFactor,
+          loginBaseUrl: vitescoPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "A Vitesco meghívó újraküldése nem sikerült." });
+      } else {
+        setToast({ type: "success", message: `${email} részére a Vitesco meghívó újra kiküldve.` });
+        const listRes = await fetch("/api/vitesco-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setVitescoInvites(j2.users);
+            setVitescoInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a Vitesco meghívó újraküldése közben." });
+    } finally {
+      setVitescoInviteResending(null);
+    }
+  }
+
+  // Schaeffler handlers
+  async function handleSendSchaefflerInvite() {
+    const recipients = schaefflerInviteRecipients
+      .split(/[,;\n]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (recipients.length === 0) {
+      setToast({ type: "error", message: "Legalább egy címzett email címét add meg." });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (const e of recipients) {
+      if (!emailRegex.test(e)) {
+        setToast({ type: "error", message: `Érvénytelen email cím: ${e}` });
+        return;
+      }
+    }
+
+    let schaefflerPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        schaefflerPartnerBase = url.origin;
+      } catch {
+        schaefflerPartnerBase = window.location.origin;
+      }
+    }
+
+    setSchaefflerInviteSending(true);
+    try {
+      const res = await fetch("/api/schaeffler-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients,
+          requireTwoFactor: !!schaefflerInvite2FA,
+          loginBaseUrl: schaefflerPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "Schaeffler meghívók sikeresen elküldve." });
+        setSchaefflerInviteRecipients("");
+        setSchaefflerInvite2FA(false);
+        const listRes = await fetch("/api/schaeffler-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setSchaefflerInvites(j2.users);
+            setSchaefflerInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
+    } finally {
+      setSchaefflerInviteSending(false);
+    }
+  }
+
+  async function handleDeleteSchaefflerUser(id: string, email: string) {
+    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt Schaeffler hozzáférést?\n\nA művelet nem visszavonható.`)) {
+      return;
+    }
+    setSchaefflerInviteDeleting(id);
+    try {
+      const res = await fetch("/api/schaeffler-invites/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "Schaeffler felhasználó törölve." });
+        const listRes = await fetch("/api/schaeffler-invites/list", { cache: "no-store" });
+        const listJson = await listRes.json().catch(() => null);
+        if (listRes.ok && listJson?.success) {
+          setSchaefflerInvites(listJson.users || []);
+          setSchaefflerInvitesMeta(listJson.counts || schaefflerInvitesMeta);
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba törlés közben." });
+    } finally {
+      setSchaefflerInviteDeleting(null);
+    }
+  }
+
+  async function handleResendSchaefflerInvite(id: string, email: string, requireTwoFactor: boolean) {
+    let schaefflerPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        schaefflerPartnerBase = url.origin;
+      } catch {
+        schaefflerPartnerBase = window.location.origin;
+      }
+    }
+
+    setSchaefflerInviteResending(id);
+    try {
+      const res = await fetch("/api/schaeffler-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients: [email],
+          requireTwoFactor,
+          loginBaseUrl: schaefflerPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "A Schaeffler meghívó újraküldése nem sikerült." });
+      } else {
+        setToast({ type: "success", message: `${email} részére a Schaeffler meghívó újra kiküldve.` });
+        const listRes = await fetch("/api/schaeffler-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setSchaefflerInvites(j2.users);
+            setSchaefflerInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a Schaeffler meghívó újraküldése közben." });
+    } finally {
+      setSchaefflerInviteResending(null);
+    }
+  }
+
+  // Krones handlers
+  async function handleSendKronesInvite() {
+    const recipients = kronesInviteRecipients
+      .split(/[,;\n]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (recipients.length === 0) {
+      setToast({ type: "error", message: "Legalább egy címzett email címét add meg." });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (const e of recipients) {
+      if (!emailRegex.test(e)) {
+        setToast({ type: "error", message: `Érvénytelen email cím: ${e}` });
+        return;
+      }
+    }
+
+    let kronesPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        kronesPartnerBase = url.origin;
+      } catch {
+        kronesPartnerBase = window.location.origin;
+      }
+    }
+
+    setKronesInviteSending(true);
+    try {
+      const res = await fetch("/api/krones-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients,
+          requireTwoFactor: !!kronesInvite2FA,
+          loginBaseUrl: kronesPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "Krones meghívók sikeresen elküldve." });
+        setKronesInviteRecipients("");
+        setKronesInvite2FA(false);
+        const listRes = await fetch("/api/krones-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setKronesInvites(j2.users);
+            setKronesInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
+    } finally {
+      setKronesInviteSending(false);
+    }
+  }
+
+  async function handleDeleteKronesUser(id: string, email: string) {
+    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt Krones hozzáférést?\n\nA művelet nem visszavonható.`)) {
+      return;
+    }
+    setKronesInviteDeleting(id);
+    try {
+      const res = await fetch("/api/krones-invites/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "Krones felhasználó törölve." });
+        const listRes = await fetch("/api/krones-invites/list", { cache: "no-store" });
+        const listJson = await listRes.json().catch(() => null);
+        if (listRes.ok && listJson?.success) {
+          setKronesInvites(listJson.users || []);
+          setKronesInvitesMeta(listJson.counts || kronesInvitesMeta);
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba törlés közben." });
+    } finally {
+      setKronesInviteDeleting(null);
+    }
+  }
+
+  async function handleResendKronesInvite(id: string, email: string, requireTwoFactor: boolean) {
+    let kronesPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        kronesPartnerBase = url.origin;
+      } catch {
+        kronesPartnerBase = window.location.origin;
+      }
+    }
+
+    setKronesInviteResending(id);
+    try {
+      const res = await fetch("/api/krones-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients: [email],
+          requireTwoFactor,
+          loginBaseUrl: kronesPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "A Krones meghívó újraküldése nem sikerült." });
+      } else {
+        setToast({ type: "success", message: `${email} részére a Krones meghívó újra kiküldve.` });
+        const listRes = await fetch("/api/krones-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setKronesInvites(j2.users);
+            setKronesInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a Krones meghívó újraküldése közben." });
+    } finally {
+      setKronesInviteResending(null);
+    }
+  }
+
+  // EnterAir handlers
+  async function handleSendEnterairInvite() {
+    const recipients = enterairInviteRecipients
+      .split(/[,;\n]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (recipients.length === 0) {
+      setToast({ type: "error", message: "Legalább egy címzett email címét add meg." });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (const e of recipients) {
+      if (!emailRegex.test(e)) {
+        setToast({ type: "error", message: `Érvénytelen email cím: ${e}` });
+        return;
+      }
+    }
+
+    let enterairPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        enterairPartnerBase = url.origin;
+      } catch {
+        enterairPartnerBase = window.location.origin;
+      }
+    }
+
+    setEnterairInviteSending(true);
+    try {
+      const res = await fetch("/api/enterair-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients,
+          requireTwoFactor: !!enterairInvite2FA,
+          loginBaseUrl: enterairPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "EnterAir meghívók sikeresen elküldve." });
+        setEnterairInviteRecipients("");
+        setEnterairInvite2FA(false);
+        const listRes = await fetch("/api/enterair-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setEnterairInvites(j2.users);
+            setEnterairInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
+    } finally {
+      setEnterairInviteSending(false);
+    }
+  }
+
+  async function handleDeleteEnterairUser(id: string, email: string) {
+    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt EnterAir hozzáférést?\n\nA művelet nem visszavonható.`)) {
+      return;
+    }
+    setEnterairInviteDeleting(id);
+    try {
+      const res = await fetch("/api/enterair-invites/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "EnterAir felhasználó törölve." });
+        const listRes = await fetch("/api/enterair-invites/list", { cache: "no-store" });
+        const listJson = await listRes.json().catch(() => null);
+        if (listRes.ok && listJson?.success) {
+          setEnterairInvites(listJson.users || []);
+          setEnterairInvitesMeta(listJson.counts || enterairInvitesMeta);
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba törlés közben." });
+    } finally {
+      setEnterairInviteDeleting(null);
+    }
+  }
+
+  async function handleResendEnterairInvite(id: string, email: string, requireTwoFactor: boolean) {
+    let enterairPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        enterairPartnerBase = url.origin;
+      } catch {
+        enterairPartnerBase = window.location.origin;
+      }
+    }
+
+    setEnterairInviteResending(id);
+    try {
+      const res = await fetch("/api/enterair-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients: [email],
+          requireTwoFactor,
+          loginBaseUrl: enterairPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "Az EnterAir meghívó újraküldése nem sikerült." });
+      } else {
+        setToast({ type: "success", message: `${email} részére az EnterAir meghívó újra kiküldve.` });
+        const listRes = await fetch("/api/enterair-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setEnterairInvites(j2.users);
+            setEnterairInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba az EnterAir meghívó újraküldése közben." });
+    } finally {
+      setEnterairInviteResending(null);
+    }
+  }
+
+  // Tama handlers
+  async function handleSendTamaInvite() {
+    const recipients = tamaInviteRecipients
+      .split(/[,;\n]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (recipients.length === 0) {
+      setToast({ type: "error", message: "Legalább egy címzett email címét add meg." });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (const e of recipients) {
+      if (!emailRegex.test(e)) {
+        setToast({ type: "error", message: `Érvénytelen email cím: ${e}` });
+        return;
+      }
+    }
+
+    let tamaPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        tamaPartnerBase = url.origin;
+      } catch {
+        tamaPartnerBase = window.location.origin;
+      }
+    }
+
+    setTamaInviteSending(true);
+    try {
+      const res = await fetch("/api/tama-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients,
+          requireTwoFactor: !!tamaInvite2FA,
+          loginBaseUrl: tamaPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "Tama meghívók sikeresen elküldve." });
+        setTamaInviteRecipients("");
+        setTamaInvite2FA(false);
+        const listRes = await fetch("/api/tama-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setTamaInvites(j2.users);
+            setTamaInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
+    } finally {
+      setTamaInviteSending(false);
+    }
+  }
+
+  async function handleDeleteTamaUser(id: string, email: string) {
+    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt Tama hozzáférést?\n\nA művelet nem visszavonható.`)) {
+      return;
+    }
+    setTamaInviteDeleting(id);
+    try {
+      const res = await fetch("/api/tama-invites/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "Tama felhasználó törölve." });
+        const listRes = await fetch("/api/tama-invites/list", { cache: "no-store" });
+        const listJson = await listRes.json().catch(() => null);
+        if (listRes.ok && listJson?.success) {
+          setTamaInvites(listJson.users || []);
+          setTamaInvitesMeta(listJson.counts || tamaInvitesMeta);
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba törlés közben." });
+    } finally {
+      setTamaInviteDeleting(null);
+    }
+  }
+
+  async function handleResendTamaInvite(id: string, email: string, requireTwoFactor: boolean) {
+    let tamaPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        tamaPartnerBase = url.origin;
+      } catch {
+        tamaPartnerBase = window.location.origin;
+      }
+    }
+
+    setTamaInviteResending(id);
+    try {
+      const res = await fetch("/api/tama-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients: [email],
+          requireTwoFactor,
+          loginBaseUrl: tamaPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "A Tama meghívó újraküldése nem sikerült." });
+      } else {
+        setToast({ type: "success", message: `${email} részére a Tama meghívó újra kiküldve.` });
+        const listRes = await fetch("/api/tama-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setTamaInvites(j2.users);
+            setTamaInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a Tama meghívó újraküldése közben." });
+    } finally {
+      setTamaInviteResending(null);
+    }
+  }
+
+  // NI handlers
+  async function handleSendNiInvite() {
+    const recipients = niInviteRecipients
+      .split(/[,;\n]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (recipients.length === 0) {
+      setToast({ type: "error", message: "Legalább egy címzett email címét add meg." });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (const e of recipients) {
+      if (!emailRegex.test(e)) {
+        setToast({ type: "error", message: `Érvénytelen email cím: ${e}` });
+        return;
+      }
+    }
+
+    let niPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        niPartnerBase = url.origin;
+      } catch {
+        niPartnerBase = window.location.origin;
+      }
+    }
+
+    setNiInviteSending(true);
+    try {
+      const res = await fetch("/api/ni-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients,
+          requireTwoFactor: !!niInvite2FA,
+          loginBaseUrl: niPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "NI meghívók sikeresen elküldve." });
+        setNiInviteRecipients("");
+        setNiInvite2FA(false);
+        const listRes = await fetch("/api/ni-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setNiInvites(j2.users);
+            setNiInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
+    } finally {
+      setNiInviteSending(false);
+    }
+  }
+
+  async function handleDeleteNiUser(id: string, email: string) {
+    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt NI hozzáférést?\n\nA művelet nem visszavonható.`)) {
+      return;
+    }
+    setNiInviteDeleting(id);
+    try {
+      const res = await fetch("/api/ni-invites/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "NI felhasználó törölve." });
+        const listRes = await fetch("/api/ni-invites/list", { cache: "no-store" });
+        const listJson = await listRes.json().catch(() => null);
+        if (listRes.ok && listJson?.success) {
+          setNiInvites(listJson.users || []);
+          setNiInvitesMeta(listJson.counts || niInvitesMeta);
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba törlés közben." });
+    } finally {
+      setNiInviteDeleting(null);
+    }
+  }
+
+  async function handleResendNiInvite(id: string, email: string, requireTwoFactor: boolean) {
+    let niPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        niPartnerBase = url.origin;
+      } catch {
+        niPartnerBase = window.location.origin;
+      }
+    }
+
+    setNiInviteResending(id);
+    try {
+      const res = await fetch("/api/ni-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients: [email],
+          requireTwoFactor,
+          loginBaseUrl: niPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "Az NI meghívó újraküldése nem sikerült." });
+      } else {
+        setToast({ type: "success", message: `${email} részére az NI meghívó újra kiküldve.` });
+        const listRes = await fetch("/api/ni-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setNiInvites(j2.users);
+            setNiInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba az NI meghívó újraküldése közben." });
+    } finally {
+      setNiInviteResending(null);
     }
   }
 
