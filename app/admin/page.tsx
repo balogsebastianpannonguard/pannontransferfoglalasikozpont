@@ -92,87 +92,6 @@ const sidebarItems: SidebarItem[] = [
       </svg>
     ),
   },
-  {
-    id: "catl-invites",
-    label: "CATL Meghívások",
-    icon: (
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
-    id: "ecopro-invites",
-    label: "EcoPro Meghívások",
-    icon: (
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
-    id: "eccoino-invites",
-    label: "Eccoino Meghívások",
-    icon: (
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
-    id: "vitesco-invites",
-    label: "Vitesco Meghívások",
-    icon: (
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
-    id: "schaeffler-invites",
-    label: "Schaeffler Meghívások",
-    icon: (
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
-    id: "krones-invites",
-    label: "Krones Meghívások",
-    icon: (
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
-    id: "enterair-invites",
-    label: "Enter Air Meghívások",
-    icon: (
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
-    id: "tama-invites",
-    label: "Tama Meghívások",
-    icon: (
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
-    id: "ni-invites",
-    label: "NI Meghívások",
-    icon: (
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
 ];
 
 export default function AdminDashboard() {
@@ -1015,6 +934,149 @@ export default function AdminDashboard() {
       setToast({ type: "error", message: "Hálózati hiba az EcoPro meghívó újraküldése közben." });
     } finally {
       setEcoproInviteResending(null);
+    }
+  }
+
+  // Eccoino handlers
+  async function handleSendEccoinoInvite() {
+    const recipients = eccoinoInviteRecipients
+      .split(/[,;\n]/)
+      .map((s: string) => s.trim())
+      .filter(Boolean);
+    if (recipients.length === 0) {
+      setToast({ type: "error", message: "Legalább egy címzett email címét add meg." });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (const e of recipients) {
+      if (!emailRegex.test(e)) {
+        setToast({ type: "error", message: `Érvénytelen email cím: ${e}` });
+        return;
+      }
+    }
+
+    let eccoinoPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        eccoinoPartnerBase = url.origin;
+      } catch {
+        eccoinoPartnerBase = window.location.origin;
+      }
+    }
+
+    setEccoinoInviteSending(true);
+    try {
+      const res = await fetch("/api/eccoino-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients,
+          requireTwoFactor: eccoinoInvite2FA,
+          loginBaseUrl: eccoinoPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "Eccoino meghívók sikeresen elküldve." });
+        setEccoinoInviteRecipients("");
+        setEccoinoInvite2FA(false);
+        const listRes = await fetch("/api/eccoino-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setEccoinoInvites(j2.users);
+            setEccoinoInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
+    } finally {
+      setEccoinoInviteSending(false);
+    }
+  }
+
+  async function handleDeleteEccoinoUser(id: string, email: string) {
+    if (!confirm(`Biztosan törölni szeretnéd a(z) ${email} felhasználót?`)) return;
+    setEccoinoInviteDeleting(id);
+    try {
+      const res = await fetch("/api/eccoino-invites/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setToast({ type: "error", message: json?.message || "Hiba történt a törlés során." });
+      } else {
+        setToast({ type: "success", message: "Felhasználó törölve." });
+        const listRes = await fetch("/api/eccoino-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setEccoinoInvites(j2.users);
+            setEccoinoInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a törlés közben." });
+    } finally {
+      setEccoinoInviteDeleting(null);
+    }
+  }
+
+  async function handleResendEccoinoInvite(id: string, email: string, requireTwoFactor: boolean) {
+    let eccoinoPartnerBase = "";
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+        }
+        eccoinoPartnerBase = url.origin;
+      } catch {
+        eccoinoPartnerBase = window.location.origin;
+      }
+    }
+
+    setEccoinoInviteResending(id);
+    try {
+      const res = await fetch("/api/eccoino-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients: [email],
+          requireTwoFactor,
+          loginBaseUrl: eccoinoPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "A meghívó újraküldése nem sikerült." });
+      } else {
+        setToast({ type: "success", message: `${email} részére az Eccoino meghívó újra kiküldve.` });
+        const listRes = await fetch("/api/eccoino-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setEccoinoInvites(j2.users);
+            setEccoinoInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a meghívó újraküldése közben." });
+    } finally {
+      setEccoinoInviteResending(null);
     }
   }
 
@@ -2311,8 +2373,9 @@ export default function AdminDashboard() {
       tag: "Nemzetközi",
       description: "Nemzetközi Wien útvonalak és partnerfoglalások előkészített felülete.",
       portalPath: "/eccoino",
-      accessLabel: "Eccoino Hozzáférések",
-      isLive: false,
+      accessLabel: "Eccoino Meghívások",
+      isLive: true,
+      onAccess: () => setActive("eccoino-invites"),
     },
     {
       key: "vitesco",
@@ -2323,8 +2386,9 @@ export default function AdminDashboard() {
       tag: "Autóipar",
       description: "Debrecen-Budapest vállalati transzferek és partnerbeállítások felülete.",
       portalPath: "/vitesco",
-      accessLabel: "Vitesco Hozzáférések",
-      isLive: false,
+      accessLabel: "Vitesco Meghívások",
+      isLive: true,
+      onAccess: () => setActive("vitesco-invites"),
     },
     {
       key: "schaeffler",
@@ -2335,8 +2399,9 @@ export default function AdminDashboard() {
       tag: "Autóipar",
       description: "Schaeffler céges fuvarok és delegációs igények kezelőnézete.",
       portalPath: "/schaeffler",
-      accessLabel: "Schaeffler Hozzáférések",
-      isLive: false,
+      accessLabel: "Schaeffler Meghívások",
+      isLive: true,
+      onAccess: () => setActive("schaeffler-invites"),
     },
     {
       key: "krones",
@@ -2347,8 +2412,9 @@ export default function AdminDashboard() {
       tag: "Gyártás",
       description: "Db-Db és Debrecen-Budapest vállalati transzferek dedikált felülete.",
       portalPath: "/krones",
-      accessLabel: "Krones Hozzáférések",
-      isLive: false,
+      accessLabel: "Krones Meghívások",
+      isLive: true,
+      onAccess: () => setActive("krones-invites"),
     },
     {
       key: "enterair",
@@ -2359,8 +2425,9 @@ export default function AdminDashboard() {
       tag: "Légi",
       description: "Euro alapú csoportos transzferek és partnerhozzáférések előnézete.",
       portalPath: "/enterair",
-      accessLabel: "Enter Air Hozzáférések",
-      isLive: false,
+      accessLabel: "Enter Air Meghívások",
+      isLive: true,
+      onAccess: () => setActive("enterair-invites"),
     },
     {
       key: "tama",
@@ -2371,8 +2438,9 @@ export default function AdminDashboard() {
       tag: "Logisztika",
       description: "Debrecen, Budapest és B.újfalu útvonalak partnerkártyás megjelenítése.",
       portalPath: "/tama",
-      accessLabel: "Tama Hozzáférések",
-      isLive: false,
+      accessLabel: "Tama Meghívások",
+      isLive: true,
+      onAccess: () => setActive("tama-invites"),
     },
     {
       key: "ni",
@@ -2383,8 +2451,9 @@ export default function AdminDashboard() {
       tag: "Technológia",
       description: "Standard transzfer és VIP Mercedes tarifák vizuális partnerfelülete.",
       portalPath: "/ni",
-      accessLabel: "NI Hozzáférések",
-      isLive: false,
+      accessLabel: "NI Meghívások",
+      isLive: true,
+      onAccess: () => setActive("ni-invites"),
     },
   ];
 
@@ -2683,34 +2752,143 @@ export default function AdminDashboard() {
                 ))}
               </div>
             </div>
-          ) : active === "catl-invites" || active === "ecopro-invites" ? (
+          ) : active.endsWith("-invites") && !["driver-invites", "staff-invites"].includes(active) ? (
             (() => {
-              const inviteIsEcopro = active === "ecopro-invites";
-              const invitePortalKey = inviteIsEcopro ? "ecopro" : "catl";
-              const inviteTitle = inviteIsEcopro ? "EcoPro Meghívások" : "CATL Meghívások";
-              const inviteShortLabel = inviteIsEcopro ? "EcoPro" : "CATL";
-              const inviteDescription = inviteIsEcopro
-                ? "Kezelje az EcoPro portálhoz hozzáféréssel rendelkező felhasználókat és delegációkat."
-                : "Kezelje a CATL portálhoz hozzáféréssel rendelkező felhasználókat és delegációkat.";
-              const inviteRecipients = inviteIsEcopro ? ecoproInviteRecipients : catlInviteRecipients;
-              const setInviteRecipients = inviteIsEcopro ? setEcoproInviteRecipients : setCatlInviteRecipients;
-              const invite2FA = inviteIsEcopro ? ecoproInvite2FA : catlInvite2FA;
-              const setInvite2FA = inviteIsEcopro ? setEcoproInvite2FA : setCatlInvite2FA;
-              const inviteSending = inviteIsEcopro ? ecoproInviteSending : catlInviteSending;
-              const inviteDeleting = inviteIsEcopro ? ecoproInviteDeleting : catlInviteDeleting;
-              const inviteResending = inviteIsEcopro ? ecoproInviteResending : catlInviteResending;
-              const inviteLoading = inviteIsEcopro ? ecoproInvitesLoading : catlInvitesLoading;
-              const inviteUsers = inviteIsEcopro ? ecoproInvites : catlInvites;
-              const derivedInviteMeta = inviteIsEcopro ? derivedEcoproMeta : derivedCatlMeta;
-              const handleSendInvite = inviteIsEcopro ? handleSendEcoproInvite : handleSendCatlInvite;
-              const handleDeleteInviteUser = inviteIsEcopro ? handleDeleteEcoproUser : handleDeleteCatlUser;
-              const handleResendInviteUser = inviteIsEcopro ? handleResendEcoproInvite : handleResendCatlInvite;
-              const inviteColor = inviteIsEcopro ? "#00B4D8" : "#0047BA";
-              const inviteSecondaryColor = inviteIsEcopro ? "#0096B4" : "#00B4D8";
-              const inviteCheckboxId = inviteIsEcopro ? "ecopro-2fa-flag" : "catl-2fa-flag";
-              const invitePlaceholder = inviteIsEcopro
-                ? "partner@ecopro.hu, manager@ecopro.hu; dolgozo@pannon.hu"
-                : "pelda@catl.hu, catl.ugyvezeto@hu.com; dolgozo@pannon.hu";
+              const partnerKey = active.replace("-invites", "");
+              const configs: Record<string, any> = {
+                catl: {
+                  title: "CATL Meghívások", shortLabel: "CATL", description: "Kezelje a CATL portálhoz hozzáféréssel rendelkező felhasználókat és delegációkat.",
+                  recipients: catlInviteRecipients, setRecipients: setCatlInviteRecipients,
+                  twoFA: catlInvite2FA, setTwoFA: setCatlInvite2FA,
+                  sending: catlInviteSending, deleting: catlInviteDeleting, resending: catlInviteResending,
+                  loading: catlInvitesLoading, users: catlInvites, meta: catlInvitesMeta, display: displayCatlInvites,
+                  handleSend: handleSendCatlInvite, handleDelete: handleDeleteCatlUser, handleResend: handleResendCatlInvite,
+                  color: "#0047BA", secondaryColor: "#00B4D8", placeholder: "pelda@catl.hu, catl.ugyvezeto@hu.com; dolgozo@pannon.hu",
+                },
+                ecopro: {
+                  title: "EcoPro Meghívások", shortLabel: "EcoPro", description: "Kezelje az EcoPro portálhoz hozzáféréssel rendelkező felhasználókat és delegációkat.",
+                  recipients: ecoproInviteRecipients, setRecipients: setEcoproInviteRecipients,
+                  twoFA: ecoproInvite2FA, setTwoFA: setEcoproInvite2FA,
+                  sending: ecoproInviteSending, deleting: ecoproInviteDeleting, resending: ecoproInviteResending,
+                  loading: ecoproInvitesLoading, users: ecoproInvites, meta: ecoproInvitesMeta, display: displayEcoproInvites,
+                  handleSend: handleSendEcoproInvite, handleDelete: handleDeleteEcoproUser, handleResend: handleResendEcoproInvite,
+                  color: "#00B4D8", secondaryColor: "#0096B4", placeholder: "partner@ecopro.hu, manager@ecopro.hu; dolgozo@pannon.hu",
+                },
+                eccoino: {
+                  title: "Eccoino Meghívások", shortLabel: "Eccoino", description: "Kezelje az Eccoino portálhoz hozzáféréssel rendelkező felhasználókat.",
+                  recipients: eccoinoInviteRecipients, setRecipients: setEccoinoInviteRecipients,
+                  twoFA: eccoinoInvite2FA, setTwoFA: setEccoinoInvite2FA,
+                  sending: eccoinoInviteSending, deleting: eccoinoInviteDeleting, resending: eccoinoInviteResending,
+                  loading: eccoinoInvitesLoading, users: eccoinoInvites, meta: eccoinoInvitesMeta, display: displayEccoinoInvites,
+                  handleSend: handleSendEccoinoInvite, handleDelete: handleDeleteEccoinoUser, handleResend: handleResendEccoinoInvite,
+                  color: "#60B8FF", secondaryColor: "#3A9FEE", placeholder: "partner@eccoino.hu; dolgozo@pannon.hu",
+                },
+                vitesco: {
+                  title: "Vitesco Meghívások", shortLabel: "Vitesco", description: "Kezelje a Vitesco portálhoz hozzáféréssel rendelkező felhasználókat.",
+                  recipients: vitescoInviteRecipients, setRecipients: setVitescoInviteRecipients,
+                  twoFA: vitescoInvite2FA, setTwoFA: setVitescoInvite2FA,
+                  sending: vitescoInviteSending, deleting: vitescoInviteDeleting, resending: vitescoInviteResending,
+                  loading: vitescoInvitesLoading, users: vitescoInvites, meta: vitescoInvitesMeta, display: displayVitescoInvites,
+                  handleSend: handleSendVitescoInvite, handleDelete: handleDeleteVitescoUser, handleResend: handleResendVitescoInvite,
+                  color: "#E30613", secondaryColor: "#B80010", placeholder: "partner@vitesco.hu; dolgozo@pannon.hu",
+                },
+                schaeffler: {
+                  title: "Schaeffler Meghívások", shortLabel: "Schaeffler", description: "Kezelje a Schaeffler portálhoz hozzáféréssel rendelkező felhasználókat.",
+                  recipients: schaefflerInviteRecipients, setRecipients: setSchaefflerInviteRecipients,
+                  twoFA: schaefflerInvite2FA, setTwoFA: setSchaefflerInvite2FA,
+                  sending: schaefflerInviteSending, deleting: schaefflerInviteDeleting, resending: schaefflerInviteResending,
+                  loading: schaefflerInvitesLoading, users: schaefflerInvites, meta: schaefflerInvitesMeta, display: displaySchaefflerInvites,
+                  handleSend: handleSendSchaefflerInvite, handleDelete: handleDeleteSchaefflerUser, handleResend: handleResendSchaefflerInvite,
+                  color: "#009A44", secondaryColor: "#007A35", placeholder: "partner@schaeffler.hu; dolgozo@pannon.hu",
+                },
+                krones: {
+                  title: "Krones Meghívások", shortLabel: "Krones", description: "Kezelje a Krones portálhoz hozzáféréssel rendelkező felhasználókat.",
+                  recipients: kronesInviteRecipients, setRecipients: setKronesInviteRecipients,
+                  twoFA: kronesInvite2FA, setTwoFA: setKronesInvite2FA,
+                  sending: kronesInviteSending, deleting: kronesInviteDeleting, resending: kronesInviteResending,
+                  loading: kronesInvitesLoading, users: kronesInvites, meta: kronesInvitesMeta, display: displayKronesInvites,
+                  handleSend: handleSendKronesInvite, handleDelete: handleDeleteKronesUser, handleResend: handleResendKronesInvite,
+                  color: "#003F8A", secondaryColor: "#002D6A", placeholder: "partner@krones.hu; dolgozo@pannon.hu",
+                },
+                enterair: {
+                  title: "Enter Air Meghívások", shortLabel: "Enter Air", description: "Kezelje az Enter Air portálhoz hozzáféréssel rendelkező felhasználókat.",
+                  recipients: enterairInviteRecipients, setRecipients: setEnterairInviteRecipients,
+                  twoFA: enterairInvite2FA, setTwoFA: setEnterairInvite2FA,
+                  sending: enterairInviteSending, deleting: enterairInviteDeleting, resending: enterairInviteResending,
+                  loading: enterairInvitesLoading, users: enterairInvites, meta: enterairInvitesMeta, display: displayEnterairInvites,
+                  handleSend: handleSendEnterairInvite, handleDelete: handleDeleteEnterairUser, handleResend: handleResendEnterairInvite,
+                  color: "#005BAA", secondaryColor: "#0078D4", placeholder: "partner@enterair.hu; dolgozo@pannon.hu",
+                },
+                tama: {
+                  title: "Tama Meghívások", shortLabel: "Tama", description: "Kezelje a Tama portálhoz hozzáféréssel rendelkező felhasználókat.",
+                  recipients: tamaInviteRecipients, setRecipients: setTamaInviteRecipients,
+                  twoFA: tamaInvite2FA, setTwoFA: setTamaInvite2FA,
+                  sending: tamaInviteSending, deleting: tamaInviteDeleting, resending: tamaInviteResending,
+                  loading: tamaInvitesLoading, users: tamaInvites, meta: tamaInvitesMeta, display: displayTamaInvites,
+                  handleSend: handleSendTamaInvite, handleDelete: handleDeleteTamaUser, handleResend: handleResendTamaInvite,
+                  color: "#5CA700", secondaryColor: "#438000", placeholder: "partner@tama.hu; dolgozo@pannon.hu",
+                },
+                ni: {
+                  title: "NI Meghívások", shortLabel: "NI", description: "Kezelje az NI portálhoz hozzáféréssel rendelkező felhasználókat.",
+                  recipients: niInviteRecipients, setRecipients: setNiInviteRecipients,
+                  twoFA: niInvite2FA, setTwoFA: setNiInvite2FA,
+                  sending: niInviteSending, deleting: niInviteDeleting, resending: niInviteResending,
+                  loading: niInvitesLoading, users: niInvites, meta: niInvitesMeta, display: displayNiInvites,
+                  handleSend: handleSendNiInvite, handleDelete: handleDeleteNiUser, handleResend: handleResendNiInvite,
+                  color: "#F5D000", secondaryColor: "#D8A800", placeholder: "partner@ni.hu; dolgozo@pannon.hu",
+                },
+              };
+
+              const conf = configs[partnerKey] || configs.catl;
+
+              const invitePortalKey = partnerKey;
+              const inviteTitle = conf.title;
+              const inviteShortLabel = conf.shortLabel;
+              const inviteDescription = conf.description;
+              const inviteRecipients = conf.recipients;
+              const setInviteRecipients = conf.setRecipients;
+              const invite2FA = conf.twoFA;
+              const setInvite2FA = conf.setTwoFA;
+              const inviteSending = conf.sending;
+              const inviteDeleting = conf.deleting;
+              const inviteResending = conf.resending;
+              const inviteLoading = conf.loading;
+              const inviteUsers = conf.users;
+              const handleSendInvite = conf.handleSend;
+              const handleDeleteInviteUser = conf.handleDelete;
+              const handleResendInviteUser = conf.handleResend;
+              const inviteColor = conf.color;
+              const inviteSecondaryColor = conf.secondaryColor;
+              const inviteCheckboxId = `${partnerKey}-2fa-flag`;
+              const invitePlaceholder = conf.placeholder;
+
+              const derivedInviteMeta = (() => {
+                const isLoading = conf.loading;
+                const displayList = conf.display || [];
+                const metaObj = conf.meta;
+                if (isLoading || displayList.length === 0) {
+                  if (isLoading) {
+                    return { total: null, activated: null, pending: null, require2fa: null };
+                  }
+                  return {
+                    total: metaObj?.total ?? 0,
+                    activated: metaObj?.activated ?? 0,
+                    pending: metaObj?.pending ?? 0,
+                    require2fa: metaObj?.require2fa ?? 0,
+                  };
+                }
+                const total = displayList.length;
+                let activated = 0;
+                let pending = 0;
+                let require2fa = 0;
+                for (const u of displayList) {
+                  if (u?.requireTwoFactor) require2fa++;
+                  if (u?.isActivated) activated++;
+                  else pending++;
+                }
+                return { total, activated, pending, require2fa };
+              })();
+
               const invitePortalUrl = (() => {
                 if (typeof window === "undefined") return `http://localhost:3001/${invitePortalKey}`;
                 try {
@@ -2825,7 +3003,7 @@ export default function AdminDashboard() {
                         Címzettek
                       </label>
                       <span className="text-xs font-bold text-admin-gray-400">
-                        {inviteRecipients.split(/[,;\n]/).map((s) => s.trim()).filter(Boolean).length} címzett
+                        {inviteRecipients.split(/[,;\n]/).map((s: string) => s.trim()).filter(Boolean).length} címzett
                       </span>
                     </div>
                     <textarea
