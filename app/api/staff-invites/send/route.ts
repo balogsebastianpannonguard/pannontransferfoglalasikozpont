@@ -111,13 +111,13 @@ function buildAdminInviteEmail(
 <td width="64" height="64" align="center" valign="middle" bgcolor="#FFFFFF" style="border-radius:14px;">
 <span style="font-family:-apple-system, sans-serif; font-size:20px; font-weight:900; color:#111827;">⚙ ADMIN</span>
 </td></tr></table>
-<h1 style="margin:0 0 8px 0; font-family:Georgia, serif; color:#FFFFFF; font-size:26px; letter-spacing:.5px;">CRM Admin Hozzáférés</h1>
-<p style="margin:0; font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#9CA3AF;">Pannon Transfer Rendszergazda</p>
+<h1 style="margin:0 0 8px 0; font-family:Georgia, serif; color:#FFFFFF; font-size:26px; letter-spacing:.5px;">Diszpécser Admin Hozzáférés</h1>
+<p style="margin:0; font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#9CA3AF;">Pannon Transfer Diszpécser Központ</p>
 </td></tr>
 <tr><td style="padding:44px 40px;">
 <h2 style="margin:0 0 20px 0; font-family:Georgia, serif; font-size:22px; color:#0F172A;">Kedves ${displayName}!</h2>
 <p style="margin:0 0 30px 0; font-size:15px; line-height:1.7; color:#475569;">
-Új CRM Adminisztrátori fiók lett létrehozva neked a Pannon Transfernél. Kérlek állítsd be a hozzáférési adataidat az alábbi, biztonságos linken keresztül a CRM rendszerhez való hozzáférés érdekében.
+Új admin jogosultságú fiók lett létrehozva neked a Pannon Transfer Diszpécser Központjához. Az alábbi egyedi linken keresztül tudod aktiválni a fiókodat, beállítani a jelszavadat, majd admin jogosultsággal belépni a diszpécseri felületre.
 </p>
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:30px;"><tr><td align="center">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
@@ -129,7 +129,7 @@ Admin fiók aktiválása
 </td></tr></table>
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-top:1px solid #E2E8F0; border-bottom:1px solid #E2E8F0; margin-bottom:28px;"><tr>
 <td width="50%" style="padding:20px 20px 20px 0; border-right:1px solid #E2E8F0;">
-<p style="margin:0 0 6px 0; font-size:10px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:#94A3B8;">Admin fiók</p>
+<p style="margin:0 0 6px 0; font-size:10px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:#94A3B8;">Belépési fiók</p>
 <p style="margin:0; font-size:14px; font-weight:700; color:#0F172A; word-break:break-all;">${recipientEmail}</p>
 </td>
 <td width="50%" style="padding:20px 0 20px 20px;">
@@ -138,12 +138,12 @@ Admin fiók aktiválása
 </td>
 </tr></table>
 <p style="margin:0; font-size:13px; line-height:1.6; color:#64748B;">
-<strong style="color:#0F172A;">Biztonság:</strong> ${requireTwoFactor ? "Az admin bejelentkezéshez <strong>kétfaktoros hitelesítés (2FA) kötelező</strong> lesz a jelszó beállítása után." : "A bejelentkezéshez jelszó szükséges, 2FA opcionálisan aktiválható, de erősen ajánlott."}
+<strong style="color:#0F172A;">Biztonság:</strong> ${requireTwoFactor ? "Az admin bejelentkezéshez <strong>kétfaktoros hitelesítés (2FA) kötelező</strong> lesz a jelszó beállítása után." : "A bejelentkezéshez jelszó szükséges, 2FA opcionálisan aktiválható, de erősen ajánlott."} Ezzel a fiókkal a Diszpécser Központ admin jogosultságú felületét tudod használni.
 </p>
 </td></tr>
 <tr><td bgcolor="#F8FAFC" style="padding:30px 40px; border-top:1px solid #E2E8F0;">
 <p style="margin:0; font-size:11px; line-height:1.6; color:#94A3B8; text-align:center;">
-Ezt az üzenetet a Pannon Transfer CRM Admin rendszere küldte.<br>
+Ezt az üzenetet a Pannon Transfer Diszpécser Központ rendszere küldte.<br>
 © ${new Date().getFullYear()} Pannon Transfer. Minden jog fenntartva.
 </p>
 </td></tr>
@@ -152,14 +152,14 @@ Ezt az üzenetet a Pannon Transfer CRM Admin rendszere küldte.<br>
   `;
 
   const text = [
-    "CRM Admin Hozzáférés - Pannon Transfer",
+    "Diszpécser Admin Hozzáférés - Pannon Transfer",
     "",
     `Kedves ${displayName}!`,
     "",
-    "Új CRM Adminisztrátori fiók lett létrehozva neked. Az alábbi linken keresztül tudod aktiválni:",
+    "Új admin jogosultságú diszpécser fiók lett létrehozva neked. Az alábbi linken keresztül tudod aktiválni:",
     setupUrl,
     "",
-    "Admin fiókod: " + recipientEmail,
+    "Belépési fiókod: " + recipientEmail,
     "Link érvényessége: " + expiresStr,
     requireTwoFactor
       ? "FONTOS: Kétfaktoros hitelesítés (2FA) kötelező a bejelentkezéshez."
@@ -232,8 +232,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const setupPath =
-      staffRole === "dispatcher" ? "/setup-password" : "/admin/setup-password";
+    const setupPath = "/setup-password";
 
     type R = {
       recipient: string;
@@ -274,7 +273,7 @@ export async function POST(request: Request) {
         const subject =
           staffRole === "dispatcher"
             ? "Meghívás a Pannon Diszpécser Központba – Fiók aktiválása"
-            : "Meghívás a CRM Admin Panellbe – Admin fiók aktiválása";
+            : "Meghívás a Pannon Diszpécser Központba – Admin fiók aktiválása";
 
         const { html, text } = emailBuilder(
           recipient,

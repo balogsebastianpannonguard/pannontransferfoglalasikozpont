@@ -2024,7 +2024,7 @@ export default function AdminDashboard() {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
-          url.port = staffInviteRole === "dispatcher" ? "3002" : url.port;
+          url.port = "3002";
         }
         staffBase = url.origin;
       } catch {
@@ -4060,7 +4060,7 @@ export default function AdminDashboard() {
                         <div className="flex-1">
                           <h3 className="text-2xl font-bold text-admin-gray-900 font-serif mb-1">Új Fiók Meghívó</h3>
                           <p className="text-admin-gray-500 font-medium">
-                            Küldj meghívót Adminisztrátornak vagy Diszpecsernek – a meghívott személyre szabott emailben kapja az aktiválási linket.
+                            Küldj meghívót Adminisztrátornak vagy Diszpécsernek - a meghívott személyre szabott emailben kapja az aktiválási linket, és utána a Diszpécser Központban tud belépni.
                           </p>
                         </div>
                       </div>
@@ -4155,7 +4155,7 @@ export default function AdminDashboard() {
                                     </span>
                                   </div>
                                   <p className="text-sm font-medium text-admin-gray-500 leading-relaxed">
-                                    Teljes hozzáférés a CRM Admin Panelhez. Profilok, statisztikák, ügyfelek és fiókok kezelése.
+                                    Teljes admin jogosultság a Pannon Diszpécser Központban. Foglalások, munkatársak és rendszer-szintű beállítások kezelése.
                                   </p>
                                 </div>
                                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 transition-all ${
@@ -4261,28 +4261,22 @@ export default function AdminDashboard() {
                               <div className="px-4 py-3 bg-white border border-admin-gray-200 rounded-xl text-xs font-mono text-admin-gray-700 break-all">
                                 {(() => {
                                   if (typeof window === "undefined") {
-                                    return staffInviteRole === "dispatcher"
-                                      ? "http://localhost:3002"
-                                      : "http://localhost:3000/admin";
+                                    return "http://localhost:3002";
                                   }
                                   try {
                                     const u = new URL(window.location.origin);
                                     if (u.hostname === "localhost" || u.hostname === "127.0.0.1") {
-                                      if (staffInviteRole === "dispatcher") u.port = "3002";
+                                      u.port = "3002";
                                     }
-                                    return staffInviteRole === "dispatcher"
-                                      ? u.origin
-                                      : `${u.origin}/admin`;
+                                    return u.origin;
                                   } catch {
-                                    return staffInviteRole === "dispatcher"
-                                      ? "http://localhost:3002"
-                                      : "http://localhost:3000/admin";
+                                    return "http://localhost:3002";
                                   }
                                 })()}
                               </div>
                             </div>
                             <p className="text-xs text-admin-gray-400">
-                              A meghívottak <strong>kizárólag</strong> az emailben küldött egyedi linken keresztül tudják aktiválni a fiókjukat.
+                              A meghívottak <strong>kizárólag</strong> az emailben küldött egyedi linken keresztül tudják aktiválni a fiókjukat. Admin szerepkör esetén is a Diszpécser Központba lépnek be, csak magasabb jogosultsággal.
                             </p>
                           </div>
                         </div>
