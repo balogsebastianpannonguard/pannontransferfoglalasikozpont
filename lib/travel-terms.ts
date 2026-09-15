@@ -51,10 +51,16 @@ interface SessionAccessInput {
 
 const DOCUMENT_COLLECTION = "travel_terms_documents";
 const ACCESS_COLLECTION = "travel_terms_access_users";
+const DEFAULT_TRAVEL_TERMS_EDITOR_ACCESS_TOKEN =
+  "2192eda6367d1bf47a7cbd87315992a5a418";
 let cachedTravelTermsDocument: TravelTermsDocument | null = null;
 
 function getTravelTermsEditorAccessTokenFromEnv() {
-  const token = String(process.env.TRAVEL_TERMS_EDITOR_ACCESS_TOKEN || "").trim();
+  // Keep the shared link stable even when the remote env var is missing.
+  const token = String(
+    process.env.TRAVEL_TERMS_EDITOR_ACCESS_TOKEN ||
+      DEFAULT_TRAVEL_TERMS_EDITOR_ACCESS_TOKEN
+  ).trim();
   if (!token) return null;
   if (token.length < 24) return null;
   return token;
