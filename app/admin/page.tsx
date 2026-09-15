@@ -341,7 +341,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/catl-invites/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ email }),
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.success) {
@@ -371,7 +371,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/ecopro-invites/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ email }),
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.success) {
@@ -1155,7 +1155,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/vitesco-invites/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ email }),
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.success) {
@@ -1298,7 +1298,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/schaeffler-invites/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ email }),
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.success) {
@@ -1441,7 +1441,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/krones-invites/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ email }),
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.success) {
@@ -1584,7 +1584,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/enterair-invites/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ email }),
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.success) {
@@ -1727,7 +1727,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/tama-invites/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ email }),
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.success) {
@@ -1870,7 +1870,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/ni-invites/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ email }),
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.success) {
