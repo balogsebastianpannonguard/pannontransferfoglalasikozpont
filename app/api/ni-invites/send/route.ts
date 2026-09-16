@@ -17,67 +17,161 @@ function buildInviteEmail(
 <html>
 <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /></head>
 <body style="margin:0; padding:0; background:#F3F4F6; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#F3F4F6"><tr><td align="center" style="padding:40px 15px;">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:580px; background:#FFFFFF; border-radius:12px; overflow:hidden;">
-<tr><td bgcolor="#F5D000" style="padding:44px 40px; border-bottom:3px solid #D9B800;">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:22px;"><tr>
-<td align="left" valign="middle" bgcolor="#FFFFFF" style="border-radius:16px; padding:16px 20px;">
-<span style="font-family:-apple-system, sans-serif; font-size:18px; font-weight:900; color:#F5D000;">NI</span>
-<span style="font-family:-apple-system, sans-serif; font-size:14px; font-weight:800; color:#D9B800; margin-left:6px;">Networks</span>
-</td></tr></table>
-<h1 style="margin:0 0 8px 0; font-family:Georgia, serif; color:#333333; font-size:26px; letter-spacing:.5px;">NI Partner Portál</h1>
-<p style="margin:0; font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#996600;">Pannon Transfer Partner</p>
-</td></tr>
-<tr><td style="padding:44px 40px;">
-<h2 style="margin:0 0 20px 0; font-family:Georgia, serif; font-size:22px; color:#0F172A;">Kedves Partner!</h2>
-<p style="margin:0 0 30px 0; font-size:15px; line-height:1.7; color:#475569;">
-Meghívást kaptál az NI dedikált portálra. Kizárólag az alábbi egyedi linken keresztül tudsz belépni és elérni az árstruktúrát és a foglalásokat.
-</p>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:30px;"><tr><td align="center">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-<td align="center" bgcolor="#F5D000" style="border-radius:10px;">
-<a href="${setupUrl}" style="display:inline-block; padding:18px 40px; font-size:14px; font-weight:800; color:#333333; text-decoration:none; letter-spacing:1.5px; text-transform:uppercase; border-radius:10px;">
-Jelszó beállítása &amp; Belépés
-</a>
-</td></tr></table>
-</td></tr></table>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-top:1px solid #E2E8F0; border-bottom:1px solid #E2E8F0; margin-bottom:28px;"><tr>
-<td width="50%" style="padding:20px 20px 20px 0; border-right:1px solid #E2E8F0;">
-<p style="margin:0 0 6px 0; font-size:10px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:#94A3B8;">Belépési fiók</p>
-<p style="margin:0; font-size:14px; font-weight:700; color:#0F172A; word-break:break-all;">${recipientEmail}</p>
-</td>
-<td width="50%" style="padding:20px 0 20px 20px;">
-<p style="margin:0 0 6px 0; font-size:10px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:#94A3B8;">Link érvényessége</p>
-<p style="margin:0; font-size:14px; font-weight:700; color:#0F172A;">${expiresStr}</p>
-</td>
-</tr></table>
-<p style="margin:0; font-size:13px; line-height:1.6; color:#64748B;">
-<strong style="color:#0F172A;">Biztonság:</strong> ${requireTwoFactor ? "A bejelentkezéshez <strong>kétfaktoros hitelesítés (2FA) kötelező</strong> lesz a jelszó beállítása után." : "A bejelentkezéshez jelszó szükséges, kérés esetén 2FA aktiválható."} Az egyedi link másokkal <strong>nem osztható meg</strong>.
-</p>
-</td></tr>
-<tr><td bgcolor="#F8FAFC" style="padding:30px 40px; border-top:1px solid #E2E8F0;">
-<p style="margin:0; font-size:11px; line-height:1.6; color:#94A3B8; text-align:center;">
-Ezt az üzenetet a Pannon Transfer NI Portál rendszere küldte. Ha nem kérted a meghívást, hagyd figyelmen kívül.<br>
-© ${new Date().getFullYear()} Pannon Transfer. Minden jog fenntartva.
-</p>
-</td></tr>
-</table></td></tr></table>
+<div style="display:none; max-height:0; overflow:hidden; opacity:0;">
+NI partner meghívó: aktiválja a hozzáférését a jelszó beállításával, és jelentkezzen be az egyedi linkkel.
+</div>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#F3F4F6">
+  <tr>
+    <td align="center" style="padding:32px 14px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:640px;">
+        <tr>
+          <td style="padding-bottom:16px; text-align:center; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#94A3B8; font-weight:700;">
+            Pannon Transfer · NI dedikált partnerhozzáférés
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#FFFFFF; border-radius:28px; overflow:hidden; box-shadow:0 24px 70px rgba(15,23,42,0.10);">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td style="padding:36px 36px 0 36px; background:linear-gradient(135deg,#F7D100 0%,#F5D000 54%,#E3B600 100%);">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                    <tr>
+                      <td align="left">
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:18px;">
+                          <tr>
+                            <td bgcolor="#FFFBE6" style="padding:14px 18px; border-radius:18px; border:1px solid rgba(43,36,16,0.08);">
+                              <span style="font-size:20px; font-weight:900; color:#A68000;">NI</span>
+                              <span style="font-size:13px; font-weight:800; color:#6B5A00; margin-left:6px; letter-spacing:.04em;">Networks</span>
+                            </td>
+                          </tr>
+                        </table>
+                        <div style="display:inline-block; padding:7px 12px; margin-bottom:14px; border-radius:999px; background:rgba(255,255,255,0.72); border:1px solid rgba(43,36,16,0.08); font-size:10px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; color:#7A5F00;">
+                        Biztonságos hozzáférés · NI Partner Portál
+                      </div>
+                      <h1 style="margin:0; font-size:34px; line-height:1.08; color:#221B08; font-weight:800;">
+                        Hozzáférési meghívó az NI dedikált partnerportáljához.
+                      </h1>
+                      <p style="margin:16px 0 0 0; max-width:480px; font-size:16px; line-height:1.75; color:#4F4420;">
+                        Ön meghívást kapott a Pannon Transfer NI partnerfelületére. Az árstruktúrákhoz és a foglalási rendszerhez kizárólag az alábbi személyes aktiválási linken keresztül biztosítunk hozzáférést.
+                      </p>
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:26px; margin-bottom:-26px;">
+                          <tr>
+                            <td>
+                              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                <tr>
+                                  <td width="50%" style="padding-right:8px;">
+                                    <div style="background:rgba(255,255,255,0.86); border-radius:20px; padding:16px 18px; border:1px solid rgba(43,36,16,0.08);">
+                                      <div style="font-size:10px; font-weight:800; letter-spacing:1.6px; text-transform:uppercase; color:#7A5F00; margin-bottom:6px;">Belépési fiók</div>
+                                      <div style="font-size:14px; line-height:1.6; font-weight:700; color:#221B08; word-break:break-all;">${recipientEmail}</div>
+                                    </div>
+                                  </td>
+                                  <td width="50%" style="padding-left:8px;">
+                                    <div style="background:rgba(255,255,255,0.86); border-radius:20px; padding:16px 18px; border:1px solid rgba(43,36,16,0.08);">
+                                      <div style="font-size:10px; font-weight:800; letter-spacing:1.6px; text-transform:uppercase; color:#7A5F00; margin-bottom:6px;">Érvényesség</div>
+                                      <div style="font-size:14px; line-height:1.6; font-weight:700; color:#221B08;">${expiresStr}</div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:54px 36px 34px 36px;">
+                        <div style="padding:22px 22px 20px 22px; border-radius:24px; background:linear-gradient(180deg,#FFFDF5 0%,#FFFFFF 100%); border:1px solid #EFE7B8;">
+                          <div style="font-size:11px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; color:#9A7A00; margin-bottom:8px;">
+                            Aktiválási folyamat
+                          </div>
+                          <div style="font-size:15px; line-height:1.8; color:#475569;">
+                              1. Kattintson az alábbi gombra.<br>
+                              2. Állítsa be a saját jelszavát.<br>
+                              3. ${requireTwoFactor ? "A következő lépésben a kétfaktoros hitelesítés (2FA) beállítása is kötelező." : "Ezt követően a rendszer elküldi Önnek a végleges belépési linket."}
+                            </div>
+                        </div>
+
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:28px 0 28px 0;">
+                          <tr>
+                            <td align="center">
+                              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                  <td align="center" bgcolor="#0B1F47" style="border-radius:18px; box-shadow:0 18px 40px rgba(11,31,71,0.22);">
+                                    <a href="${setupUrl}" style="display:inline-block; padding:18px 34px; font-size:14px; font-weight:800; color:#FFFFFF; text-decoration:none; letter-spacing:1.4px; text-transform:uppercase; border-radius:18px;">
+                                      Jelszó beállítása &amp; belépés
+                                    </a>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                        </table>
+
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:26px;">
+                          <tr>
+                            <td style="padding-right:8px;">
+                              <div style="height:100%; border-radius:22px; padding:18px; background:#F8FAFC; border:1px solid #E2E8F0;">
+                                <div style="font-size:11px; font-weight:800; letter-spacing:1.6px; text-transform:uppercase; color:#94A3B8; margin-bottom:8px;">Biztonság</div>
+                                <div style="font-size:14px; line-height:1.8; color:#475569;">
+                                  ${requireTwoFactor ? "<strong style='color:#0F172A;'>2FA hitelesítés kötelező</strong> a jelszó beállítása után." : "A hozzáférés jelszóval indul, a 2FA hitelesítés opcionálisan bekapcsolható."}
+                                </div>
+                              </div>
+                            </td>
+                            <td style="padding-left:8px;">
+                              <div style="height:100%; border-radius:22px; padding:18px; background:#F8FAFC; border:1px solid #E2E8F0;">
+                                <div style="font-size:11px; font-weight:800; letter-spacing:1.6px; text-transform:uppercase; color:#94A3B8; margin-bottom:8px;">Fontos</div>
+                                <div style="font-size:14px; line-height:1.8; color:#475569;">
+                                  Az egyedi aktiválási link szigorúan személyes hozzáférés, ezért <strong style="color:#0F172A;">harmadik féllel nem osztható meg</strong>.
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        </table>
+
+                        <div style="padding:18px 20px; border-radius:22px; background:#0F172A; color:#E2E8F0;">
+                          <div style="font-size:11px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; color:#F5D000; margin-bottom:8px;">
+                            Támogatás
+                          </div>
+                          <div style="font-size:14px; line-height:1.8;">
+                            Amennyiben ezt a meghívót tévedésből kapta, kérjük, hagyja figyelmen kívül. Segítség vagy kérdés esetén forduljon a Pannon Transfer dedikált kapcsolattartójához.
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td bgcolor="#F8FAFC" style="padding:24px 36px 28px 36px; border-top:1px solid #E2E8F0; text-align:center;">
+                        <p style="margin:0; font-size:11px; line-height:1.8; color:#94A3B8;">
+                          Ezt az üzenetet a Pannon Transfer NI Portál rendszere küldte. Ha nem kérted a meghívást, hagyd figyelmen kívül.<br>
+                          © ${new Date().getFullYear()} Pannon Transfer. Minden jog fenntartva.
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 </body></html>
   `;
 
   const text = [
     "NI Portál - Pannon Transfer",
     "",
-    "Kedves Partner!",
+    "Tisztelt Partnerünk!",
     "",
-    "Meghívást kaptál az NI dedikált portálra. Kizárólag az alábbi linken keresztül tudsz belépni:",
+    "Ön meghívást kapott az NI dedikált portálra. Kizárólag az alábbi linken keresztül tudja aktiválni a hozzáférését:",
     setupUrl,
     "",
     "Belépési fiókod: " + recipientEmail,
     "Link érvényessége: " + expiresStr,
     requireTwoFactor
-      ? "FONTOS: Kétfaktoros hitelesítés (2FA) kötelező a bejelentkezéshez."
-      : "2FA opcionális, de ajánlott bekapcsolni.",
+      ? "FONTOS: A kétfaktoros hitelesítés (2FA) beállítása kötelező a rendszerhez."
+      : "A 2FA hitelesítés opcionális, de javasolt a fiók védelme érdekében.",
     "",
     "Pannon Transfer - Ügyvezető: Balog Sebastian Máté",
   ].join("\n");
