@@ -25,6 +25,9 @@ export async function GET() {
       updatedAt: u.updatedAt,
       lastLoginAt: u.lastLoginAt,
       twoFactorEnabled: !!u.twoFactorEnabled,
+      invitedByEmail: u.invitedByEmail || null,
+      inviteStatus: u.inviteStatus || "active",
+      approvalRequestedAt: u.approvalRequestedAt || null,
     }));
 
     return NextResponse.json({

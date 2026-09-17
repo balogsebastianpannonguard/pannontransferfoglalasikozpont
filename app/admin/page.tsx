@@ -1899,6 +1899,7 @@ export default function AdminDashboard() {
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
         }
+
         niPartnerBase = url.origin;
       } catch {
         niPartnerBase = window.location.origin;
@@ -1935,6 +1936,30 @@ export default function AdminDashboard() {
       setToast({ type: "error", message: "Hálózati hiba az NI meghívó újraküldése közben." });
     } finally {
       setNiInviteResending(null);
+    }
+  }
+
+  async function handleApproveNiInvite(email: string) {
+    try {
+      const res = await fetch("/api/ni-invites/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setToast({ type: "error", message: json?.message || "A meghívás jóváhagyása nem sikerült." });
+        return;
+      }
+      setToast({ type: "success", message: `${email} meghívása jóváhagyva.` });
+      const listRes = await fetch("/api/ni-invites/list", { cache: "no-store" });
+      const listJson = await listRes.json().catch(() => null);
+      if (listRes.ok && listJson?.success) {
+        setNiInvites(listJson.users || []);
+        setNiInvitesMeta(listJson.counts || {});
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba jóváhagyás közben." });
     }
   }
 
@@ -3196,10 +3221,23 @@ export default function AdminDashboard() {
                                       2FA
                                     </span>
                                   )}
+                                  {partnerKey === "ni" && u.inviteStatus === "pending_approval" && (
+                                    <button
+                                      onClick={() => handleApproveNiInvite(u.email)}
+                                      className="px-2.5 py-1 bg-blue-50 border border-blue-200 text-blue-700 rounded-full text-[10px] font-black tracking-widest uppercase"
+                                    >
+                                      Jóváhagyás
+                                    </button>
+                                  )}
                                 </div>
                                 <div className="font-bold text-admin-gray-900 truncate text-base">
                                   {u.email.split("@")[0]}
                                 </div>
+                                {partnerKey === "ni" && u.invitedByEmail && (
+                                  <div className="text-[11px] text-admin-gray-500 mt-1 truncate">
+                                    Meghívta: {u.invitedByEmail}
+                                  </div>
+                                )}
                               </div>
                               {u.id && (
                                 <button

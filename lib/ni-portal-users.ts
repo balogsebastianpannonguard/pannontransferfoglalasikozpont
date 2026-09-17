@@ -23,6 +23,12 @@ export interface NiPortalUser {
   createdAt: number;
   updatedAt: number;
   lastLoginAt: number | null;
+  invitedByUserId?: string | null;
+  invitedByEmail?: string | null;
+  inviteStatus?: "active" | "pending_approval" | "rejected";
+  approvalRequestedAt?: number | null;
+  approvedAt?: number | null;
+  approvedBy?: string | null;
 }
 
 const COLLECTION_NAME = "ni_portal_users";
@@ -64,7 +70,7 @@ export async function hashNiToken(token: string) {
 
 export async function createOrResetNiInvite(
   email: string,
-  opts: { requireTwoFactor: boolean }
+  opts: { requireTwoFactor: boolean; invitedByUserId?: string | null; invitedByEmail?: string | null }
 ): Promise<{ user: NiPortalUser; rawToken: string }> {
   await initNiUserIndexes();
   const normalizedEmail = normalizeNiEmail(email);
@@ -93,6 +99,11 @@ export async function createOrResetNiInvite(
           inviteIssuedAt: now,
           inviteExpiresAt,
           updatedAt: now,
+          invitedByUserId: opts.invitedByUserId ?? null,
+          invitedByEmail: opts.invitedByEmail ?? null,
+          inviteStatus: "active",
+          approvedAt: now,
+          approvedBy: "admin",
         },
       }
     );
@@ -118,6 +129,12 @@ export async function createOrResetNiInvite(
     createdAt: now,
     updatedAt: now,
     lastLoginAt: null,
+    invitedByUserId: opts.invitedByUserId ?? null,
+    invitedByEmail: opts.invitedByEmail ?? null,
+    inviteStatus: "active",
+    approvalRequestedAt: null,
+    approvedAt: now,
+    approvedBy: "admin",
   };
   const r = await col.insertOne(newUser as any);
   const created = await col.findOne({ _id: r.insertedId });
