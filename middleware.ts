@@ -95,6 +95,29 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(emailDashboardUrl);
   }
 
+  // ---------- Elavult, duplikált partnerportál oldalak letiltása ----------
+  // A dedikált partnerportálok (NI, CATL, EcoPro, stb.) KIZÁRÓLAG a
+  // pannontransferpartnercegek projektben (pannontransferkomplexxpartnerceg.vercel.app)
+  // élnek. Ennek a foglalásiközpont domainnek semmi köze nem lehet egyetlen
+  // partnercéghez sem, ezért ezek a régi, duplikált oldalak itt mindig 404-et adnak.
+  const legacyPartnerPortalPrefixes = [
+    "/ni",
+    "/catl",
+    "/ecopro",
+    "/eccoino",
+    "/vitesco",
+    "/schaeffler",
+    "/krones",
+    "/enterair",
+    "/tama",
+  ];
+  const isLegacyPartnerPortalRoute = legacyPartnerPortalPrefixes.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+  if (isLegacyPartnerPortalRoute) {
+    return NextResponse.rewrite(new URL("/nincs-ilyen-oldal-9f31k", request.url));
+  }
+
   return NextResponse.next();
 }
 
@@ -107,5 +130,23 @@ export const config = {
     "/email-admin/dashboard/:path*",
     "/email-admin/dashboard",
     "/email-admin/login",
+    "/ni",
+    "/ni/:path*",
+    "/catl",
+    "/catl/:path*",
+    "/ecopro",
+    "/ecopro/:path*",
+    "/eccoino",
+    "/eccoino/:path*",
+    "/vitesco",
+    "/vitesco/:path*",
+    "/schaeffler",
+    "/schaeffler/:path*",
+    "/krones",
+    "/krones/:path*",
+    "/enterair",
+    "/enterair/:path*",
+    "/tama",
+    "/tama/:path*",
   ],
 };
