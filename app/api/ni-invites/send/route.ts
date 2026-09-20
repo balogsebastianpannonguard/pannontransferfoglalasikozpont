@@ -9,9 +9,18 @@ function buildInviteEmail(
   recipientEmail: string,
   setupUrl: string,
   requireTwoFactor: boolean,
-  expiresAt: number
+  expiresAt: number,
+  opts?: { role?: "admin-ni" | "normal"; recipientName?: string | null }
 ) {
   const expiresStr = new Date(expiresAt).toLocaleString("hu-HU");
+  const isAdmin = opts?.role === "admin-ni";
+  const greetingName = opts?.recipientName?.trim();
+  const greetingHtml = greetingName
+    ? `Kedves ${greetingName}!`
+    : "Tisztelt Partnerünk!";
+  const introHtml = isAdmin
+    ? `${greetingHtml} Ön <strong>adminisztrátori</strong> hozzáférést kapott a Pannon Transfer NI partnerfelületére. Az árstruktúrákhoz, a foglalási rendszerhez és a céges foglalások kezeléséhez kizárólag az alábbi személyes aktiválási linken keresztül biztosítunk hozzáférést.`
+    : `Ön meghívást kapott a Pannon Transfer NI partnerfelületére. Az árstruktúrákhoz és a foglalási rendszerhez kizárólag az alábbi személyes aktiválási linken keresztül biztosítunk hozzáférést.`;
   const html = `
 <!DOCTYPE html>
 <html>
@@ -46,13 +55,13 @@ NI partner meghívó: aktiválja a hozzáférését a jelszó beállításával,
                           </tr>
                         </table>
                         <div style="display:inline-block; padding:7px 12px; margin-bottom:14px; border-radius:999px; background:rgba(255,255,255,0.72); border:1px solid rgba(43,36,16,0.08); font-size:10px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; color:#7A5F00;">
-                        Biztonságos hozzáférés · NI Partner Portál
+                        Biztonságos hozzáférés · NI Partner Portál${isAdmin ? " · Admin" : ""}
                       </div>
                       <h1 style="margin:0; font-size:34px; line-height:1.08; color:#221B08; font-weight:800;">
                         Hozzáférési meghívó az NI dedikált partnerportáljához.
                       </h1>
                       <p style="margin:16px 0 0 0; max-width:480px; font-size:16px; line-height:1.75; color:#4F4420;">
-                        Ön meghívást kapott a Pannon Transfer NI partnerfelületére. Az árstruktúrákhoz és a foglalási rendszerhez kizárólag az alábbi személyes aktiválási linken keresztül biztosítunk hozzáférést.
+                        ${introHtml}
                       </p>
                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:26px; margin-bottom:-26px;">
                           <tr>
@@ -90,6 +99,18 @@ NI partner meghívó: aktiválja a hozzáférését a jelszó beállításával,
                               3. ${requireTwoFactor ? "A következő lépésben a kétfaktoros hitelesítés (2FA) beállítása is kötelező." : "Ezt követően a rendszer elküldi Önnek a végleges belépési linket."}
                             </div>
                         </div>
+                        ${
+                          isAdmin
+                            ? `<div style="padding:20px 22px; margin-top:20px; border-radius:24px; background:#0B1F47; color:#E2E8F0;">
+                          <div style="font-size:11px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; color:#F5D000; margin-bottom:8px;">
+                            Admin jogosultság
+                          </div>
+                          <div style="font-size:14px; line-height:1.8;">
+                            Adminisztrátorként Ön hozzáférést kap a céges foglalási link generálásához, valamint az összes, a céges linkről érkező foglalás áttekintéséhez.
+                          </div>
+                        </div>`
+                            : ""
+                        }
 
                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:28px 0 28px 0;">
                           <tr>
@@ -162,9 +183,11 @@ NI partner meghívó: aktiválja a hozzáférését a jelszó beállításával,
   const text = [
     "NI Portál - Pannon Transfer",
     "",
-    "Tisztelt Partnerünk!",
+    greetingName ? `Kedves ${greetingName}!` : "Tisztelt Partnerünk!",
     "",
-    "Ön meghívást kapott az NI dedikált portálra. Kizárólag az alábbi linken keresztül tudja aktiválni a hozzáférését:",
+    isAdmin
+      ? "Ön adminisztrátori meghívást kapott az NI dedikált portálra. Kizárólag az alábbi linken keresztül tudja aktiválni a hozzáférését:"
+      : "Ön meghívást kapott az NI dedikált portálra. Kizárólag az alábbi linken keresztül tudja aktiválni a hozzáférését:",
     setupUrl,
     "",
     "Belépési fiókod: " + recipientEmail,
@@ -187,7 +210,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { recipients, requireTwoFactor, loginBaseUrl } = body || {};
+    const { recipients, requireTwoFactor, loginBaseUrl, inviteRole, recipientName } = body || {};
 
     if (!recipients) {
       return NextResponse.json({ success: false, message: "Hiányzó címzettek" }, { status: 400 });
@@ -209,6 +232,25 @@ export async function POST(request: Request) {
 
     if (recipientList.length === 0) {
       return NextResponse.json({ success: false, message: "Nincs címzett" }, { status: 400 });
+    }
+
+    // Az NI portál meghívó rendszere KIZÁRÓLAG "Admin NI foglaló" jogosultságú felhasználót hozhat
+    // létre — normál/egyéni NI-fiókok nem léteznek többé, a munkatársak a Céges foglalási linken
+    // (bejelentkezés nélkül) foglalnak.
+    const role: "admin-ni" = "admin-ni";
+    const trimmedRecipientName = typeof recipientName === "string" ? recipientName.trim() : "";
+
+    if (recipientList.length > 1) {
+      return NextResponse.json(
+        { success: false, message: "Admin NI foglaló jogosultsággal egyszerre csak egy címzettnek küldhetsz meghívót." },
+        { status: 400 }
+      );
+    }
+    if (!trimmedRecipientName) {
+      return NextResponse.json(
+        { success: false, message: "Admin NI foglaló meghívásához add meg a meghívott nevét." },
+        { status: 400 }
+      );
     }
 
     const smtp = await testSmtpConnection();
@@ -246,6 +288,8 @@ export async function POST(request: Request) {
       try {
         const { user, rawToken } = await createOrResetNiInvite(recipient, {
           requireTwoFactor: !!requireTwoFactor,
+          role,
+          displayName: role === "admin-ni" ? trimmedRecipientName : null,
         });
 
         const setupUrl = finalBase
@@ -254,6 +298,7 @@ export async function POST(request: Request) {
 
         console.log("\n=== NI INVITE (TEST MODE) ===");
         console.log("Címzett:", recipient);
+        console.log("Jogosultság:", role);
         console.log("2FA kötelező:", !!requireTwoFactor);
         console.log(
           "Setup link (kattintva):",
@@ -266,12 +311,16 @@ export async function POST(request: Request) {
           recipient,
           setupUrl,
           !!requireTwoFactor,
-          user.inviteExpiresAt
+          user.inviteExpiresAt,
+          { role, recipientName: role === "admin-ni" ? trimmedRecipientName : null }
         );
 
         const sendRes = await sendEmail({
           to: recipient,
-          subject: "Meghívás az NI Partner Portálra – Pannon Transfer",
+          subject:
+            role === "admin-ni"
+              ? "Meghívás az NI Partner Portálra (Admin) – Pannon Transfer"
+              : "Meghívás az NI Partner Portálra – Pannon Transfer",
           html,
           text,
         });

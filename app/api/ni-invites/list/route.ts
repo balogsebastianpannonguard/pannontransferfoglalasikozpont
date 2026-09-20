@@ -28,6 +28,8 @@ export async function GET() {
       invitedByEmail: u.invitedByEmail || null,
       inviteStatus: u.inviteStatus || "active",
       approvalRequestedAt: u.approvalRequestedAt || null,
+      role: u.role === "admin-ni" ? "admin-ni" : "normal",
+      displayName: u.displayName || null,
     }));
 
     return NextResponse.json({

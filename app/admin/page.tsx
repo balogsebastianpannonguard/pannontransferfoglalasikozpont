@@ -315,6 +315,8 @@ export default function AdminDashboard() {
   const [niInviteSending, setNiInviteSending] = useState(false);
   const [niInviteDeleting, setNiInviteDeleting] = useState<string | null>(null);
   const [niInviteResending, setNiInviteResending] = useState<string | null>(null);
+  const [niInviteRole, setNiInviteRole] = useState<"normal" | "admin-ni">("admin-ni");
+  const [niInviteRecipientName, setNiInviteRecipientName] = useState("");
 
   const [staffInviteRecipients, setStaffInviteRecipients] = useState("");
   const [staffInviteRole, setStaffInviteRole] = useState<"admin" | "dispatcher">("dispatcher");
@@ -1812,6 +1814,14 @@ export default function AdminDashboard() {
         return;
       }
     }
+    if (niInviteRole === "admin-ni" && recipients.length > 1) {
+      setToast({ type: "error", message: "Admin NI foglaló jogosultsággal egyszerre csak egy címzettnek küldhetsz meghívót." });
+      return;
+    }
+    if (niInviteRole === "admin-ni" && !niInviteRecipientName.trim()) {
+      setToast({ type: "error", message: "Admin NI foglaló meghívásához add meg a meghívott nevét." });
+      return;
+    }
 
     let niPartnerBase = "";
     if (typeof window !== "undefined") {
@@ -1835,6 +1845,8 @@ export default function AdminDashboard() {
           recipients,
           requireTwoFactor: !!niInvite2FA,
           loginBaseUrl: niPartnerBase,
+          inviteRole: niInviteRole,
+          recipientName: niInviteRole === "admin-ni" ? niInviteRecipientName.trim() : undefined,
         }),
       });
       const json = await res.json().catch(() => null);
@@ -1845,6 +1857,7 @@ export default function AdminDashboard() {
         setToast({ type: "success", message: json.message || "NI meghívók sikeresen elküldve." });
         setNiInviteRecipients("");
         setNiInvite2FA(false);
+        setNiInviteRecipientName("");
         const listRes = await fetch("/api/ni-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
@@ -1891,7 +1904,13 @@ export default function AdminDashboard() {
     }
   }
 
-  async function handleResendNiInvite(id: string, email: string, requireTwoFactor: boolean) {
+  async function handleResendNiInvite(
+    id: string,
+    email: string,
+    requireTwoFactor: boolean,
+    existingRole?: "admin-ni" | "normal",
+    existingDisplayName?: string | null
+  ) {
     let niPartnerBase = "";
     if (typeof window !== "undefined") {
       try {
@@ -1915,6 +1934,8 @@ export default function AdminDashboard() {
           recipients: [email],
           requireTwoFactor,
           loginBaseUrl: niPartnerBase,
+          inviteRole: existingRole === "admin-ni" ? "admin-ni" : "normal",
+          recipientName: existingRole === "admin-ni" ? existingDisplayName || undefined : undefined,
         }),
       });
       const json = await res.json().catch(() => null);
@@ -3044,6 +3065,38 @@ export default function AdminDashboard() {
                     </p>
                   </div>
 
+                  {partnerKey === "ni" && (
+                    <div className="bg-admin-gray-50 border border-admin-gray-200 rounded-2xl p-5">
+                      <label className="text-xs font-black tracking-[0.2em] uppercase text-admin-gray-500 mb-3 block">
+                        Jogosultsági típus
+                      </label>
+                      <div className="p-4 rounded-2xl border-2 border-[#F5D000] bg-[#FFFBE6] mb-4">
+                        <div className="font-bold text-admin-gray-900 mb-1">Admin NI foglaló</div>
+                        <div className="text-xs text-admin-gray-500 leading-relaxed">
+                          Az NI portálon egyéni/normál felhasználói fiók nem hozható létre — a munkatársak a céges
+                          foglalási linken (bejelentkezés nélkül) foglalnak. Ez a meghívó egy admin fiókot hoz létre,
+                          aki a céges foglalási linket tudja generálni és az összes céges foglalást áttekintheti.
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs font-black tracking-[0.2em] uppercase text-admin-gray-500 mb-2 block">
+                          Meghívott neve
+                        </label>
+                        <input
+                          type="text"
+                          value={niInviteRecipientName}
+                          onChange={(e) => setNiInviteRecipientName(e.target.value)}
+                          placeholder="pl. Kovács János"
+                          className="w-full px-5 py-3 bg-white border border-admin-gray-200 rounded-2xl text-admin-gray-900 placeholder:text-admin-gray-400 font-medium transition-all"
+                          style={{ outline: "none" }}
+                        />
+                        <p className="text-xs text-admin-gray-400 mt-2 pl-1">
+                          A meghívó csak egyetlen címzettnek küldhető egyszerre, a nevét a levél megszólításában is használjuk.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-admin-gray-50 border border-admin-gray-200 rounded-2xl p-5">
                       <label className="flex items-start gap-4 cursor-pointer group">
@@ -3221,6 +3274,11 @@ export default function AdminDashboard() {
                                       2FA
                                     </span>
                                   )}
+                                  {partnerKey === "ni" && u.role === "admin-ni" && (
+                                    <span className="px-2.5 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-full text-[10px] font-black tracking-widest uppercase">
+                                      Admin NI foglaló
+                                    </span>
+                                  )}
                                   {partnerKey === "ni" && u.inviteStatus === "pending_approval" && (
                                     <button
                                       onClick={() => handleApproveNiInvite(u.email)}
@@ -3233,6 +3291,11 @@ export default function AdminDashboard() {
                                 <div className="font-bold text-admin-gray-900 truncate text-base">
                                   {u.email.split("@")[0]}
                                 </div>
+                                {partnerKey === "ni" && u.displayName && (
+                                  <div className="text-[11px] text-admin-gray-500 mt-1 truncate">
+                                    Meghívott neve: {u.displayName}
+                                  </div>
+                                )}
                                 {partnerKey === "ni" && u.invitedByEmail && (
                                   <div className="text-[11px] text-admin-gray-500 mt-1 truncate">
                                     Meghívta: {u.invitedByEmail}
@@ -3306,7 +3369,7 @@ export default function AdminDashboard() {
                               Beállítások
                             </button>
                             <button
-                              onClick={() => handleResendInviteUser(u.id as string, u.email, !!u.requireTwoFactor)}
+                              onClick={() => handleResendInviteUser(u.id as string, u.email, !!u.requireTwoFactor, u.role, u.displayName)}
                               disabled={inviteResending === u.id || inviteDeleting === u.id}
                               className="flex-1 h-11 bg-white border rounded-xl text-xs font-black tracking-wider uppercase transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                               style={{ borderColor: `${inviteColor}33`, color: inviteColor }}

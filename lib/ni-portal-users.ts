@@ -29,6 +29,8 @@ export interface NiPortalUser {
   approvalRequestedAt?: number | null;
   approvedAt?: number | null;
   approvedBy?: string | null;
+  role?: "admin-ni" | "normal";
+  displayName?: string | null;
 }
 
 const COLLECTION_NAME = "ni_portal_users";
@@ -70,7 +72,13 @@ export async function hashNiToken(token: string) {
 
 export async function createOrResetNiInvite(
   email: string,
-  opts: { requireTwoFactor: boolean; invitedByUserId?: string | null; invitedByEmail?: string | null }
+  opts: {
+    requireTwoFactor: boolean;
+    invitedByUserId?: string | null;
+    invitedByEmail?: string | null;
+    role?: "admin-ni" | "normal";
+    displayName?: string | null;
+  }
 ): Promise<{ user: NiPortalUser; rawToken: string }> {
   await initNiUserIndexes();
   const normalizedEmail = normalizeNiEmail(email);
@@ -80,6 +88,8 @@ export async function createOrResetNiInvite(
   const rawToken = generateNiInviteToken();
   const inviteTokenHash = await hashNiToken(rawToken);
   const inviteExpiresAt = now + NI_INVITE_TOKEN_TTL_MS;
+  const role: "admin-ni" | "normal" = opts.role === "admin-ni" ? "admin-ni" : "normal";
+  const displayName = opts.displayName?.trim() || null;
 
   const existing = await col.findOne({ normalizedEmail });
   if (existing) {
@@ -104,6 +114,8 @@ export async function createOrResetNiInvite(
           inviteStatus: "active",
           approvedAt: now,
           approvedBy: "admin",
+          role,
+          displayName,
         },
       }
     );
@@ -135,6 +147,8 @@ export async function createOrResetNiInvite(
     approvalRequestedAt: null,
     approvedAt: now,
     approvedBy: "admin",
+    role,
+    displayName,
   };
   const r = await col.insertOne(newUser as any);
   const created = await col.findOne({ _id: r.insertedId });
