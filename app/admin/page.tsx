@@ -13,6 +13,13 @@ import {
   formatHuf,
 } from "@/lib/catl-pricing";
 
+// A dedikált partnerportálok (CATL, NI, stb.) éles URL-je. FONTOS: ez a CRM admin
+// domainjétől (pannontransferkomplexxfoglalasikozp.vercel.app) FÜGGETLEN, külön Vercel
+// projekt (pannontransferpartnercegek). A meghívó e-mailek linkjének mindig erre kell
+// mutatnia, soha nem a CRM admin saját domainjére, mert az illetéktelenek elől rejtett.
+const PARTNER_PORTAL_BASE_URL =
+  process.env.NEXT_PUBLIC_PARTNER_PORTAL_URL || "https://pannontransferkomplexxpartnerceg.vercel.app";
+
 type SidebarItem = {
   id: string;
   label: string;
@@ -732,16 +739,16 @@ export default function AdminDashboard() {
 
     // CATL partner URL számítása: ha a CRM localhost-on 3000-es porton fut,
     // akkor a CATL oldal 3001-es porton fut (ahogy a terminálban látszik)
-    let catlPartnerBase = "";
+    let catlPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          catlPartnerBase = url.origin;
         }
-        catlPartnerBase = url.origin;
       } catch {
-        catlPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -797,16 +804,16 @@ export default function AdminDashboard() {
       }
     }
 
-    let ecoproPartnerBase = "";
+    let ecoproPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          ecoproPartnerBase = url.origin;
         }
-        ecoproPartnerBase = url.origin;
       } catch {
-        ecoproPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -846,16 +853,16 @@ export default function AdminDashboard() {
   }
 
   async function handleResendCatlInvite(id: string, email: string, requireTwoFactor: boolean) {
-    let catlPartnerBase = "";
+    let catlPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          catlPartnerBase = url.origin;
         }
-        catlPartnerBase = url.origin;
       } catch {
-        catlPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -893,16 +900,16 @@ export default function AdminDashboard() {
   }
 
   async function handleResendEcoproInvite(id: string, email: string, requireTwoFactor: boolean) {
-    let ecoproPartnerBase = "";
+    let ecoproPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          ecoproPartnerBase = url.origin;
         }
-        ecoproPartnerBase = url.origin;
       } catch {
-        ecoproPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -957,16 +964,16 @@ export default function AdminDashboard() {
       }
     }
 
-    let eccoinoPartnerBase = "";
+    let eccoinoPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          eccoinoPartnerBase = url.origin;
         }
-        eccoinoPartnerBase = url.origin;
       } catch {
-        eccoinoPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -1036,16 +1043,16 @@ export default function AdminDashboard() {
   }
 
   async function handleResendEccoinoInvite(id: string, email: string, requireTwoFactor: boolean) {
-    let eccoinoPartnerBase = "";
+    let eccoinoPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          eccoinoPartnerBase = url.origin;
         }
-        eccoinoPartnerBase = url.origin;
       } catch {
-        eccoinoPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -1100,16 +1107,16 @@ export default function AdminDashboard() {
       }
     }
 
-    let vitescoPartnerBase = "";
+    let vitescoPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          vitescoPartnerBase = url.origin;
         }
-        vitescoPartnerBase = url.origin;
       } catch {
-        vitescoPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -1179,16 +1186,16 @@ export default function AdminDashboard() {
   }
 
   async function handleResendVitescoInvite(id: string, email: string, requireTwoFactor: boolean) {
-    let vitescoPartnerBase = "";
+    let vitescoPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          vitescoPartnerBase = url.origin;
         }
-        vitescoPartnerBase = url.origin;
       } catch {
-        vitescoPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -1243,16 +1250,16 @@ export default function AdminDashboard() {
       }
     }
 
-    let schaefflerPartnerBase = "";
+    let schaefflerPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          schaefflerPartnerBase = url.origin;
         }
-        schaefflerPartnerBase = url.origin;
       } catch {
-        schaefflerPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -1322,16 +1329,16 @@ export default function AdminDashboard() {
   }
 
   async function handleResendSchaefflerInvite(id: string, email: string, requireTwoFactor: boolean) {
-    let schaefflerPartnerBase = "";
+    let schaefflerPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          schaefflerPartnerBase = url.origin;
         }
-        schaefflerPartnerBase = url.origin;
       } catch {
-        schaefflerPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -1386,16 +1393,16 @@ export default function AdminDashboard() {
       }
     }
 
-    let kronesPartnerBase = "";
+    let kronesPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          kronesPartnerBase = url.origin;
         }
-        kronesPartnerBase = url.origin;
       } catch {
-        kronesPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -1465,16 +1472,16 @@ export default function AdminDashboard() {
   }
 
   async function handleResendKronesInvite(id: string, email: string, requireTwoFactor: boolean) {
-    let kronesPartnerBase = "";
+    let kronesPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          kronesPartnerBase = url.origin;
         }
-        kronesPartnerBase = url.origin;
       } catch {
-        kronesPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -1529,16 +1536,16 @@ export default function AdminDashboard() {
       }
     }
 
-    let enterairPartnerBase = "";
+    let enterairPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          enterairPartnerBase = url.origin;
         }
-        enterairPartnerBase = url.origin;
       } catch {
-        enterairPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -1608,16 +1615,16 @@ export default function AdminDashboard() {
   }
 
   async function handleResendEnterairInvite(id: string, email: string, requireTwoFactor: boolean) {
-    let enterairPartnerBase = "";
+    let enterairPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          enterairPartnerBase = url.origin;
         }
-        enterairPartnerBase = url.origin;
       } catch {
-        enterairPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -1672,16 +1679,16 @@ export default function AdminDashboard() {
       }
     }
 
-    let tamaPartnerBase = "";
+    let tamaPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          tamaPartnerBase = url.origin;
         }
-        tamaPartnerBase = url.origin;
       } catch {
-        tamaPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -1751,16 +1758,16 @@ export default function AdminDashboard() {
   }
 
   async function handleResendTamaInvite(id: string, email: string, requireTwoFactor: boolean) {
-    let tamaPartnerBase = "";
+    let tamaPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          tamaPartnerBase = url.origin;
         }
-        tamaPartnerBase = url.origin;
       } catch {
-        tamaPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -1823,16 +1830,16 @@ export default function AdminDashboard() {
       return;
     }
 
-    let niPartnerBase = "";
+    let niPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          niPartnerBase = url.origin;
         }
-        niPartnerBase = url.origin;
       } catch {
-        niPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
@@ -1911,17 +1918,16 @@ export default function AdminDashboard() {
     existingRole?: "admin-ni" | "normal",
     existingDisplayName?: string | null
   ) {
-    let niPartnerBase = "";
+    let niPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
+          niPartnerBase = url.origin;
         }
-
-        niPartnerBase = url.origin;
       } catch {
-        niPartnerBase = window.location.origin;
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 

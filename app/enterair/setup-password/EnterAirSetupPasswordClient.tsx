@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { MIN_PASSWORD_LENGTH } from "@/lib/password-rules";
 
 interface PasswordCheckState {
@@ -13,7 +13,6 @@ interface PasswordCheckState {
 }
 
 export default function EnterAirSetupPasswordClient() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
 
@@ -138,12 +137,9 @@ export default function EnterAirSetupPasswordClient() {
                   </div>
                   <h2 className="font-serif text-2xl font-bold mb-3">Érvénytelen vagy lejárt link</h2>
                   <p className="text-sm text-admin-gray-600 leading-relaxed mb-6">{tokenError}</p>
-                  <button
-                    onClick={() => router.push("/admin")}
-                    className="h-12 px-6 rounded-2xl bg-admin-gray-900 text-white text-xs font-black tracking-widest uppercase"
-                  >
-                    Vissza az adminhoz
-                  </button>
+                  <p className="text-xs text-admin-gray-500">
+                    Kérjen új meghívó linket a Pannon Transfer kapcsolattartójától.
+                  </p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
