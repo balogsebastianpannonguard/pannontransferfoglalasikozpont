@@ -4376,23 +4376,25 @@ export default function AdminDashboard() {
                               </label>
                               <div className="px-4 py-3 bg-white border border-admin-gray-200 rounded-xl text-xs font-mono text-admin-gray-700 break-all">
                                 {(() => {
-                                  if (typeof window === "undefined") {
-                                    return "http://localhost:3002";
+                                  // Ez mindig a különálló Diszpécser Központ (pannontransferkomplexxdiszpecheri.vercel.app)
+                                  // saját domainjét mutatja, SOHA nem ennek a CRM admin oldalnak a saját domainjét,
+                                  // mert a meghívottak oda lépnek be, nem ide.
+                                  let base = DISPATCHER_PORTAL_BASE_URL;
+                                  if (typeof window !== "undefined") {
+                                    try {
+                                      const u = new URL(window.location.origin);
+                                      if (u.hostname === "localhost" || u.hostname === "127.0.0.1") {
+                                        u.port = "3002";
+                                        base = u.origin;
+                                      }
+                                    } catch {}
                                   }
-                                  try {
-                                    const u = new URL(window.location.origin);
-                                    if (u.hostname === "localhost" || u.hostname === "127.0.0.1") {
-                                      u.port = "3002";
-                                    }
-                                    return u.origin;
-                                  } catch {
-                                    return "http://localhost:3002";
-                                  }
+                                  return `${base}/login`;
                                 })()}
                               </div>
                             </div>
                             <p className="text-xs text-admin-gray-400">
-                              A meghívottak <strong>kizárólag</strong> az emailben küldött egyedi linken keresztül tudják aktiválni a fiókjukat. Admin szerepkör esetén is a Diszpécser Központba lépnek be, csak magasabb jogosultsággal.
+                              A meghívottak <strong>kizárólag</strong> az emailben küldött egyedi linken keresztül tudják aktiválni a fiókjukat, utána a Diszpécser Központ <strong>/login</strong> oldalán tudnak belépni. Admin szerepkör esetén is a Diszpécser Központba lépnek be, csak magasabb jogosultsággal.
                             </p>
                           </div>
                         </div>
