@@ -2942,13 +2942,16 @@ export default function AdminDashboard() {
               })();
 
               const invitePortalUrl = (() => {
-                if (typeof window === "undefined") return `http://localhost:3001/${invitePortalKey}`;
+                if (typeof window === "undefined") return `${PARTNER_PORTAL_BASE_URL}/${invitePortalKey}`;
                 try {
                   const u = new URL(window.location.origin);
-                  if (u.hostname === "localhost" || u.hostname === "127.0.0.1") u.port = "3001";
-                  return `${u.origin}/${invitePortalKey}`;
+                  if (u.hostname === "localhost" || u.hostname === "127.0.0.1") {
+                    u.port = "3001";
+                    return `${u.origin}/${invitePortalKey}`;
+                  }
+                  return `${PARTNER_PORTAL_BASE_URL}/${invitePortalKey}`;
                 } catch {
-                  return `http://localhost:3001/${invitePortalKey}`;
+                  return `${PARTNER_PORTAL_BASE_URL}/${invitePortalKey}`;
                 }
               })();
 
