@@ -20,6 +20,14 @@ import {
 const PARTNER_PORTAL_BASE_URL =
   process.env.NEXT_PUBLIC_PARTNER_PORTAL_URL || "https://pannontransferkomplexxpartnerceg.vercel.app";
 
+// A diszpécseri rendszer éles URL-je. FONTOS: ez is a CRM admin domainjétől
+// (pannontransferkomplexxfoglalasikozp.vercel.app) FÜGGETLEN, külön Vercel projekt
+// (pannontransferkozpontifoglalasrendszerdiszpecher). A diszpécser/admin meghívó
+// e-mailek linkjének mindig erre kell mutatnia, soha nem a CRM admin saját domainjére,
+// különben a link rögtön lejártnak/érvénytelennek tűnik a másik alkalmazásban.
+const DISPATCHER_PORTAL_BASE_URL =
+  process.env.NEXT_PUBLIC_DISPATCHER_PORTAL_URL || "https://pannontransferkomplexxdiszpecheri.vercel.app";
+
 type SidebarItem = {
   id: string;
   label: string;
@@ -2071,17 +2079,15 @@ export default function AdminDashboard() {
       }
     }
 
-    let staffBase = "";
+    let staffBase = DISPATCHER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3002";
+          staffBase = url.origin;
         }
-        staffBase = url.origin;
-      } catch {
-        staffBase = window.location.origin;
-      }
+      } catch {}
     }
 
     setStaffInviteSending(true);
