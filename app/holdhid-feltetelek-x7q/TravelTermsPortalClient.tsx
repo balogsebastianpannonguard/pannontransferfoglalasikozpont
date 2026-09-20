@@ -63,6 +63,32 @@ function createEmptyTerms(): PricingTerms {
   };
 }
 
+// Route-based pricing rows used by partners with a custom "meta.pricingModel"
+// (currently NI), stored inside PartnerPricing.meta since they don't fit the
+// generic vehicle-category table above.
+interface RouteStandardPricingRow {
+  origin: string;
+  destination: string;
+  oldNet?: number;
+  currentNet?: number;
+  grossOnePerson?: number;
+  twoPersonNetTotal?: number;
+  twoPersonNetPerPerson?: number;
+  twoPersonGrossPerPerson?: number;
+  threePersonNetTotal?: number;
+  threePersonNetPerPerson?: number;
+  threePersonGrossPerPerson?: number;
+  fourPlusGrossPerPerson?: number;
+}
+
+interface RouteVipPricingRow {
+  origin: string;
+  destination: string;
+  oldNet?: number;
+  currentNet?: number;
+  gross?: number;
+}
+
 export default function TravelTermsPortalClient({ accessToken }: Props) {
   const [partners, setPartners] = useState<PartnerPricing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,11 +122,7 @@ export default function TravelTermsPortalClient({ accessToken }: Props) {
       if (!res.ok || !data.success) throw new Error(data.message || "Nem sikerult betolteni.");
       const nextPartners = data.partners || [];
       setPartners(nextPartners);
-      setSelectedKey((cur) =>
-        cur && nextPartners.some((p) => p.partnerKey === cur)
-          ? cur
-          : nextPartners[0]?.partnerKey || null
-      );
+      setSelectedKey((cur) => (cur && nextPartners.some((p) => p.partnerKey === cur) ? cur : null));
       setStatusText("Partnerek betoltve.");
     } catch (e) {
       setStatusText(e instanceof Error ? e.message : "Hiba tortent.");
@@ -121,9 +143,7 @@ export default function TravelTermsPortalClient({ accessToken }: Props) {
       if (payload.partners) {
         setPartners(payload.partners);
         setSelectedKey((cur) =>
-          cur && payload.partners.some((p: PartnerPricing) => p.partnerKey === cur)
-            ? cur
-            : payload.partners[0]?.partnerKey || null
+          cur && payload.partners.some((p: PartnerPricing) => p.partnerKey === cur) ? cur : null
         );
       }
     });
@@ -292,6 +312,11 @@ export default function TravelTermsPortalClient({ accessToken }: Props) {
   }
 
   const displayDraft = editMode && draft ? draft : selectedPartner;
+
+  const routeStandardRows = (displayDraft?.meta?.standardTransfers as RouteStandardPricingRow[] | undefined) || [];
+  const routeVipVRows = (displayDraft?.meta?.vipVClass as RouteVipPricingRow[] | undefined) || [];
+  const routeVipSRows = (displayDraft?.meta?.vipSClass as RouteVipPricingRow[] | undefined) || [];
+  const hasRouteBasedPricing = routeStandardRows.length > 0 || routeVipVRows.length > 0 || routeVipSRows.length > 0;
 
   return (
     <div className="min-h-screen bg-[#F7F7F5]">
@@ -783,6 +808,106 @@ export default function TravelTermsPortalClient({ accessToken }: Props) {
                     )}
                   </div>
                 </div>
+
+                {/* Utvonal alapu arazas (pl. NI standard + VIP Mercedes tablak) */}
+                {hasRouteBasedPricing && (
+                  <div className="mb-10 space-y-8">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div
+                        className="w-9 h-9 rounded-xl flex items-center justify-center shadow-md shrink-0"
+                        style={{ background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }}
+                      >
+                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503-9.502l4.997 2.497c.883.441 1.5 1.348 1.5 2.39v9.023c0 .375-.437.577-.706.365l-4.5-3.54a1.5 1.5 0 00-1.795 0l-3.909 3.075a1.5 1.5 0 01-1.795 0l-4.5-3.539c-.169-.13-.297-.34-.297-.565V6.35c0-1.25 1.36-2.032 2.454-1.412l4.697 2.674a.5.5 0 00.503-.011z" />
+                        </svg>
+                      </div>
+                      <h4 className="font-bold text-lg tracking-tight text-slate-900">Utvonal alapu arazas</h4>
+                      <div className="hidden md:block flex-1 h-px bg-gradient-to-r from-slate-200 to-transparent" />
+                    </div>
+
+                    {routeStandardRows.length > 0 && (
+                      <div>
+                        <h5 className="font-bold text-sm tracking-tight text-slate-800 mb-1">Standard transzfer (/ fo)</h5>
+                        <p className="text-xs text-slate-500 mb-3">1 fo, 2 fo, 3 fo es 4+ fo arak egy tablaban.</p>
+                        <div className="overflow-x-auto rounded-2xl border border-slate-100 shadow-sm">
+                          <table className="w-full min-w-[1360px] text-sm border-collapse">
+                            <thead>
+                              <tr className="text-white text-[10px] font-black tracking-widest uppercase" style={{ backgroundColor: primaryColor }}>
+                                <th className="text-left px-4 py-3">Indulas</th>
+                                <th className="text-left px-4 py-3">Erkezes</th>
+                                <th className="text-right px-4 py-3">Regi netto</th>
+                                <th className="text-right px-4 py-3">Jelenlegi netto</th>
+                                <th className="text-right px-4 py-3">Brutto 1 fo</th>
+                                <th className="text-right px-4 py-3">2 fo netto ossz</th>
+                                <th className="text-right px-4 py-3">2 fo netto / fo</th>
+                                <th className="text-right px-4 py-3">2 fo brutto / fo</th>
+                                <th className="text-right px-4 py-3">3 fo netto ossz</th>
+                                <th className="text-right px-4 py-3">3 fo netto / fo</th>
+                                <th className="text-right px-4 py-3">3 fo brutto / fo</th>
+                                <th className="text-right px-4 py-3">4+ fo brutto / fo</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {routeStandardRows.map((row, idx) => (
+                                <tr key={`${row.origin}-${row.destination}-${idx}`} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}>
+                                  <td className="px-4 py-3 font-semibold text-slate-800 whitespace-nowrap">{row.origin}</td>
+                                  <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{row.destination}</td>
+                                  <td className="px-4 py-3 text-right font-mono text-slate-500">{formatPrice(row.oldNet)}</td>
+                                  <td className="px-4 py-3 text-right font-mono text-slate-500">{formatPrice(row.currentNet)}</td>
+                                  <td className="px-4 py-3 text-right font-mono font-bold" style={{ color: primaryColor }}>{formatPrice(row.grossOnePerson)}</td>
+                                  <td className="px-4 py-3 text-right font-mono text-slate-500">{formatPrice(row.twoPersonNetTotal)}</td>
+                                  <td className="px-4 py-3 text-right font-mono text-slate-500">{formatPrice(row.twoPersonNetPerPerson)}</td>
+                                  <td className="px-4 py-3 text-right font-mono font-bold" style={{ color: primaryColor }}>{formatPrice(row.twoPersonGrossPerPerson)}</td>
+                                  <td className="px-4 py-3 text-right font-mono text-slate-500">{formatPrice(row.threePersonNetTotal)}</td>
+                                  <td className="px-4 py-3 text-right font-mono text-slate-500">{formatPrice(row.threePersonNetPerPerson)}</td>
+                                  <td className="px-4 py-3 text-right font-mono font-bold" style={{ color: primaryColor }}>{formatPrice(row.threePersonGrossPerPerson)}</td>
+                                  <td className="px-4 py-3 text-right font-mono font-bold" style={{ color: primaryColor }}>{formatPrice(row.fourPlusGrossPerPerson)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {[
+                      { rows: routeVipVRows, title: "VIP - Mercedes V Osztaly", subtitle: "VIP transzfer tarifa" },
+                      { rows: routeVipSRows, title: "VIP - Mercedes S Osztaly", subtitle: "VIP premium tarifa" },
+                    ].map(
+                      (vip) =>
+                        vip.rows.length > 0 && (
+                          <div key={vip.title}>
+                            <h5 className="font-bold text-sm tracking-tight text-slate-800 mb-1">{vip.title}</h5>
+                            <p className="text-xs text-slate-500 mb-3">{vip.subtitle}</p>
+                            <div className="overflow-x-auto rounded-2xl border border-slate-100 shadow-sm">
+                              <table className="w-full min-w-[640px] text-sm border-collapse">
+                                <thead>
+                                  <tr className="text-white text-[10px] font-black tracking-widest uppercase" style={{ backgroundColor: primaryColor }}>
+                                    <th className="text-left px-4 py-3">Indulas</th>
+                                    <th className="text-left px-4 py-3">Erkezes</th>
+                                    <th className="text-right px-4 py-3">Regi netto</th>
+                                    <th className="text-right px-4 py-3">Jelenlegi netto</th>
+                                    <th className="text-right px-4 py-3">Brutto</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {vip.rows.map((row, idx) => (
+                                    <tr key={`${row.origin}-${row.destination}-${idx}`} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}>
+                                      <td className="px-4 py-3 font-semibold text-slate-800 whitespace-nowrap">{row.origin}</td>
+                                      <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{row.destination}</td>
+                                      <td className="px-4 py-3 text-right font-mono text-slate-500">{formatPrice(row.oldNet)}</td>
+                                      <td className="px-4 py-3 text-right font-mono text-slate-500">{formatPrice(row.currentNet)}</td>
+                                      <td className="px-4 py-3 text-right font-mono font-bold" style={{ color: primaryColor }}>{formatPrice(row.gross)}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )
+                    )}
+                  </div>
+                )}
 
                 {/* Foglalasi feltetelek */}
                 <div className="mb-2">
