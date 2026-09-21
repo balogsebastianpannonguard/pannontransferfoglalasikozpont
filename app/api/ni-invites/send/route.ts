@@ -196,7 +196,7 @@ NI partner meghívó: aktiválja a hozzáférését a jelszó beállításával,
       ? "FONTOS: A kétfaktoros hitelesítés (2FA) beállítása kötelező a rendszerhez."
       : "A 2FA hitelesítés opcionális, de javasolt a fiók védelme érdekében.",
     "",
-    "Pannon Transfer - Ügyvezető: Balog Sebastian Máté",
+    "Pannon Transfer - Vezető fejlesztő: Balog Sebastian Máté (balogh.sebastian@pannonguard.hu, +36 30 665 4135)",
   ].join("\n");
 
   return { html, text };

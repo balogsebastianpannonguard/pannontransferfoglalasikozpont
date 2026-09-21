@@ -79,7 +79,7 @@ Ezt az üzenetet a Pannon Transfer Krones Portál rendszere küldte. Ha nem kér
       ? "FONTOS: Kétfaktoros hitelesítés (2FA) kötelező a bejelentkezéshez."
       : "2FA opcionális, de ajánlott bekapcsolni.",
     "",
-    "Pannon Transfer - Ügyvezető: Balog Sebastian Máté",
+    "Pannon Transfer - Vezető fejlesztő: Balog Sebastian Máté (balogh.sebastian@pannonguard.hu, +36 30 665 4135)",
   ].join("\n");
 
   return { html, text };

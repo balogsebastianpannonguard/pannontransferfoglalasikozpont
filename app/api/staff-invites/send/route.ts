@@ -62,7 +62,7 @@ Fiók aktiválása &amp; Belépés
 <p style="margin:0; font-size:11px; line-height:1.7; color:#94A3B8; text-align:center;">
 Ezt az üzenetet a Pannon Transfer Diszpécser Központ rendszere küldte.<br>
 Ha nem kérted a meghívást, hagyd figyelmen kívül.<br>
-© ${new Date().getFullYear()} Pannon Transfer - Minden jog fenntartva. Ügyvezető: Balog Sebastian Máté
+© ${new Date().getFullYear()} Pannon Transfer - Minden jog fenntartva. Vezető fejlesztő: Balog Sebastian Máté (balogh.sebastian@pannonguard.hu, +36 30 665 4135)
 </p>
 </td></tr>
 </table></td></tr></table>
@@ -83,7 +83,7 @@ Ha nem kérted a meghívást, hagyd figyelmen kívül.<br>
       ? "FONTOS: Kétfaktoros hitelesítés (2FA) kötelező a bejelentkezéshez."
       : "2FA opcionális, de ajánlott bekapcsolni.",
     "",
-    "Pannon Transfer - Ügyvezető: Balog Sebastian Máté",
+    "Pannon Transfer - Vezető fejlesztő: Balog Sebastian Máté (balogh.sebastian@pannonguard.hu, +36 30 665 4135)",
   ].join("\n");
 
   return { html, text };
@@ -165,7 +165,7 @@ Ezt az üzenetet a Pannon Transfer Diszpécser Központ rendszere küldte.<br>
       ? "FONTOS: Kétfaktoros hitelesítés (2FA) kötelező a bejelentkezéshez."
       : "2FA opcionális, de ajánlott bekapcsolni.",
     "",
-    "Pannon Transfer - Ügyvezető: Balog Sebastian Máté",
+    "Pannon Transfer - Vezető fejlesztő: Balog Sebastian Máté (balogh.sebastian@pannonguard.hu, +36 30 665 4135)",
   ].join("\n");
 
   return { html, text };
