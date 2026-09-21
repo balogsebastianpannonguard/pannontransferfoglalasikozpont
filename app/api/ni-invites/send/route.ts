@@ -42,25 +42,25 @@ NI partner meghívó: aktiválja a hozzáférését a jelszó beállításával,
           <td style="background:#FFFFFF; border-radius:28px; overflow:hidden; box-shadow:0 24px 70px rgba(15,23,42,0.10);">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
               <tr>
-                <td style="padding:36px 36px 0 36px; background:linear-gradient(135deg,#F7D100 0%,#F5D000 54%,#E3B600 100%);">
+                <td style="padding:36px 36px 0 36px; background:linear-gradient(135deg,#34D399 0%,#22C55E 54%,#15803D 100%);">
                   <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                     <tr>
                       <td align="left">
                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:18px;">
                           <tr>
-                            <td bgcolor="#FFFBE6" style="padding:14px 18px; border-radius:18px; border:1px solid rgba(43,36,16,0.08);">
-                              <span style="font-size:20px; font-weight:900; color:#A68000;">NI</span>
-                              <span style="font-size:13px; font-weight:800; color:#6B5A00; margin-left:6px; letter-spacing:.04em;">Networks</span>
+                            <td bgcolor="#ECFDF5" style="padding:14px 18px; border-radius:18px; border:1px solid rgba(6,78,59,0.08);">
+                              <span style="font-size:20px; font-weight:900; color:#15803D;">NI</span>
+                              <span style="font-size:13px; font-weight:800; color:#166534; margin-left:6px; letter-spacing:.04em;">Networks</span>
                             </td>
                           </tr>
                         </table>
-                        <div style="display:inline-block; padding:7px 12px; margin-bottom:14px; border-radius:999px; background:rgba(255,255,255,0.72); border:1px solid rgba(43,36,16,0.08); font-size:10px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; color:#7A5F00;">
+                        <div style="display:inline-block; padding:7px 12px; margin-bottom:14px; border-radius:999px; background:rgba(255,255,255,0.72); border:1px solid rgba(6,78,59,0.08); font-size:10px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; color:#166534;">
                         Biztonságos hozzáférés · NI Partner Portál${isAdmin ? " · Admin" : ""}
                       </div>
-                      <h1 style="margin:0; font-size:34px; line-height:1.08; color:#221B08; font-weight:800;">
+                      <h1 style="margin:0; font-size:34px; line-height:1.08; color:#0B2B1B; font-weight:800;">
                         Hozzáférési meghívó az NI dedikált partnerportáljához.
                       </h1>
-                      <p style="margin:16px 0 0 0; max-width:480px; font-size:16px; line-height:1.75; color:#4F4420;">
+                      <p style="margin:16px 0 0 0; max-width:480px; font-size:16px; line-height:1.75; color:#234233;">
                         ${introHtml}
                       </p>
                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:26px; margin-bottom:-26px;">
@@ -69,15 +69,15 @@ NI partner meghívó: aktiválja a hozzáférését a jelszó beállításával,
                               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                                 <tr>
                                   <td width="50%" style="padding-right:8px;">
-                                    <div style="background:rgba(255,255,255,0.86); border-radius:20px; padding:16px 18px; border:1px solid rgba(43,36,16,0.08);">
-                                      <div style="font-size:10px; font-weight:800; letter-spacing:1.6px; text-transform:uppercase; color:#7A5F00; margin-bottom:6px;">Belépési fiók</div>
-                                      <div style="font-size:14px; line-height:1.6; font-weight:700; color:#221B08; word-break:break-all;">${recipientEmail}</div>
+                                    <div style="background:rgba(255,255,255,0.86); border-radius:20px; padding:16px 18px; border:1px solid rgba(6,78,59,0.08);">
+                                      <div style="font-size:10px; font-weight:800; letter-spacing:1.6px; text-transform:uppercase; color:#166534; margin-bottom:6px;">Belépési fiók</div>
+                                      <div style="font-size:14px; line-height:1.6; font-weight:700; color:#0B2B1B; word-break:break-all;">${recipientEmail}</div>
                                     </div>
                                   </td>
                                   <td width="50%" style="padding-left:8px;">
-                                    <div style="background:rgba(255,255,255,0.86); border-radius:20px; padding:16px 18px; border:1px solid rgba(43,36,16,0.08);">
-                                      <div style="font-size:10px; font-weight:800; letter-spacing:1.6px; text-transform:uppercase; color:#7A5F00; margin-bottom:6px;">Érvényesség</div>
-                                      <div style="font-size:14px; line-height:1.6; font-weight:700; color:#221B08;">${expiresStr}</div>
+                                    <div style="background:rgba(255,255,255,0.86); border-radius:20px; padding:16px 18px; border:1px solid rgba(6,78,59,0.08);">
+                                      <div style="font-size:10px; font-weight:800; letter-spacing:1.6px; text-transform:uppercase; color:#166534; margin-bottom:6px;">Érvényesség</div>
+                                      <div style="font-size:14px; line-height:1.6; font-weight:700; color:#0B2B1B;">${expiresStr}</div>
                                     </div>
                                   </td>
                                 </tr>
@@ -89,8 +89,8 @@ NI partner meghívó: aktiválja a hozzáférését a jelszó beállításával,
                     </tr>
                     <tr>
                       <td style="padding:54px 36px 34px 36px;">
-                        <div style="padding:22px 22px 20px 22px; border-radius:24px; background:linear-gradient(180deg,#FFFDF5 0%,#FFFFFF 100%); border:1px solid #EFE7B8;">
-                          <div style="font-size:11px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; color:#9A7A00; margin-bottom:8px;">
+                        <div style="padding:22px 22px 20px 22px; border-radius:24px; background:linear-gradient(180deg,#F0FDF4 0%,#FFFFFF 100%); border:1px solid #BBF7D0;">
+                          <div style="font-size:11px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; color:#15803D; margin-bottom:8px;">
                             Aktiválási folyamat
                           </div>
                           <div style="font-size:15px; line-height:1.8; color:#475569;">
@@ -102,7 +102,7 @@ NI partner meghívó: aktiválja a hozzáférését a jelszó beállításával,
                         ${
                           isAdmin
                             ? `<div style="padding:20px 22px; margin-top:20px; border-radius:24px; background:#0B1F47; color:#E2E8F0;">
-                          <div style="font-size:11px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; color:#F5D000; margin-bottom:8px;">
+                          <div style="font-size:11px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; color:#4ADE80; margin-bottom:8px;">
                             Admin jogosultság
                           </div>
                           <div style="font-size:14px; line-height:1.8;">
@@ -150,7 +150,7 @@ NI partner meghívó: aktiválja a hozzáférését a jelszó beállításával,
                         </table>
 
                         <div style="padding:18px 20px; border-radius:22px; background:#0F172A; color:#E2E8F0;">
-                          <div style="font-size:11px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; color:#F5D000; margin-bottom:8px;">
+                          <div style="font-size:11px; font-weight:800; letter-spacing:1.8px; text-transform:uppercase; color:#4ADE80; margin-bottom:8px;">
                             Támogatás
                           </div>
                           <div style="font-size:14px; line-height:1.8;">

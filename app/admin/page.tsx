@@ -2504,8 +2504,8 @@ export default function AdminDashboard() {
       key: "ni",
       name: "NI",
       shortLabel: "NI",
-      color: "#F5D000",
-      colorSecondary: "#D8A800",
+      color: "#22C55E",
+      colorSecondary: "#16A34A",
       tag: "Technológia",
       description: "Standard transzfer és VIP Mercedes tarifák vizuális partnerfelülete.",
       portalPath: "/ni",
@@ -2893,7 +2893,7 @@ export default function AdminDashboard() {
                   sending: niInviteSending, deleting: niInviteDeleting, resending: niInviteResending,
                   loading: niInvitesLoading, users: niInvites, meta: niInvitesMeta, display: displayNiInvites,
                   handleSend: handleSendNiInvite, handleDelete: handleDeleteNiUser, handleResend: handleResendNiInvite,
-                  color: "#F5D000", secondaryColor: "#D8A800", placeholder: "partner@ni.hu; dolgozo@pannon.hu",
+                  color: "#22C55E", secondaryColor: "#16A34A", placeholder: "partner@ni.hu; dolgozo@pannon.hu",
                 },
               };
 
@@ -3085,7 +3085,7 @@ export default function AdminDashboard() {
                       <label className="text-xs font-black tracking-[0.2em] uppercase text-admin-gray-500 mb-3 block">
                         Jogosultsági típus
                       </label>
-                      <div className="p-4 rounded-2xl border-2 border-[#F5D000] bg-[#FFFBE6] mb-4">
+                      <div className="p-4 rounded-2xl border-2 border-[#22C55E] bg-[#F0FDF4] mb-4">
                         <div className="font-bold text-admin-gray-900 mb-1">Admin NI foglaló</div>
                         <div className="text-xs text-admin-gray-500 leading-relaxed">
                           Az NI portálon egyéni/normál felhasználói fiók nem hozható létre — a munkatársak a céges
@@ -3425,7 +3425,7 @@ export default function AdminDashboard() {
                 krones: { key: "krones", name: "Krones AG", shortLabel: "KR", color: "#003F8A", colorSecondary: "#002D6A", textColor: "#002D6A", description: "Db-Db és Debrecen-Budapest (utalás) vállalati szállítási árak.", currency: "HUF", tag: "Gyártás" },
                 enterair: { key: "enterair", name: "Enter Air", shortLabel: "EA", color: "#005BAA", colorSecondary: "#0078D4", textColor: "#005BAA", description: "Csoportméret alapú Euro árak több útvonalra (Db-Nv, Db-Bp, Db-Db, Db-Kassa).", currency: "EUR", tag: "Légi" },
                 tama: { key: "tama", name: "Tama", shortLabel: "TM", color: "#5CA700", colorSecondary: "#438000", textColor: "#3A6F00", description: "Debrecen-B.újfalu, Debrecen-Budapest, Budapest-B.újfalu útvonalak.", currency: "HUF", tag: "Logisztika" },
-                ni: { key: "ni", name: "NI", shortLabel: "NI", color: "#F5D000", colorSecondary: "#D8A800", textColor: "#8A6A00", description: "Standard transzfer / fo, valamint VIP Mercedes V es S osztaly arak Debrecen, Nyiregyhaza es Miskolc indulassal.", currency: "HUF", tag: "Technologia" },
+                ni: { key: "ni", name: "NI", shortLabel: "NI", color: "#22C55E", colorSecondary: "#16A34A", textColor: "#166534", description: "Standard transzfer / fo, valamint VIP Mercedes V es S osztaly arak Debrecen, Nyiregyhaza es Miskolc indulassal.", currency: "HUF", tag: "Technologia" },
               };
               const PARTNER_ORDER = ["catl","ecopro","eccoino","vitesco","schaeffler","krones","enterair","tama","ni"];
               const activeCfg = activeTermsSubpage !== "list" ? PARTNER_CONFIGS[activeTermsSubpage] : null;
@@ -3610,9 +3610,9 @@ export default function AdminDashboard() {
 
                           {isNiPartner ? (
                             <div className="space-y-8">
-                              <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50 px-5 py-4">
+                              <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50 px-5 py-4">
                                 <div className="flex items-start gap-3">
-                                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#F5D000] to-[#D8A800] flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0">
+                                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#22C55E] to-[#16A34A] flex items-center justify-center shadow-md shadow-emerald-500/20 shrink-0">
                                     <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -3700,7 +3700,7 @@ export default function AdminDashboard() {
                                                 <input type="number" value={row[field] ?? 0} onChange={(e) => updateNiRow("standardTransfers", idx, { [field]: Number(e.target.value) || 0 })}
                                                   className="w-28 rounded-lg border border-amber-200 px-3 py-2 text-right text-sm font-mono font-bold text-admin-gray-800 outline-none focus:border-amber-400" />
                                               ) : (
-                                                <span className={`font-mono font-bold ${field === "grossOnePerson" || field === "twoPersonGrossPerPerson" || field === "threePersonGrossPerPerson" || field === "fourPlusGrossPerPerson" ? "text-[#8A6A00]" : "text-admin-gray-800"}`}>
+                                                <span className={`font-mono font-bold ${field === "grossOnePerson" || field === "twoPersonGrossPerPerson" || field === "threePersonGrossPerPerson" || field === "fourPlusGrossPerPerson" ? "text-[#166534]" : "text-admin-gray-800"}`}>
                                                   {formatHuf(row[field] ?? 0)}
                                                 </span>
                                               )}
@@ -3722,13 +3722,13 @@ export default function AdminDashboard() {
                               </div>
 
                               {([
-                                { key: "vipVClass", title: "VIP - Mercedes V Osztaly", subtitle: "VIP transzfer tarifa", accent: "from-amber-400 to-yellow-500" },
-                                { key: "vipSClass", title: "VIP - Mercedes S Osztaly", subtitle: "VIP premium tarifa", accent: "from-yellow-500 to-amber-600" },
+                                { key: "vipVClass", title: "VIP - Mercedes V Osztaly", subtitle: "VIP transzfer tarifa", accent: "from-emerald-400 to-green-500" },
+                                { key: "vipSClass", title: "VIP - Mercedes S Osztaly", subtitle: "VIP premium tarifa", accent: "from-green-500 to-emerald-600" },
                               ] as const).map((section) => (
                                 <div key={section.key} className="rounded-2xl border border-admin-gray-100 bg-white shadow-sm overflow-hidden">
                                   <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-admin-gray-100">
                                     <div className="flex items-center gap-3">
-                                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${section.accent} flex items-center justify-center shadow-md shadow-amber-500/20`}>
+                                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${section.accent} flex items-center justify-center shadow-md shadow-emerald-500/20`}>
                                         <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                           <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
                                         </svg>
@@ -3788,7 +3788,7 @@ export default function AdminDashboard() {
                                                   <input type="number" value={row[field] ?? 0} onChange={(e) => updateNiRow(section.key, idx, { [field]: Number(e.target.value) || 0 })}
                                                     className="w-32 rounded-lg border border-amber-200 px-3 py-2 text-right text-sm font-mono font-bold text-admin-gray-800 outline-none focus:border-amber-400" />
                                                 ) : (
-                                                  <span className={`font-mono font-bold ${field === "gross" ? "text-[#8A6A00]" : "text-admin-gray-800"}`}>
+                                                  <span className={`font-mono font-bold ${field === "gross" ? "text-[#166534]" : "text-admin-gray-800"}`}>
                                                     {formatHuf(row[field] ?? 0)}
                                                   </span>
                                                 )}

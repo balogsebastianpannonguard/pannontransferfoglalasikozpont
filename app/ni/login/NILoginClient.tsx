@@ -45,22 +45,22 @@ export default function NILoginClient() {
   }
 
   return (
-    <section className="min-h-screen bg-[#4d4a00] text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,208,0,0.22),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(216,168,0,0.18),transparent_30%),linear-gradient(180deg,#3d3900_0%,#4d4a00_100%)]" />
+    <section className="min-h-screen bg-[#0f3d24] text-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.22),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(21,128,61,0.18),transparent_30%),linear-gradient(180deg,#0a2e1e_0%,#0f3d24_100%)]" />
       <div className="absolute inset-0 opacity-[0.05] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:30px_30px]" />
 
       <div className="relative z-10 min-h-screen flex items-center justify-center p-6">
         <div className="w-full max-w-[560px]">
           <div className="mb-8 text-center">
             <div className="inline-flex items-center gap-2 bg-white rounded-[1.5rem] px-6 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.2)] mb-6">
-              <span className="text-[2rem] font-black tracking-tight text-[#F5D000]">NI</span>
+              <span className="text-[2rem] font-black tracking-tight text-[#22C55E]">NI</span>
             </div>
             <h1 className="font-serif text-4xl font-bold tracking-tight mb-2">Partner Bejelentkezés</h1>
-            <p className="text-sm text-yellow-100/90 font-medium">Bejelentkezés az NI dedikált partnerportálra.</p>
+            <p className="text-sm text-emerald-100/90 font-medium">Bejelentkezés az NI dedikált partnerportálra.</p>
           </div>
 
           <div ref={resultRef} className="rounded-[2rem] border border-white/10 bg-white/95 text-admin-gray-900 shadow-[0_30px_80px_rgba(0,0,0,0.25)] overflow-hidden">
-            <div className="h-1.5 bg-[linear-gradient(90deg,#F5D000_0%,#D8A800_60%,#F5D000_100%)]" />
+            <div className="h-1.5 bg-[linear-gradient(90deg,#22C55E_0%,#16A34A_60%,#22C55E_100%)]" />
             <div className="p-8 sm:p-10">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
@@ -131,7 +131,7 @@ export default function NILoginClient() {
                   type="submit"
                   disabled={isSubmitting || !email || !password}
                   className="w-full h-14 rounded-2xl text-white text-sm font-black tracking-[0.2em] uppercase disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ background: "linear-gradient(90deg, #F5D000 0%, #D8A800 60%, #F5D000 100%)" }}
+                  style={{ background: "linear-gradient(90deg, #22C55E 0%, #16A34A 60%, #22C55E 100%)" }}
                 >
                   {isSubmitting ? "Bejelentkezés..." : "Bejelentkezés"}
                 </button>
