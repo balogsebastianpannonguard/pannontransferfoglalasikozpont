@@ -234,7 +234,8 @@ export async function listNiInvites(): Promise<NiPortalUser[]> {
   await initNiUserIndexes();
   const col = await getNiPortalCollection();
   const docs = await col
-    .find({ inviteExpiresAt: { $gt: Date.now() } })
+    // Az aktivált fiókok a meghívó lejárta után is maradjanak a listában.
+    .find({ $or: [{ isActivated: true }, { inviteExpiresAt: { $gt: Date.now() } }] })
     .sort({ createdAt: -1 })
     .toArray();
   return docs.map((d) => ({ ...d, _id: d._id.toString() }) as unknown as NiPortalUser);
