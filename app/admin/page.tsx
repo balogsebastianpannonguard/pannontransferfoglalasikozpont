@@ -403,7 +403,7 @@ export default function AdminDashboard() {
     }
     setEcoproInnovationInviteDeleting(id);
     try {
-      const res = await fetch("/api/ecoproinnovationinnovation-invites/delete", {
+      const res = await fetch("/api/ecoproinnovation-invites/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -413,7 +413,7 @@ export default function AdminDashboard() {
         setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
       } else {
         setToast({ type: "success", message: json.message || "Ecopro Innovation felhasználó törölve." });
-        const listRes = await fetch("/api/ecoproinnovationinnovation-invites/list", { cache: "no-store" });
+        const listRes = await fetch("/api/ecoproinnovation-invites/list", { cache: "no-store" });
         const listJson = await listRes.json().catch(() => null);
         if (listRes.ok && listJson?.success) {
           setEcoproInnovationInvites(listJson.users || []);
@@ -433,7 +433,7 @@ export default function AdminDashboard() {
     }
     setEcoproBmInviteDeleting(id);
     try {
-      const res = await fetch("/api/ecoprobmbm-invites/delete", {
+      const res = await fetch("/api/ecoprobm-invites/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -443,7 +443,7 @@ export default function AdminDashboard() {
         setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
       } else {
         setToast({ type: "success", message: json.message || "Ecopro BM felhasználó törölve." });
-        const listRes = await fetch("/api/ecoprobmbm-invites/list", { cache: "no-store" });
+        const listRes = await fetch("/api/ecoprobm-invites/list", { cache: "no-store" });
         const listJson = await listRes.json().catch(() => null);
         if (listRes.ok && listJson?.success) {
           setEcoproBmInvites(listJson.users || []);
@@ -540,7 +540,7 @@ export default function AdminDashboard() {
     setEcoproInnovationInvitesLoading(true);
     (async () => {
       try {
-        const res = await fetch("/api/ecoproinnovationinnovation-invites/list", { cache: "no-store" });
+        const res = await fetch("/api/ecoproinnovation-invites/list", { cache: "no-store" });
         if (res.ok) {
           const json = await res.json();
           if (json?.success && Array.isArray(json.users)) {
@@ -563,7 +563,7 @@ export default function AdminDashboard() {
     setEcoproBmInvitesLoading(true);
     (async () => {
       try {
-        const res = await fetch("/api/ecoprobmbm-invites/list", { cache: "no-store" });
+        const res = await fetch("/api/ecoprobm-invites/list", { cache: "no-store" });
         if (res.ok) {
           const json = await res.json();
           if (json?.success && Array.isArray(json.users)) {
@@ -636,7 +636,7 @@ export default function AdminDashboard() {
     setSchaefflerMotionInvitesLoading(true);
     (async () => {
       try {
-        const res = await fetch("/api/schaefflermotionmotion-invites/list", { cache: "no-store" });
+        const res = await fetch("/api/schaefflermotion-invites/list", { cache: "no-store" });
         if (res.ok) {
           const json = await res.json();
           if (json?.success && Array.isArray(json.users)) {
@@ -659,7 +659,7 @@ export default function AdminDashboard() {
     setSchaefflerDebrecenInvitesLoading(true);
     (async () => {
       try {
-        const res = await fetch("/api/schaefflerdebrecendebrecen-invites/list", { cache: "no-store" });
+        const res = await fetch("/api/schaefflerdebrecen-invites/list", { cache: "no-store" });
         if (res.ok) {
           const json = await res.json();
           if (json?.success && Array.isArray(json.users)) {
@@ -847,7 +847,7 @@ export default function AdminDashboard() {
 
     setEcoproInnovationInviteSending(true);
     try {
-      const res = await fetch("/api/ecoproinnovationinnovation-invites/send", {
+      const res = await fetch("/api/ecoproinnovation-invites/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -864,7 +864,7 @@ export default function AdminDashboard() {
         setToast({ type: "success", message: json.message || "Ecopro Innovation meghívók sikeresen elküldve." });
         setEcoproInnovationInviteRecipients("");
         setEcoproInnovationInvite2FA(false);
-        const listRes = await fetch("/api/ecoproinnovationinnovation-invites/list", { cache: "no-store" });
+        const listRes = await fetch("/api/ecoproinnovation-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
           if (j2?.success) {
@@ -912,7 +912,7 @@ export default function AdminDashboard() {
 
     setEcoproBmInviteSending(true);
     try {
-      const res = await fetch("/api/ecoprobmbm-invites/send", {
+      const res = await fetch("/api/ecoprobm-invites/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -929,7 +929,7 @@ export default function AdminDashboard() {
         setToast({ type: "success", message: json.message || "Ecopro BM meghívók sikeresen elküldve." });
         setEcoproBmInviteRecipients("");
         setEcoproBmInvite2FA(false);
-        const listRes = await fetch("/api/ecoprobmbm-invites/list", { cache: "no-store" });
+        const listRes = await fetch("/api/ecoprobm-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
           if (j2?.success) {
@@ -1008,7 +1008,7 @@ export default function AdminDashboard() {
 
     setEcoproInnovationInviteResending(id);
     try {
-      const res = await fetch("/api/ecoproinnovationinnovation-invites/send", {
+      const res = await fetch("/api/ecoproinnovation-invites/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1023,7 +1023,7 @@ export default function AdminDashboard() {
         setToast({ type: "error", message: detailedError || json?.message || "Az Ecopro Innovation meghívó újraküldése nem sikerült." });
       } else {
         setToast({ type: "success", message: `${email} részére az Ecopro Innovation meghívó újra kiküldve.` });
-        const listRes = await fetch("/api/ecoproinnovationinnovation-invites/list", { cache: "no-store" });
+        const listRes = await fetch("/api/ecoproinnovation-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
           if (j2?.success) {
@@ -1055,7 +1055,7 @@ export default function AdminDashboard() {
 
     setEcoproBmInviteResending(id);
     try {
-      const res = await fetch("/api/ecoprobmbm-invites/send", {
+      const res = await fetch("/api/ecoprobm-invites/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1070,7 +1070,7 @@ export default function AdminDashboard() {
         setToast({ type: "error", message: detailedError || json?.message || "Az Ecopro BM meghívó újraküldése nem sikerült." });
       } else {
         setToast({ type: "success", message: `${email} részére az Ecopro BM meghívó újra kiküldve.` });
-        const listRes = await fetch("/api/ecoprobmbm-invites/list", { cache: "no-store" });
+        const listRes = await fetch("/api/ecoprobm-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
           if (j2?.success) {
@@ -1119,7 +1119,7 @@ export default function AdminDashboard() {
 
     setSchaefflerMotionInviteSending(true);
     try {
-      const res = await fetch("/api/schaefflermotionmotion-invites/send", {
+      const res = await fetch("/api/schaefflermotion-invites/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1136,7 +1136,7 @@ export default function AdminDashboard() {
         setToast({ type: "success", message: json.message || "Schaeffler Motion meghívók sikeresen elküldve." });
         setSchaefflerMotionInviteRecipients("");
         setSchaefflerMotionInvite2FA(false);
-        const listRes = await fetch("/api/schaefflermotionmotion-invites/list", { cache: "no-store" });
+        const listRes = await fetch("/api/schaefflermotion-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
           if (j2?.success) {
@@ -1185,7 +1185,7 @@ export default function AdminDashboard() {
 
     setSchaefflerDebrecenInviteSending(true);
     try {
-      const res = await fetch("/api/schaefflerdebrecendebrecen-invites/send", {
+      const res = await fetch("/api/schaefflerdebrecen-invites/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1202,7 +1202,7 @@ export default function AdminDashboard() {
         setToast({ type: "success", message: json.message || "Schaeffler Debrecen meghívók sikeresen elküldve." });
         setSchaefflerDebrecenInviteRecipients("");
         setSchaefflerDebrecenInvite2FA(false);
-        const listRes = await fetch("/api/schaefflerdebrecendebrecen-invites/list", { cache: "no-store" });
+        const listRes = await fetch("/api/schaefflerdebrecen-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
           if (j2?.success) {
@@ -1290,7 +1290,7 @@ export default function AdminDashboard() {
     }
     setSchaefflerMotionInviteDeleting(id);
     try {
-      const res = await fetch("/api/schaefflermotionmotion-invites/delete", {
+      const res = await fetch("/api/schaefflermotion-invites/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -1300,7 +1300,7 @@ export default function AdminDashboard() {
         setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
       } else {
         setToast({ type: "success", message: json.message || "Schaeffler Motion felhasználó törölve." });
-        const listRes = await fetch("/api/schaefflermotionmotion-invites/list", { cache: "no-store" });
+        const listRes = await fetch("/api/schaefflermotion-invites/list", { cache: "no-store" });
         const listJson = await listRes.json().catch(() => null);
         if (listRes.ok && listJson?.success) {
           setSchaefflerMotionInvites(listJson.users || []);
@@ -1320,7 +1320,7 @@ export default function AdminDashboard() {
     }
     setSchaefflerDebrecenInviteDeleting(id);
     try {
-      const res = await fetch("/api/schaefflerdebrecendebrecen-invites/delete", {
+      const res = await fetch("/api/schaefflerdebrecen-invites/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -1330,7 +1330,7 @@ export default function AdminDashboard() {
         setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
       } else {
         setToast({ type: "success", message: json.message || "Schaeffler Debrecen felhasználó törölve." });
-        const listRes = await fetch("/api/schaefflerdebrecendebrecen-invites/list", { cache: "no-store" });
+        const listRes = await fetch("/api/schaefflerdebrecen-invites/list", { cache: "no-store" });
         const listJson = await listRes.json().catch(() => null);
         if (listRes.ok && listJson?.success) {
           setSchaefflerDebrecenInvites(listJson.users || []);
@@ -1390,7 +1390,7 @@ export default function AdminDashboard() {
 
     setSchaefflerMotionInviteResending(id);
     try {
-      const res = await fetch("/api/schaefflermotionmotion-invites/send", {
+      const res = await fetch("/api/schaefflermotion-invites/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1405,7 +1405,7 @@ export default function AdminDashboard() {
         setToast({ type: "error", message: detailedError || json?.message || "A Schaeffler Motion meghívó újraküldése nem sikerült." });
       } else {
         setToast({ type: "success", message: `${email} részére a Schaeffler Motion meghívó újra kiküldve.` });
-        const listRes = await fetch("/api/schaefflermotionmotion-invites/list", { cache: "no-store" });
+        const listRes = await fetch("/api/schaefflermotion-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
           if (j2?.success) {
@@ -1437,7 +1437,7 @@ export default function AdminDashboard() {
 
     setSchaefflerDebrecenInviteResending(id);
     try {
-      const res = await fetch("/api/schaefflerdebrecendebrecen-invites/send", {
+      const res = await fetch("/api/schaefflerdebrecen-invites/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1452,7 +1452,7 @@ export default function AdminDashboard() {
         setToast({ type: "error", message: detailedError || json?.message || "A Schaeffler Debrecen meghívó újraküldése nem sikerült." });
       } else {
         setToast({ type: "success", message: `${email} részére a Schaeffler Debrecen meghívó újra kiküldve.` });
-        const listRes = await fetch("/api/schaefflerdebrecendebrecen-invites/list", { cache: "no-store" });
+        const listRes = await fetch("/api/schaefflerdebrecen-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
           if (j2?.success) {
