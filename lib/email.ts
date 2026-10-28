@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { logEmail } from "./email-log";
 
 export interface EmailConfig {
   smtpHost: string;
@@ -38,20 +39,34 @@ export interface SendEmailOptions {
   text?: string;
   from?: string;
   replyTo?: string;
+  kind?: string;
 }
 
 export async function sendEmail(options: SendEmailOptions) {
   const config = getEmailConfig();
   const transporter = createTransporter();
 
+  const fromAddress = options.from || `Pannon Transfer <${config.user}>`;
   try {
     const info = await transporter.sendMail({
-      from: options.from || `Pannon Transfer <${config.user}>`,
+      from: fromAddress,
       to: options.to,
       subject: options.subject,
       text: options.text,
       html: options.html,
       replyTo: options.replyTo || config.user,
+    });
+
+    logEmail({
+      app: "foglalasikozpont",
+      to: options.to,
+      from: fromAddress,
+      subject: options.subject,
+      kind: options.kind,
+      status: "sent",
+      messageId: info.messageId,
+      html: options.html,
+      text: options.text,
     });
 
     return {
@@ -60,9 +75,21 @@ export async function sendEmail(options: SendEmailOptions) {
       response: info.response,
     };
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Ismeretlen email hiba.";
+    logEmail({
+      app: "foglalasikozpont",
+      to: options.to,
+      from: fromAddress,
+      subject: options.subject,
+      kind: options.kind,
+      status: "failed",
+      error: message,
+      html: options.html,
+      text: options.text,
+    });
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Ismeretlen email hiba.",
+      error: message,
     };
   }
 }
