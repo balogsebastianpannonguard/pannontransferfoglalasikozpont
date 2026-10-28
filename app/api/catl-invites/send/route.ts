@@ -75,8 +75,6 @@ Please use the personal link below to choose your password and sign in for the f
 <td align="center" bgcolor="#0047BA" style="border-radius:8px;">
 <a href="${setupUrl}" style="display:inline-block; padding:16px 42px; font-size:14px; font-weight:700; color:#FFFFFF; text-decoration:none; letter-spacing:.6px; border-radius:8px;">Set your password &amp; sign in</a>
 </td></tr></table>
-<p style="margin:12px 0 0 0; font-size:12px; color:#94A3B8;">Button not working? Copy this link into your browser:</p>
-<p style="margin:4px 0 0 0; font-size:11px; color:#64748B; word-break:break-all;">${setupUrl}</p>
 </td></tr></table>
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; margin-bottom:26px;"><tr>
