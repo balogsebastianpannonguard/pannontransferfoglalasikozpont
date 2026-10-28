@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import TamaSetupPasswordClient from "./TamaSetupPasswordClient";
 
 export const metadata = {
-  title: "Tama Jelszó Beállítása | Pannon Transfer",
-  description: "Állítsd be a hozzáférési jelszavad a Tama partnerportálhoz.",
+  title: "TAMA Hungary Kft. Jelszó Beállítása | Pannon Transfer",
+  description: "Állítsd be a hozzáférési jelszavad a TAMA Hungary Kft. partnerportálhoz.",
 };
 
 export default function TamaSetupPasswordPage() {

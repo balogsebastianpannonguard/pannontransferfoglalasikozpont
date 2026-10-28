@@ -96,19 +96,18 @@ export function middleware(request: NextRequest) {
   }
 
   // ---------- Elavult, duplikált partnerportál oldalak letiltása ----------
-  // A dedikált partnerportálok (NI, CATL, EcoPro, stb.) KIZÁRÓLAG a
+  // A dedikált partnerportálok (NI, CATL, Ecopro, Schaeffler, TAMA, IBUSZ stb.) KIZÁRÓLAG a
   // pannontransferpartnercegek projektben (pannontransferkomplexxpartnerceg.vercel.app)
   // élnek. Ennek a foglalásiközpont domainnek semmi köze nem lehet egyetlen
   // partnercéghez sem, ezért ezek a régi, duplikált oldalak itt mindig 404-et adnak.
   const legacyPartnerPortalPrefixes = [
     "/ni",
     "/catl",
-    "/ecopro",
-    "/eccoino",
-    "/vitesco",
-    "/schaeffler",
-    "/krones",
-    "/enterair",
+    "/ecoproinnovation",
+    "/ecoprobm",
+    "/schaefflermotion",
+    "/schaefflerdebrecen",
+    "/ibusz",
     "/tama",
   ];
   const isLegacyPartnerPortalRoute = legacyPartnerPortalPrefixes.some(
@@ -134,18 +133,16 @@ export const config = {
     "/ni/:path*",
     "/catl",
     "/catl/:path*",
-    "/ecopro",
-    "/ecopro/:path*",
-    "/eccoino",
-    "/eccoino/:path*",
-    "/vitesco",
-    "/vitesco/:path*",
-    "/schaeffler",
-    "/schaeffler/:path*",
-    "/krones",
-    "/krones/:path*",
-    "/enterair",
-    "/enterair/:path*",
+    "/ecoproinnovation",
+    "/ecoproinnovation/:path*",
+    "/ecoprobm",
+    "/ecoprobm/:path*",
+    "/schaefflermotion",
+    "/schaefflermotion/:path*",
+    "/schaefflerdebrecen",
+    "/schaefflerdebrecen/:path*",
+    "/ibusz",
+    "/ibusz/:path*",
     "/tama",
     "/tama/:path*",
   ],

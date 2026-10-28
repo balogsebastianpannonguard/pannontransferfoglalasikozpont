@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "CATL Hungary - Bejelentkezés | Pannon Transfer",
+  title: "CATL - Bejelentkezés | Pannon Transfer",
   description: "CATL dedikált partnerportál bejelentkezés.",
 };
 

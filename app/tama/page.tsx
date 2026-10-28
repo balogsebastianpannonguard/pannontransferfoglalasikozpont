@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Tama | Pannon Transfer",
-  description: "Tama dedikált partnerportál.",
+  title: "TAMA Hungary Kft. | Pannon Transfer",
+  description: "TAMA Hungary Kft. dedikált partnerportál.",
 };
 
 export default function TamaPortalPage() {
@@ -15,7 +15,7 @@ export default function TamaPortalPage() {
         <div className="w-full max-w-4xl rounded-[2rem] border border-white/10 bg-white/10 backdrop-blur-xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.28)]">
           <div className="p-8 sm:p-12">
             <div className="inline-flex items-center gap-2 bg-white rounded-[1.5rem] px-6 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.2)] mb-10">
-              <span className="text-[2rem] font-black tracking-tight text-[#5CA700]">Tama</span>
+              <span className="text-[2rem] font-black tracking-tight text-[#5CA700]">TAMA Hungary Kft.</span>
               <span className="text-lg font-extrabold tracking-tight text-[#47840B]">Logistics</span>
             </div>
 
@@ -24,10 +24,10 @@ export default function TamaPortalPage() {
                 Dedikált partnerportál
               </div>
               <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight mb-4">
-                Tama vállalati hozzáférés
+                TAMA Hungary Kft. vállalati hozzáférés
               </h1>
               <p className="text-lg text-lime-50/90 leading-relaxed mb-8">
-                A Tama dedikált portálja mostmár külön kezelhető az adminban. A meghívási folyamat és az árstruktúra teljes mértékben testreszabott.
+                A TAMA Hungary Kft. dedikált portálja mostmár külön kezelhető az adminban. A meghívási folyamat és az árstruktúra teljes mértékben testreszabott.
               </p>
 
               <div className="flex flex-wrap gap-4">

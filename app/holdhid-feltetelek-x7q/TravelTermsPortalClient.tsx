@@ -424,7 +424,7 @@ export default function TravelTermsPortalClient({ accessToken }: Props) {
                   <input
                     value={createKey}
                     onChange={(e) => setCreateKey(e.target.value)}
-                    placeholder="pl: vitesco"
+                    placeholder="pl: ibusz"
                     className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-slate-400 w-48"
                   />
                 </div>

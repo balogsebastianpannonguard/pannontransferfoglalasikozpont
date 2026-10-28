@@ -22,16 +22,16 @@ function buildInviteEmail(
 <tr><td bgcolor="#5CA700" style="padding:44px 40px; border-bottom:3px solid #47840B;">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:22px;"><tr>
 <td align="left" valign="middle" bgcolor="#FFFFFF" style="border-radius:16px; padding:16px 20px;">
-<span style="font-family:-apple-system, sans-serif; font-size:18px; font-weight:900; color:#5CA700;">Tama</span>
+<span style="font-family:-apple-system, sans-serif; font-size:18px; font-weight:900; color:#5CA700;">TAMA Hungary Kft.</span>
 <span style="font-family:-apple-system, sans-serif; font-size:14px; font-weight:800; color:#47840B; margin-left:6px;">Logistics</span>
 </td></tr></table>
-<h1 style="margin:0 0 8px 0; font-family:Georgia, serif; color:#FFFFFF; font-size:26px; letter-spacing:.5px;">Tama Partner Portál</h1>
+<h1 style="margin:0 0 8px 0; font-family:Georgia, serif; color:#FFFFFF; font-size:26px; letter-spacing:.5px;">TAMA Hungary Kft. Partner Portál</h1>
 <p style="margin:0; font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#A8D000;">Pannon Transfer Partner</p>
 </td></tr>
 <tr><td style="padding:44px 40px;">
 <h2 style="margin:0 0 20px 0; font-family:Georgia, serif; font-size:22px; color:#0F172A;">Kedves Partner!</h2>
 <p style="margin:0 0 30px 0; font-size:15px; line-height:1.7; color:#475569;">
-Meghívást kaptál a Tama dedikált portálra. Kizárólag az alábbi egyedi linken keresztül tudsz belépni és elérni az árstruktúrát és a foglalásokat.
+Meghívást kaptál a TAMA Hungary Kft. dedikált portálra. Kizárólag az alábbi egyedi linken keresztül tudsz belépni és elérni az árstruktúrát és a foglalásokat.
 </p>
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:30px;"><tr><td align="center">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
@@ -57,7 +57,7 @@ Jelszó beállítása &amp; Belépés
 </td></tr>
 <tr><td bgcolor="#F8FAFC" style="padding:30px 40px; border-top:1px solid #E2E8F0;">
 <p style="margin:0; font-size:11px; line-height:1.6; color:#94A3B8; text-align:center;">
-Ezt az üzenetet a Pannon Transfer Tama Portál rendszere küldte. Ha nem kérted a meghívást, hagyd figyelmen kívül.<br>
+Ezt az üzenetet a Pannon Transfer TAMA Hungary Kft. Portál rendszere küldte. Ha nem kérted a meghívást, hagyd figyelmen kívül.<br>
 © ${new Date().getFullYear()} Pannon Transfer. Minden jog fenntartva.
 </p>
 </td></tr>
@@ -66,11 +66,11 @@ Ezt az üzenetet a Pannon Transfer Tama Portál rendszere küldte. Ha nem kérte
   `;
 
   const text = [
-    "Tama Portál - Pannon Transfer",
+    "TAMA Hungary Kft. Portál - Pannon Transfer",
     "",
     "Kedves Partner!",
     "",
-    "Meghívást kaptál a Tama dedikált portálra. Kizárólag az alábbi linken keresztül tudsz belépni:",
+    "Meghívást kaptál a TAMA Hungary Kft. dedikált portálra. Kizárólag az alábbi linken keresztül tudsz belépni:",
     setupUrl,
     "",
     "Belépési fiókod: " + recipientEmail,
@@ -119,7 +119,7 @@ export async function POST(request: Request) {
 
     const smtp = await testSmtpConnection();
     if (!smtp.success) {
-      console.warn("[SMTP] Tama invite: SMTP nem érhető el (teszt mód).", smtp.message);
+      console.warn("[SMTP] TAMA Hungary Kft. invite: SMTP nem érhető el (teszt mód).", smtp.message);
     }
 
     let finalBase =
@@ -177,7 +177,7 @@ export async function POST(request: Request) {
 
         const sendRes = await sendEmail({
           to: recipient,
-          subject: "Meghívás a Tama Partner Portálra – Pannon Transfer",
+          subject: "Meghívás a TAMA Hungary Kft. Partner Portálra – Pannon Transfer",
           html,
           text,
         });

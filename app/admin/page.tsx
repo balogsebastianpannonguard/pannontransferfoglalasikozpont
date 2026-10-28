@@ -116,7 +116,7 @@ export default function AdminDashboard() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [dbStatus, setDbStatus] = useState<"loading" | "connected" | "disconnected">("loading");
   const [sessionEmail, setSessionEmail] = useState<string>("");
-  const [activeTermsSubpage, setActiveTermsSubpage] = useState<"list" | "catl" | "ecopro" | "eccoino" | "vitesco" | "schaeffler" | "krones" | "enterair" | "tama" | "ni">("list");
+  const [activeTermsSubpage, setActiveTermsSubpage] = useState<"list" | "catl" | "ecoproinnovation" | "ecoprobm" | "schaefflermotion" | "schaefflerdebrecen" | "ibusz" | "tama" | "ni">("list");
 
   useEffect(() => {
     setActiveTermsSubpage("list");
@@ -215,14 +215,14 @@ export default function AdminDashboard() {
   const [catlInviteSending, setCatlInviteSending] = useState(false);
   const [catlInviteDeleting, setCatlInviteDeleting] = useState<string | null>(null);
   const [catlInviteResending, setCatlInviteResending] = useState<string | null>(null);
-  const [ecoproInvites, setEcoproInvites] = useState<any[] | null>(null);
-  const [ecoproInvitesMeta, setEcoproInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
-  const [ecoproInvitesLoading, setEcoproInvitesLoading] = useState(false);
-  const displayEcoproInvites: any[] =
-    ecoproInvites && ecoproInvites.length > 0 ? ecoproInvites : [];
-  const derivedEcoproMeta = (() => {
-    if (ecoproInvitesLoading || displayEcoproInvites.length === 0) {
-      if (ecoproInvitesLoading) {
+  const [ecoproinnovationInvites, setEcoproInnovationInvites] = useState<any[] | null>(null);
+  const [ecoproinnovationInvitesMeta, setEcoproInnovationInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
+  const [ecoproinnovationInvitesLoading, setEcoproInnovationInvitesLoading] = useState(false);
+  const displayEcoproInnovationInvites: any[] =
+    ecoproinnovationInvites && ecoproinnovationInvites.length > 0 ? ecoproinnovationInvites : [];
+  const derivedEcoproInnovationMeta = (() => {
+    if (ecoproinnovationInvitesLoading || displayEcoproInnovationInvites.length === 0) {
+      if (ecoproinnovationInvitesLoading) {
         return {
           total: null as number | null,
           activated: null as number | null,
@@ -231,85 +231,103 @@ export default function AdminDashboard() {
         };
       }
       return {
-        total: ecoproInvitesMeta?.total ?? 0,
-        activated: ecoproInvitesMeta?.activated ?? 0,
-        pending: ecoproInvitesMeta?.pending ?? 0,
-        require2fa: ecoproInvitesMeta?.require2fa ?? 0,
+        total: ecoproinnovationInvitesMeta?.total ?? 0,
+        activated: ecoproinnovationInvitesMeta?.activated ?? 0,
+        pending: ecoproinnovationInvitesMeta?.pending ?? 0,
+        require2fa: ecoproinnovationInvitesMeta?.require2fa ?? 0,
       };
     }
-    const total = displayEcoproInvites.length;
+    const total = displayEcoproInnovationInvites.length;
     let activated = 0;
     let pending = 0;
     let require2fa = 0;
-    for (const u of displayEcoproInvites) {
+    for (const u of displayEcoproInnovationInvites) {
       if (u?.requireTwoFactor) require2fa++;
       if (u?.isActivated) activated++;
       else pending++;
     }
     return { total, activated, pending, require2fa };
   })();
-  const [ecoproInviteRecipients, setEcoproInviteRecipients] = useState("");
-  const [ecoproInvite2FA, setEcoproInvite2FA] = useState(false);
-  const [ecoproInviteSending, setEcoproInviteSending] = useState(false);
-  const [ecoproInviteDeleting, setEcoproInviteDeleting] = useState<string | null>(null);
-  const [ecoproInviteResending, setEcoproInviteResending] = useState<string | null>(null);
+  const [ecoproinnovationInviteRecipients, setEcoproInnovationInviteRecipients] = useState("");
+  const [ecoproinnovationInvite2FA, setEcoproInnovationInvite2FA] = useState(false);
+  const [ecoproinnovationInviteSending, setEcoproInnovationInviteSending] = useState(false);
+  const [ecoproinnovationInviteDeleting, setEcoproInnovationInviteDeleting] = useState<string | null>(null);
+  const [ecoproinnovationInviteResending, setEcoproInnovationInviteResending] = useState<string | null>(null);
+  const [ecoprobmInvites, setEcoproBmInvites] = useState<any[] | null>(null);
+  const [ecoprobmInvitesMeta, setEcoproBmInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
+  const [ecoprobmInvitesLoading, setEcoproBmInvitesLoading] = useState(false);
+  const displayEcoproBmInvites: any[] =
+    ecoprobmInvites && ecoprobmInvites.length > 0 ? ecoprobmInvites : [];
+  const derivedEcoproBmMeta = (() => {
+    if (ecoprobmInvitesLoading || displayEcoproBmInvites.length === 0) {
+      if (ecoprobmInvitesLoading) {
+        return {
+          total: null as number | null,
+          activated: null as number | null,
+          pending: null as number | null,
+          require2fa: null as number | null,
+        };
+      }
+      return {
+        total: ecoprobmInvitesMeta?.total ?? 0,
+        activated: ecoprobmInvitesMeta?.activated ?? 0,
+        pending: ecoprobmInvitesMeta?.pending ?? 0,
+        require2fa: ecoprobmInvitesMeta?.require2fa ?? 0,
+      };
+    }
+    const total = displayEcoproBmInvites.length;
+    let activated = 0;
+    let pending = 0;
+    let require2fa = 0;
+    for (const u of displayEcoproBmInvites) {
+      if (u?.requireTwoFactor) require2fa++;
+      if (u?.isActivated) activated++;
+      else pending++;
+    }
+    return { total, activated, pending, require2fa };
+  })();
+  const [ecoprobmInviteRecipients, setEcoproBmInviteRecipients] = useState("");
+  const [ecoprobmInvite2FA, setEcoproBmInvite2FA] = useState(false);
+  const [ecoprobmInviteSending, setEcoproBmInviteSending] = useState(false);
+  const [ecoprobmInviteDeleting, setEcoproBmInviteDeleting] = useState<string | null>(null);
+  const [ecoprobmInviteResending, setEcoproBmInviteResending] = useState<string | null>(null);
 
-  // Eccoino invites management
-  const [eccoinoInvites, setEccoinoInvites] = useState<any[] | null>(null);
-  const [eccoinoInvitesMeta, setEccoinoInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
-  const [eccoinoInvitesLoading, setEccoinoInvitesLoading] = useState(false);
-  const displayEccoinoInvites: any[] = eccoinoInvites && eccoinoInvites.length > 0 ? eccoinoInvites : [];
-  const [eccoinoInviteRecipients, setEccoinoInviteRecipients] = useState("");
-  const [eccoinoInvite2FA, setEccoinoInvite2FA] = useState(false);
-  const [eccoinoInviteSending, setEccoinoInviteSending] = useState(false);
-  const [eccoinoInviteDeleting, setEccoinoInviteDeleting] = useState<string | null>(null);
-  const [eccoinoInviteResending, setEccoinoInviteResending] = useState<string | null>(null);
 
-  // Vitesco invites management
-  const [vitescoInvites, setVitescoInvites] = useState<any[] | null>(null);
-  const [vitescoInvitesMeta, setVitescoInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
-  const [vitescoInvitesLoading, setVitescoInvitesLoading] = useState(false);
-  const displayVitescoInvites: any[] = vitescoInvites && vitescoInvites.length > 0 ? vitescoInvites : [];
-  const [vitescoInviteRecipients, setVitescoInviteRecipients] = useState("");
-  const [vitescoInvite2FA, setVitescoInvite2FA] = useState(false);
-  const [vitescoInviteSending, setVitescoInviteSending] = useState(false);
-  const [vitescoInviteDeleting, setVitescoInviteDeleting] = useState<string | null>(null);
-  const [vitescoInviteResending, setVitescoInviteResending] = useState<string | null>(null);
 
-  // Schaeffler invites management
-  const [schaefflerInvites, setSchaefflerInvites] = useState<any[] | null>(null);
-  const [schaefflerInvitesMeta, setSchaefflerInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
-  const [schaefflerInvitesLoading, setSchaefflerInvitesLoading] = useState(false);
-  const displaySchaefflerInvites: any[] = schaefflerInvites && schaefflerInvites.length > 0 ? schaefflerInvites : [];
-  const [schaefflerInviteRecipients, setSchaefflerInviteRecipients] = useState("");
-  const [schaefflerInvite2FA, setSchaefflerInvite2FA] = useState(false);
-  const [schaefflerInviteSending, setSchaefflerInviteSending] = useState(false);
-  const [schaefflerInviteDeleting, setSchaefflerInviteDeleting] = useState<string | null>(null);
-  const [schaefflerInviteResending, setSchaefflerInviteResending] = useState<string | null>(null);
+  // Schaeffler Motion invites management
+  const [schaefflermotionInvites, setSchaefflerMotionInvites] = useState<any[] | null>(null);
+  const [schaefflermotionInvitesMeta, setSchaefflerMotionInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
+  const [schaefflermotionInvitesLoading, setSchaefflerMotionInvitesLoading] = useState(false);
+  const displaySchaefflerMotionInvites: any[] = schaefflermotionInvites && schaefflermotionInvites.length > 0 ? schaefflermotionInvites : [];
+  const [schaefflermotionInviteRecipients, setSchaefflerMotionInviteRecipients] = useState("");
+  const [schaefflermotionInvite2FA, setSchaefflerMotionInvite2FA] = useState(false);
+  const [schaefflermotionInviteSending, setSchaefflerMotionInviteSending] = useState(false);
+  const [schaefflermotionInviteDeleting, setSchaefflerMotionInviteDeleting] = useState<string | null>(null);
+  const [schaefflermotionInviteResending, setSchaefflerMotionInviteResending] = useState<string | null>(null);
+  // Schaeffler Debrecen invites management
+  const [schaefflerdebrecenInvites, setSchaefflerDebrecenInvites] = useState<any[] | null>(null);
+  const [schaefflerdebrecenInvitesMeta, setSchaefflerDebrecenInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
+  const [schaefflerdebrecenInvitesLoading, setSchaefflerDebrecenInvitesLoading] = useState(false);
+  const displaySchaefflerDebrecenInvites: any[] = schaefflerdebrecenInvites && schaefflerdebrecenInvites.length > 0 ? schaefflerdebrecenInvites : [];
+  const [schaefflerdebrecenInviteRecipients, setSchaefflerDebrecenInviteRecipients] = useState("");
+  const [schaefflerdebrecenInvite2FA, setSchaefflerDebrecenInvite2FA] = useState(false);
+  const [schaefflerdebrecenInviteSending, setSchaefflerDebrecenInviteSending] = useState(false);
+  const [schaefflerdebrecenInviteDeleting, setSchaefflerDebrecenInviteDeleting] = useState<string | null>(null);
+  const [schaefflerdebrecenInviteResending, setSchaefflerDebrecenInviteResending] = useState<string | null>(null);
+  // IBUSZ Hungary Kft. invites management
+  const [ibuszInvites, setIbuszInvites] = useState<any[] | null>(null);
+  const [ibuszInvitesMeta, setIbuszInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
+  const [ibuszInvitesLoading, setIbuszInvitesLoading] = useState(false);
+  const displayIbuszInvites: any[] = ibuszInvites && ibuszInvites.length > 0 ? ibuszInvites : [];
+  const [ibuszInviteRecipients, setIbuszInviteRecipients] = useState("");
+  const [ibuszInvite2FA, setIbuszInvite2FA] = useState(false);
+  const [ibuszInviteSending, setIbuszInviteSending] = useState(false);
+  const [ibuszInviteDeleting, setIbuszInviteDeleting] = useState<string | null>(null);
+  const [ibuszInviteResending, setIbuszInviteResending] = useState<string | null>(null);
 
-  // Krones invites management
-  const [kronesInvites, setKronesInvites] = useState<any[] | null>(null);
-  const [kronesInvitesMeta, setKronesInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
-  const [kronesInvitesLoading, setKronesInvitesLoading] = useState(false);
-  const displayKronesInvites: any[] = kronesInvites && kronesInvites.length > 0 ? kronesInvites : [];
-  const [kronesInviteRecipients, setKronesInviteRecipients] = useState("");
-  const [kronesInvite2FA, setKronesInvite2FA] = useState(false);
-  const [kronesInviteSending, setKronesInviteSending] = useState(false);
-  const [kronesInviteDeleting, setKronesInviteDeleting] = useState<string | null>(null);
-  const [kronesInviteResending, setKronesInviteResending] = useState<string | null>(null);
 
-  // Enter Air invites management
-  const [enterairInvites, setEnterairInvites] = useState<any[] | null>(null);
-  const [enterairInvitesMeta, setEnterairInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
-  const [enterairInvitesLoading, setEnterairInvitesLoading] = useState(false);
-  const displayEnterairInvites: any[] = enterairInvites && enterairInvites.length > 0 ? enterairInvites : [];
-  const [enterairInviteRecipients, setEnterairInviteRecipients] = useState("");
-  const [enterairInvite2FA, setEnterairInvite2FA] = useState(false);
-  const [enterairInviteSending, setEnterairInviteSending] = useState(false);
-  const [enterairInviteDeleting, setEnterairInviteDeleting] = useState<string | null>(null);
-  const [enterairInviteResending, setEnterairInviteResending] = useState<string | null>(null);
 
-  // Tama invites management
+  // TAMA Hungary Kft. invites management
   const [tamaInvites, setTamaInvites] = useState<any[] | null>(null);
   const [tamaInvitesMeta, setTamaInvitesMeta] = useState<any>({ total: 0, activated: 0, pending: 0, require2fa: 0 });
   const [tamaInvitesLoading, setTamaInvitesLoading] = useState(false);
@@ -379,13 +397,13 @@ export default function AdminDashboard() {
     }
   }
 
-  async function handleDeleteEcoproUser(id: string, email: string) {
-    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt EcoPro hozzáférést?\n\nA művelet nem visszavonható.`)) {
+  async function handleDeleteEcoproInnovationUser(id: string, email: string) {
+    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt Ecopro Innovation hozzáférést?\n\nA művelet nem visszavonható.`)) {
       return;
     }
-    setEcoproInviteDeleting(id);
+    setEcoproInnovationInviteDeleting(id);
     try {
-      const res = await fetch("/api/ecopro-invites/delete", {
+      const res = await fetch("/api/ecoproinnovationinnovation-invites/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -394,18 +412,48 @@ export default function AdminDashboard() {
       if (!res.ok || !json?.success) {
         setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
       } else {
-        setToast({ type: "success", message: json.message || "EcoPro felhasználó törölve." });
-        const listRes = await fetch("/api/ecopro-invites/list", { cache: "no-store" });
+        setToast({ type: "success", message: json.message || "Ecopro Innovation felhasználó törölve." });
+        const listRes = await fetch("/api/ecoproinnovationinnovation-invites/list", { cache: "no-store" });
         const listJson = await listRes.json().catch(() => null);
         if (listRes.ok && listJson?.success) {
-          setEcoproInvites(listJson.users || []);
-          setEcoproInvitesMeta(listJson.counts || ecoproInvitesMeta);
+          setEcoproInnovationInvites(listJson.users || []);
+          setEcoproInnovationInvitesMeta(listJson.counts || ecoproinnovationInvitesMeta);
         }
       }
     } catch {
       setToast({ type: "error", message: "Hálózati hiba törlés közben." });
     } finally {
-      setEcoproInviteDeleting(null);
+      setEcoproInnovationInviteDeleting(null);
+    }
+  }
+
+  async function handleDeleteEcoproBmUser(id: string, email: string) {
+    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt Ecopro BM hozzáférést?\n\nA művelet nem visszavonható.`)) {
+      return;
+    }
+    setEcoproBmInviteDeleting(id);
+    try {
+      const res = await fetch("/api/ecoprobmbm-invites/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "Ecopro BM felhasználó törölve." });
+        const listRes = await fetch("/api/ecoprobmbm-invites/list", { cache: "no-store" });
+        const listJson = await listRes.json().catch(() => null);
+        if (listRes.ok && listJson?.success) {
+          setEcoproBmInvites(listJson.users || []);
+          setEcoproBmInvitesMeta(listJson.counts || ecoprobmInvitesMeta);
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba törlés közben." });
+    } finally {
+      setEcoproBmInviteDeleting(null);
     }
   }
 
@@ -488,24 +536,47 @@ export default function AdminDashboard() {
   }, [active]);
 
   useEffect(() => {
-    if (active !== "ecopro-invites") return;
-    setEcoproInvitesLoading(true);
+    if (active !== "ecoproinnovation-invites") return;
+    setEcoproInnovationInvitesLoading(true);
     (async () => {
       try {
-        const res = await fetch("/api/ecopro-invites/list", { cache: "no-store" });
+        const res = await fetch("/api/ecoproinnovationinnovation-invites/list", { cache: "no-store" });
         if (res.ok) {
           const json = await res.json();
           if (json?.success && Array.isArray(json.users)) {
-            setEcoproInvites(json.users);
-            setEcoproInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
+            setEcoproInnovationInvites(json.users);
+            setEcoproInnovationInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
           } else {
-            setEcoproInvites(null);
+            setEcoproInnovationInvites(null);
           }
-        } else setEcoproInvites(null);
+        } else setEcoproInnovationInvites(null);
       } catch {
-        setEcoproInvites(null);
+        setEcoproInnovationInvites(null);
       } finally {
-        setEcoproInvitesLoading(false);
+        setEcoproInnovationInvitesLoading(false);
+      }
+    })();
+  }, [active]);
+
+  useEffect(() => {
+    if (active !== "ecoprobm-invites") return;
+    setEcoproBmInvitesLoading(true);
+    (async () => {
+      try {
+        const res = await fetch("/api/ecoprobmbm-invites/list", { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.success && Array.isArray(json.users)) {
+            setEcoproBmInvites(json.users);
+            setEcoproBmInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
+          } else {
+            setEcoproBmInvites(null);
+          }
+        } else setEcoproBmInvites(null);
+      } catch {
+        setEcoproBmInvites(null);
+      } finally {
+        setEcoproBmInvitesLoading(false);
       }
     })();
   }, [active]);
@@ -560,127 +631,76 @@ export default function AdminDashboard() {
     })();
   }, [active]);
 
-  // Eccoino useEffect
   useEffect(() => {
-    if (active !== "eccoino-invites") return;
-    setEccoinoInvitesLoading(true);
+    if (active !== "schaefflermotion-invites") return;
+    setSchaefflerMotionInvitesLoading(true);
     (async () => {
       try {
-        const res = await fetch("/api/eccoino-invites/list", { cache: "no-store" });
+        const res = await fetch("/api/schaefflermotionmotion-invites/list", { cache: "no-store" });
         if (res.ok) {
           const json = await res.json();
           if (json?.success && Array.isArray(json.users)) {
-            setEccoinoInvites(json.users);
-            setEccoinoInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
+            setSchaefflerMotionInvites(json.users);
+            setSchaefflerMotionInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
           } else {
-            setEccoinoInvites(null);
+            setSchaefflerMotionInvites(null);
           }
-        } else setEccoinoInvites(null);
+        } else setSchaefflerMotionInvites(null);
       } catch {
-        setEccoinoInvites(null);
+        setSchaefflerMotionInvites(null);
       } finally {
-        setEccoinoInvitesLoading(false);
+        setSchaefflerMotionInvitesLoading(false);
       }
     })();
   }, [active]);
 
-  // Vitesco useEffect
   useEffect(() => {
-    if (active !== "vitesco-invites") return;
-    setVitescoInvitesLoading(true);
+    if (active !== "schaefflerdebrecen-invites") return;
+    setSchaefflerDebrecenInvitesLoading(true);
     (async () => {
       try {
-        const res = await fetch("/api/vitesco-invites/list", { cache: "no-store" });
+        const res = await fetch("/api/schaefflerdebrecendebrecen-invites/list", { cache: "no-store" });
         if (res.ok) {
           const json = await res.json();
           if (json?.success && Array.isArray(json.users)) {
-            setVitescoInvites(json.users);
-            setVitescoInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
+            setSchaefflerDebrecenInvites(json.users);
+            setSchaefflerDebrecenInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
           } else {
-            setVitescoInvites(null);
+            setSchaefflerDebrecenInvites(null);
           }
-        } else setVitescoInvites(null);
+        } else setSchaefflerDebrecenInvites(null);
       } catch {
-        setVitescoInvites(null);
+        setSchaefflerDebrecenInvites(null);
       } finally {
-        setVitescoInvitesLoading(false);
+        setSchaefflerDebrecenInvitesLoading(false);
       }
     })();
   }, [active]);
 
-  // Schaeffler useEffect
   useEffect(() => {
-    if (active !== "schaeffler-invites") return;
-    setSchaefflerInvitesLoading(true);
+    if (active !== "ibusz-invites") return;
+    setIbuszInvitesLoading(true);
     (async () => {
       try {
-        const res = await fetch("/api/schaeffler-invites/list", { cache: "no-store" });
+        const res = await fetch("/api/ibusz-invites/list", { cache: "no-store" });
         if (res.ok) {
           const json = await res.json();
           if (json?.success && Array.isArray(json.users)) {
-            setSchaefflerInvites(json.users);
-            setSchaefflerInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
+            setIbuszInvites(json.users);
+            setIbuszInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
           } else {
-            setSchaefflerInvites(null);
+            setIbuszInvites(null);
           }
-        } else setSchaefflerInvites(null);
+        } else setIbuszInvites(null);
       } catch {
-        setSchaefflerInvites(null);
+        setIbuszInvites(null);
       } finally {
-        setSchaefflerInvitesLoading(false);
+        setIbuszInvitesLoading(false);
       }
     })();
   }, [active]);
 
-  // Krones useEffect
-  useEffect(() => {
-    if (active !== "krones-invites") return;
-    setKronesInvitesLoading(true);
-    (async () => {
-      try {
-        const res = await fetch("/api/krones-invites/list", { cache: "no-store" });
-        if (res.ok) {
-          const json = await res.json();
-          if (json?.success && Array.isArray(json.users)) {
-            setKronesInvites(json.users);
-            setKronesInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
-          } else {
-            setKronesInvites(null);
-          }
-        } else setKronesInvites(null);
-      } catch {
-        setKronesInvites(null);
-      } finally {
-        setKronesInvitesLoading(false);
-      }
-    })();
-  }, [active]);
-
-  // EnterAir useEffect
-  useEffect(() => {
-    if (active !== "enterair-invites") return;
-    setEnterairInvitesLoading(true);
-    (async () => {
-      try {
-        const res = await fetch("/api/enterair-invites/list", { cache: "no-store" });
-        if (res.ok) {
-          const json = await res.json();
-          if (json?.success && Array.isArray(json.users)) {
-            setEnterairInvites(json.users);
-            setEnterairInvitesMeta(json.counts || { total: json.users.length, activated: 0, pending: 0, require2fa: 0 });
-          } else {
-            setEnterairInvites(null);
-          }
-        } else setEnterairInvites(null);
-      } catch {
-        setEnterairInvites(null);
-      } finally {
-        setEnterairInvitesLoading(false);
-      }
-    })();
-  }, [active]);
-
-  // Tama useEffect
+  // TAMA Hungary Kft. useEffect
   useEffect(() => {
     if (active !== "tama-invites") return;
     setTamaInvitesLoading(true);
@@ -795,8 +815,8 @@ export default function AdminDashboard() {
     }
   }
 
-  async function handleSendEcoproInvite() {
-    const recipients = ecoproInviteRecipients
+  async function handleSendEcoproInnovationInvite() {
+    const recipients = ecoproinnovationInviteRecipients
       .split(/[,;\n]/)
       .map((s) => s.trim())
       .filter(Boolean);
@@ -812,28 +832,28 @@ export default function AdminDashboard() {
       }
     }
 
-    let ecoproPartnerBase = PARTNER_PORTAL_BASE_URL;
+    let ecoproinnovationPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
-          ecoproPartnerBase = url.origin;
+          ecoproinnovationPartnerBase = url.origin;
         }
       } catch {
         // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
-    setEcoproInviteSending(true);
+    setEcoproInnovationInviteSending(true);
     try {
-      const res = await fetch("/api/ecopro-invites/send", {
+      const res = await fetch("/api/ecoproinnovationinnovation-invites/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           recipients,
-          requireTwoFactor: !!ecoproInvite2FA,
-          loginBaseUrl: ecoproPartnerBase,
+          requireTwoFactor: !!ecoproinnovationInvite2FA,
+          loginBaseUrl: ecoproinnovationPartnerBase,
         }),
       });
       const json = await res.json().catch(() => null);
@@ -841,22 +861,87 @@ export default function AdminDashboard() {
         const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
         setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
       } else {
-        setToast({ type: "success", message: json.message || "EcoPro meghívók sikeresen elküldve." });
-        setEcoproInviteRecipients("");
-        setEcoproInvite2FA(false);
-        const listRes = await fetch("/api/ecopro-invites/list", { cache: "no-store" });
+        setToast({ type: "success", message: json.message || "Ecopro Innovation meghívók sikeresen elküldve." });
+        setEcoproInnovationInviteRecipients("");
+        setEcoproInnovationInvite2FA(false);
+        const listRes = await fetch("/api/ecoproinnovationinnovation-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
           if (j2?.success) {
-            setEcoproInvites(j2.users);
-            setEcoproInvitesMeta(j2.counts || {});
+            setEcoproInnovationInvites(j2.users);
+            setEcoproInnovationInvitesMeta(j2.counts || {});
           }
         }
       }
     } catch {
       setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
     } finally {
-      setEcoproInviteSending(false);
+      setEcoproInnovationInviteSending(false);
+    }
+  }
+
+  async function handleSendEcoproBmInvite() {
+    const recipients = ecoprobmInviteRecipients
+      .split(/[,;\n]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (recipients.length === 0) {
+      setToast({ type: "error", message: "Legalább egy címzett email címét add meg." });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (const e of recipients) {
+      if (!emailRegex.test(e)) {
+        setToast({ type: "error", message: `Érvénytelen email cím: ${e}` });
+        return;
+      }
+    }
+
+    let ecoprobmPartnerBase = PARTNER_PORTAL_BASE_URL;
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+          ecoprobmPartnerBase = url.origin;
+        }
+      } catch {
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
+      }
+    }
+
+    setEcoproBmInviteSending(true);
+    try {
+      const res = await fetch("/api/ecoprobmbm-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients,
+          requireTwoFactor: !!ecoprobmInvite2FA,
+          loginBaseUrl: ecoprobmPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "Ecopro BM meghívók sikeresen elküldve." });
+        setEcoproBmInviteRecipients("");
+        setEcoproBmInvite2FA(false);
+        const listRes = await fetch("/api/ecoprobmbm-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setEcoproBmInvites(j2.users);
+            setEcoproBmInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
+    } finally {
+      setEcoproBmInviteSending(false);
     }
   }
 
@@ -907,199 +992,103 @@ export default function AdminDashboard() {
     }
   }
 
-  async function handleResendEcoproInvite(id: string, email: string, requireTwoFactor: boolean) {
-    let ecoproPartnerBase = PARTNER_PORTAL_BASE_URL;
+  async function handleResendEcoproInnovationInvite(id: string, email: string, requireTwoFactor: boolean) {
+    let ecoproinnovationPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
-          ecoproPartnerBase = url.origin;
+          ecoproinnovationPartnerBase = url.origin;
         }
       } catch {
         // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
-    setEcoproInviteResending(id);
+    setEcoproInnovationInviteResending(id);
     try {
-      const res = await fetch("/api/ecopro-invites/send", {
+      const res = await fetch("/api/ecoproinnovationinnovation-invites/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           recipients: [email],
           requireTwoFactor,
-          loginBaseUrl: ecoproPartnerBase,
+          loginBaseUrl: ecoproinnovationPartnerBase,
         }),
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.success) {
         const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
-        setToast({ type: "error", message: detailedError || json?.message || "Az EcoPro meghívó újraküldése nem sikerült." });
+        setToast({ type: "error", message: detailedError || json?.message || "Az Ecopro Innovation meghívó újraküldése nem sikerült." });
       } else {
-        setToast({ type: "success", message: `${email} részére az EcoPro meghívó újra kiküldve.` });
-        const listRes = await fetch("/api/ecopro-invites/list", { cache: "no-store" });
+        setToast({ type: "success", message: `${email} részére az Ecopro Innovation meghívó újra kiküldve.` });
+        const listRes = await fetch("/api/ecoproinnovationinnovation-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
           if (j2?.success) {
-            setEcoproInvites(j2.users);
-            setEcoproInvitesMeta(j2.counts || {});
+            setEcoproInnovationInvites(j2.users);
+            setEcoproInnovationInvitesMeta(j2.counts || {});
           }
         }
       }
     } catch {
-      setToast({ type: "error", message: "Hálózati hiba az EcoPro meghívó újraküldése közben." });
+      setToast({ type: "error", message: "Hálózati hiba az Ecopro Innovation meghívó újraküldése közben." });
     } finally {
-      setEcoproInviteResending(null);
+      setEcoproInnovationInviteResending(null);
     }
   }
 
-  // Eccoino handlers
-  async function handleSendEccoinoInvite() {
-    const recipients = eccoinoInviteRecipients
-      .split(/[,;\n]/)
-      .map((s: string) => s.trim())
-      .filter(Boolean);
-    if (recipients.length === 0) {
-      setToast({ type: "error", message: "Legalább egy címzett email címét add meg." });
-      return;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    for (const e of recipients) {
-      if (!emailRegex.test(e)) {
-        setToast({ type: "error", message: `Érvénytelen email cím: ${e}` });
-        return;
-      }
-    }
-
-    let eccoinoPartnerBase = PARTNER_PORTAL_BASE_URL;
+  async function handleResendEcoproBmInvite(id: string, email: string, requireTwoFactor: boolean) {
+    let ecoprobmPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
-          eccoinoPartnerBase = url.origin;
+          ecoprobmPartnerBase = url.origin;
         }
       } catch {
         // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
-    setEccoinoInviteSending(true);
+    setEcoproBmInviteResending(id);
     try {
-      const res = await fetch("/api/eccoino-invites/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          recipients,
-          requireTwoFactor: eccoinoInvite2FA,
-          loginBaseUrl: eccoinoPartnerBase,
-        }),
-      });
-      const json = await res.json().catch(() => null);
-      if (!res.ok || !json?.success) {
-        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
-        setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
-      } else {
-        setToast({ type: "success", message: json.message || "Eccoino meghívók sikeresen elküldve." });
-        setEccoinoInviteRecipients("");
-        setEccoinoInvite2FA(false);
-        const listRes = await fetch("/api/eccoino-invites/list", { cache: "no-store" });
-        if (listRes.ok) {
-          const j2 = await listRes.json();
-          if (j2?.success) {
-            setEccoinoInvites(j2.users);
-            setEccoinoInvitesMeta(j2.counts || {});
-          }
-        }
-      }
-    } catch {
-      setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
-    } finally {
-      setEccoinoInviteSending(false);
-    }
-  }
-
-  async function handleDeleteEccoinoUser(id: string, email: string) {
-    if (!confirm(`Biztosan törölni szeretnéd a(z) ${email} felhasználót?`)) return;
-    setEccoinoInviteDeleting(id);
-    try {
-      const res = await fetch("/api/eccoino-invites/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const json = await res.json().catch(() => null);
-      if (!res.ok || !json?.success) {
-        setToast({ type: "error", message: json?.message || "Hiba történt a törlés során." });
-      } else {
-        setToast({ type: "success", message: "Felhasználó törölve." });
-        const listRes = await fetch("/api/eccoino-invites/list", { cache: "no-store" });
-        if (listRes.ok) {
-          const j2 = await listRes.json();
-          if (j2?.success) {
-            setEccoinoInvites(j2.users);
-            setEccoinoInvitesMeta(j2.counts || {});
-          }
-        }
-      }
-    } catch {
-      setToast({ type: "error", message: "Hálózati hiba a törlés közben." });
-    } finally {
-      setEccoinoInviteDeleting(null);
-    }
-  }
-
-  async function handleResendEccoinoInvite(id: string, email: string, requireTwoFactor: boolean) {
-    let eccoinoPartnerBase = PARTNER_PORTAL_BASE_URL;
-    if (typeof window !== "undefined") {
-      try {
-        const url = new URL(window.location.origin);
-        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
-          url.port = "3001";
-          eccoinoPartnerBase = url.origin;
-        }
-      } catch {
-        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
-      }
-    }
-
-    setEccoinoInviteResending(id);
-    try {
-      const res = await fetch("/api/eccoino-invites/send", {
+      const res = await fetch("/api/ecoprobmbm-invites/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           recipients: [email],
           requireTwoFactor,
-          loginBaseUrl: eccoinoPartnerBase,
+          loginBaseUrl: ecoprobmPartnerBase,
         }),
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.success) {
         const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
-        setToast({ type: "error", message: detailedError || json?.message || "A meghívó újraküldése nem sikerült." });
+        setToast({ type: "error", message: detailedError || json?.message || "Az Ecopro BM meghívó újraküldése nem sikerült." });
       } else {
-        setToast({ type: "success", message: `${email} részére az Eccoino meghívó újra kiküldve.` });
-        const listRes = await fetch("/api/eccoino-invites/list", { cache: "no-store" });
+        setToast({ type: "success", message: `${email} részére az Ecopro BM meghívó újra kiküldve.` });
+        const listRes = await fetch("/api/ecoprobmbm-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
           if (j2?.success) {
-            setEccoinoInvites(j2.users);
-            setEccoinoInvitesMeta(j2.counts || {});
+            setEcoproBmInvites(j2.users);
+            setEcoproBmInvitesMeta(j2.counts || {});
           }
         }
       }
     } catch {
-      setToast({ type: "error", message: "Hálózati hiba a meghívó újraküldése közben." });
+      setToast({ type: "error", message: "Hálózati hiba az Ecopro BM meghívó újraküldése közben." });
     } finally {
-      setEccoinoInviteResending(null);
+      setEcoproBmInviteResending(null);
     }
   }
 
-  // Vitesco handlers
-  async function handleSendVitescoInvite() {
-    const recipients = vitescoInviteRecipients
+  // Schaeffler Motion handlers
+  async function handleSendSchaefflerMotionInvite() {
+    const recipients = schaefflermotionInviteRecipients
       .split(/[,;\n]/)
       .map((s) => s.trim())
       .filter(Boolean);
@@ -1115,28 +1104,28 @@ export default function AdminDashboard() {
       }
     }
 
-    let vitescoPartnerBase = PARTNER_PORTAL_BASE_URL;
+    let schaefflermotionPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
-          vitescoPartnerBase = url.origin;
+          schaefflermotionPartnerBase = url.origin;
         }
       } catch {
         // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
-    setVitescoInviteSending(true);
+    setSchaefflerMotionInviteSending(true);
     try {
-      const res = await fetch("/api/vitesco-invites/send", {
+      const res = await fetch("/api/schaefflermotionmotion-invites/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           recipients,
-          requireTwoFactor: !!vitescoInvite2FA,
-          loginBaseUrl: vitescoPartnerBase,
+          requireTwoFactor: !!schaefflermotionInvite2FA,
+          loginBaseUrl: schaefflermotionPartnerBase,
         }),
       });
       const json = await res.json().catch(() => null);
@@ -1144,105 +1133,28 @@ export default function AdminDashboard() {
         const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
         setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
       } else {
-        setToast({ type: "success", message: json.message || "Vitesco meghívók sikeresen elküldve." });
-        setVitescoInviteRecipients("");
-        setVitescoInvite2FA(false);
-        const listRes = await fetch("/api/vitesco-invites/list", { cache: "no-store" });
+        setToast({ type: "success", message: json.message || "Schaeffler Motion meghívók sikeresen elküldve." });
+        setSchaefflerMotionInviteRecipients("");
+        setSchaefflerMotionInvite2FA(false);
+        const listRes = await fetch("/api/schaefflermotionmotion-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
           if (j2?.success) {
-            setVitescoInvites(j2.users);
-            setVitescoInvitesMeta(j2.counts || {});
+            setSchaefflerMotionInvites(j2.users);
+            setSchaefflerMotionInvitesMeta(j2.counts || {});
           }
         }
       }
     } catch {
       setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
     } finally {
-      setVitescoInviteSending(false);
+      setSchaefflerMotionInviteSending(false);
     }
   }
 
-  async function handleDeleteVitescoUser(id: string, email: string) {
-    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt Vitesco hozzáférést?\n\nA művelet nem visszavonható.`)) {
-      return;
-    }
-    setVitescoInviteDeleting(id);
-    try {
-      const res = await fetch("/api/vitesco-invites/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const json = await res.json().catch(() => null);
-      if (!res.ok || !json?.success) {
-        setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
-      } else {
-        setToast({ type: "success", message: json.message || "Vitesco felhasználó törölve." });
-        const listRes = await fetch("/api/vitesco-invites/list", { cache: "no-store" });
-        const listJson = await listRes.json().catch(() => null);
-        if (listRes.ok && listJson?.success) {
-          setVitescoInvites(listJson.users || []);
-          setVitescoInvitesMeta(listJson.counts || vitescoInvitesMeta);
-        }
-      }
-    } catch {
-      setToast({ type: "error", message: "Hálózati hiba törlés közben." });
-    } finally {
-      setVitescoInviteDeleting(null);
-    }
-  }
-
-  async function handleResendVitescoInvite(id: string, email: string, requireTwoFactor: boolean) {
-    let vitescoPartnerBase = PARTNER_PORTAL_BASE_URL;
-    if (typeof window !== "undefined") {
-      try {
-        const url = new URL(window.location.origin);
-        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
-          url.port = "3001";
-          vitescoPartnerBase = url.origin;
-        }
-      } catch {
-        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
-      }
-    }
-
-    setVitescoInviteResending(id);
-    try {
-      const res = await fetch("/api/vitesco-invites/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          recipients: [email],
-          requireTwoFactor,
-          loginBaseUrl: vitescoPartnerBase,
-        }),
-      });
-      const json = await res.json().catch(() => null);
-      if (!res.ok || !json?.success) {
-        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
-        setToast({ type: "error", message: detailedError || json?.message || "A Vitesco meghívó újraküldése nem sikerült." });
-      } else {
-        setToast({ type: "success", message: `${email} részére a Vitesco meghívó újra kiküldve.` });
-        const listRes = await fetch("/api/vitesco-invites/list", { cache: "no-store" });
-        if (listRes.ok) {
-          const j2 = await listRes.json();
-          if (j2?.success) {
-            setVitescoInvites(j2.users);
-            setVitescoInvitesMeta(j2.counts || {});
-          }
-        }
-      }
-    } catch {
-      setToast({ type: "error", message: "Hálózati hiba a Vitesco meghívó újraküldése közben." });
-    } finally {
-      setVitescoInviteResending(null);
-    }
-  }
-
-  // Schaeffler handlers
-  async function handleSendSchaefflerInvite() {
-    const recipients = schaefflerInviteRecipients
+  // Schaeffler Debrecen handlers
+  async function handleSendSchaefflerDebrecenInvite() {
+    const recipients = schaefflerdebrecenInviteRecipients
       .split(/[,;\n]/)
       .map((s) => s.trim())
       .filter(Boolean);
@@ -1258,28 +1170,28 @@ export default function AdminDashboard() {
       }
     }
 
-    let schaefflerPartnerBase = PARTNER_PORTAL_BASE_URL;
+    let schaefflerdebrecenPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
-          schaefflerPartnerBase = url.origin;
+          schaefflerdebrecenPartnerBase = url.origin;
         }
       } catch {
         // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
-    setSchaefflerInviteSending(true);
+    setSchaefflerDebrecenInviteSending(true);
     try {
-      const res = await fetch("/api/schaeffler-invites/send", {
+      const res = await fetch("/api/schaefflerdebrecendebrecen-invites/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           recipients,
-          requireTwoFactor: !!schaefflerInvite2FA,
-          loginBaseUrl: schaefflerPartnerBase,
+          requireTwoFactor: !!schaefflerdebrecenInvite2FA,
+          loginBaseUrl: schaefflerdebrecenPartnerBase,
         }),
       });
       const json = await res.json().catch(() => null);
@@ -1287,105 +1199,28 @@ export default function AdminDashboard() {
         const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
         setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
       } else {
-        setToast({ type: "success", message: json.message || "Schaeffler meghívók sikeresen elküldve." });
-        setSchaefflerInviteRecipients("");
-        setSchaefflerInvite2FA(false);
-        const listRes = await fetch("/api/schaeffler-invites/list", { cache: "no-store" });
+        setToast({ type: "success", message: json.message || "Schaeffler Debrecen meghívók sikeresen elküldve." });
+        setSchaefflerDebrecenInviteRecipients("");
+        setSchaefflerDebrecenInvite2FA(false);
+        const listRes = await fetch("/api/schaefflerdebrecendebrecen-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
           if (j2?.success) {
-            setSchaefflerInvites(j2.users);
-            setSchaefflerInvitesMeta(j2.counts || {});
+            setSchaefflerDebrecenInvites(j2.users);
+            setSchaefflerDebrecenInvitesMeta(j2.counts || {});
           }
         }
       }
     } catch {
       setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
     } finally {
-      setSchaefflerInviteSending(false);
+      setSchaefflerDebrecenInviteSending(false);
     }
   }
 
-  async function handleDeleteSchaefflerUser(id: string, email: string) {
-    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt Schaeffler hozzáférést?\n\nA művelet nem visszavonható.`)) {
-      return;
-    }
-    setSchaefflerInviteDeleting(id);
-    try {
-      const res = await fetch("/api/schaeffler-invites/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const json = await res.json().catch(() => null);
-      if (!res.ok || !json?.success) {
-        setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
-      } else {
-        setToast({ type: "success", message: json.message || "Schaeffler felhasználó törölve." });
-        const listRes = await fetch("/api/schaeffler-invites/list", { cache: "no-store" });
-        const listJson = await listRes.json().catch(() => null);
-        if (listRes.ok && listJson?.success) {
-          setSchaefflerInvites(listJson.users || []);
-          setSchaefflerInvitesMeta(listJson.counts || schaefflerInvitesMeta);
-        }
-      }
-    } catch {
-      setToast({ type: "error", message: "Hálózati hiba törlés közben." });
-    } finally {
-      setSchaefflerInviteDeleting(null);
-    }
-  }
-
-  async function handleResendSchaefflerInvite(id: string, email: string, requireTwoFactor: boolean) {
-    let schaefflerPartnerBase = PARTNER_PORTAL_BASE_URL;
-    if (typeof window !== "undefined") {
-      try {
-        const url = new URL(window.location.origin);
-        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
-          url.port = "3001";
-          schaefflerPartnerBase = url.origin;
-        }
-      } catch {
-        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
-      }
-    }
-
-    setSchaefflerInviteResending(id);
-    try {
-      const res = await fetch("/api/schaeffler-invites/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          recipients: [email],
-          requireTwoFactor,
-          loginBaseUrl: schaefflerPartnerBase,
-        }),
-      });
-      const json = await res.json().catch(() => null);
-      if (!res.ok || !json?.success) {
-        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
-        setToast({ type: "error", message: detailedError || json?.message || "A Schaeffler meghívó újraküldése nem sikerült." });
-      } else {
-        setToast({ type: "success", message: `${email} részére a Schaeffler meghívó újra kiküldve.` });
-        const listRes = await fetch("/api/schaeffler-invites/list", { cache: "no-store" });
-        if (listRes.ok) {
-          const j2 = await listRes.json();
-          if (j2?.success) {
-            setSchaefflerInvites(j2.users);
-            setSchaefflerInvitesMeta(j2.counts || {});
-          }
-        }
-      }
-    } catch {
-      setToast({ type: "error", message: "Hálózati hiba a Schaeffler meghívó újraküldése közben." });
-    } finally {
-      setSchaefflerInviteResending(null);
-    }
-  }
-
-  // Krones handlers
-  async function handleSendKronesInvite() {
-    const recipients = kronesInviteRecipients
+  // IBUSZ Hungary Kft. handlers
+  async function handleSendIbuszInvite() {
+    const recipients = ibuszInviteRecipients
       .split(/[,;\n]/)
       .map((s) => s.trim())
       .filter(Boolean);
@@ -1401,28 +1236,28 @@ export default function AdminDashboard() {
       }
     }
 
-    let kronesPartnerBase = PARTNER_PORTAL_BASE_URL;
+    let ibuszPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
-          kronesPartnerBase = url.origin;
+          ibuszPartnerBase = url.origin;
         }
       } catch {
         // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
-    setKronesInviteSending(true);
+    setIbuszInviteSending(true);
     try {
-      const res = await fetch("/api/krones-invites/send", {
+      const res = await fetch("/api/ibusz-invites/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           recipients,
-          requireTwoFactor: !!kronesInvite2FA,
-          loginBaseUrl: kronesPartnerBase,
+          requireTwoFactor: !!ibuszInvite2FA,
+          loginBaseUrl: ibuszPartnerBase,
         }),
       });
       const json = await res.json().catch(() => null);
@@ -1430,32 +1265,32 @@ export default function AdminDashboard() {
         const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
         setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
       } else {
-        setToast({ type: "success", message: json.message || "Krones meghívók sikeresen elküldve." });
-        setKronesInviteRecipients("");
-        setKronesInvite2FA(false);
-        const listRes = await fetch("/api/krones-invites/list", { cache: "no-store" });
+        setToast({ type: "success", message: json.message || "IBUSZ Hungary Kft. meghívók sikeresen elküldve." });
+        setIbuszInviteRecipients("");
+        setIbuszInvite2FA(false);
+        const listRes = await fetch("/api/ibusz-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
           if (j2?.success) {
-            setKronesInvites(j2.users);
-            setKronesInvitesMeta(j2.counts || {});
+            setIbuszInvites(j2.users);
+            setIbuszInvitesMeta(j2.counts || {});
           }
         }
       }
     } catch {
       setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
     } finally {
-      setKronesInviteSending(false);
+      setIbuszInviteSending(false);
     }
   }
 
-  async function handleDeleteKronesUser(id: string, email: string) {
-    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt Krones hozzáférést?\n\nA művelet nem visszavonható.`)) {
+  async function handleDeleteSchaefflerMotionUser(id: string, email: string) {
+    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt Schaeffler Motion hozzáférést?\n\nA művelet nem visszavonható.`)) {
       return;
     }
-    setKronesInviteDeleting(id);
+    setSchaefflerMotionInviteDeleting(id);
     try {
-      const res = await fetch("/api/krones-invites/delete", {
+      const res = await fetch("/api/schaefflermotionmotion-invites/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -1464,141 +1299,28 @@ export default function AdminDashboard() {
       if (!res.ok || !json?.success) {
         setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
       } else {
-        setToast({ type: "success", message: json.message || "Krones felhasználó törölve." });
-        const listRes = await fetch("/api/krones-invites/list", { cache: "no-store" });
+        setToast({ type: "success", message: json.message || "Schaeffler Motion felhasználó törölve." });
+        const listRes = await fetch("/api/schaefflermotionmotion-invites/list", { cache: "no-store" });
         const listJson = await listRes.json().catch(() => null);
         if (listRes.ok && listJson?.success) {
-          setKronesInvites(listJson.users || []);
-          setKronesInvitesMeta(listJson.counts || kronesInvitesMeta);
+          setSchaefflerMotionInvites(listJson.users || []);
+          setSchaefflerMotionInvitesMeta(listJson.counts || schaefflermotionInvitesMeta);
         }
       }
     } catch {
       setToast({ type: "error", message: "Hálózati hiba törlés közben." });
     } finally {
-      setKronesInviteDeleting(null);
+      setSchaefflerMotionInviteDeleting(null);
     }
   }
 
-  async function handleResendKronesInvite(id: string, email: string, requireTwoFactor: boolean) {
-    let kronesPartnerBase = PARTNER_PORTAL_BASE_URL;
-    if (typeof window !== "undefined") {
-      try {
-        const url = new URL(window.location.origin);
-        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
-          url.port = "3001";
-          kronesPartnerBase = url.origin;
-        }
-      } catch {
-        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
-      }
-    }
-
-    setKronesInviteResending(id);
-    try {
-      const res = await fetch("/api/krones-invites/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          recipients: [email],
-          requireTwoFactor,
-          loginBaseUrl: kronesPartnerBase,
-        }),
-      });
-      const json = await res.json().catch(() => null);
-      if (!res.ok || !json?.success) {
-        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
-        setToast({ type: "error", message: detailedError || json?.message || "A Krones meghívó újraküldése nem sikerült." });
-      } else {
-        setToast({ type: "success", message: `${email} részére a Krones meghívó újra kiküldve.` });
-        const listRes = await fetch("/api/krones-invites/list", { cache: "no-store" });
-        if (listRes.ok) {
-          const j2 = await listRes.json();
-          if (j2?.success) {
-            setKronesInvites(j2.users);
-            setKronesInvitesMeta(j2.counts || {});
-          }
-        }
-      }
-    } catch {
-      setToast({ type: "error", message: "Hálózati hiba a Krones meghívó újraküldése közben." });
-    } finally {
-      setKronesInviteResending(null);
-    }
-  }
-
-  // EnterAir handlers
-  async function handleSendEnterairInvite() {
-    const recipients = enterairInviteRecipients
-      .split(/[,;\n]/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (recipients.length === 0) {
-      setToast({ type: "error", message: "Legalább egy címzett email címét add meg." });
+  async function handleDeleteSchaefflerDebrecenUser(id: string, email: string) {
+    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt Schaeffler Debrecen hozzáférést?\n\nA művelet nem visszavonható.`)) {
       return;
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    for (const e of recipients) {
-      if (!emailRegex.test(e)) {
-        setToast({ type: "error", message: `Érvénytelen email cím: ${e}` });
-        return;
-      }
-    }
-
-    let enterairPartnerBase = PARTNER_PORTAL_BASE_URL;
-    if (typeof window !== "undefined") {
-      try {
-        const url = new URL(window.location.origin);
-        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
-          url.port = "3001";
-          enterairPartnerBase = url.origin;
-        }
-      } catch {
-        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
-      }
-    }
-
-    setEnterairInviteSending(true);
+    setSchaefflerDebrecenInviteDeleting(id);
     try {
-      const res = await fetch("/api/enterair-invites/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          recipients,
-          requireTwoFactor: !!enterairInvite2FA,
-          loginBaseUrl: enterairPartnerBase,
-        }),
-      });
-      const json = await res.json().catch(() => null);
-      if (!res.ok || !json?.success) {
-        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
-        setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
-      } else {
-        setToast({ type: "success", message: json.message || "EnterAir meghívók sikeresen elküldve." });
-        setEnterairInviteRecipients("");
-        setEnterairInvite2FA(false);
-        const listRes = await fetch("/api/enterair-invites/list", { cache: "no-store" });
-        if (listRes.ok) {
-          const j2 = await listRes.json();
-          if (j2?.success) {
-            setEnterairInvites(j2.users);
-            setEnterairInvitesMeta(j2.counts || {});
-          }
-        }
-      }
-    } catch {
-      setToast({ type: "error", message: "Hálózati hiba a küldés közben." });
-    } finally {
-      setEnterairInviteSending(false);
-    }
-  }
-
-  async function handleDeleteEnterairUser(id: string, email: string) {
-    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt EnterAir hozzáférést?\n\nA művelet nem visszavonható.`)) {
-      return;
-    }
-    setEnterairInviteDeleting(id);
-    try {
-      const res = await fetch("/api/enterair-invites/delete", {
+      const res = await fetch("/api/schaefflerdebrecendebrecen-invites/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -1607,69 +1329,193 @@ export default function AdminDashboard() {
       if (!res.ok || !json?.success) {
         setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
       } else {
-        setToast({ type: "success", message: json.message || "EnterAir felhasználó törölve." });
-        const listRes = await fetch("/api/enterair-invites/list", { cache: "no-store" });
+        setToast({ type: "success", message: json.message || "Schaeffler Debrecen felhasználó törölve." });
+        const listRes = await fetch("/api/schaefflerdebrecendebrecen-invites/list", { cache: "no-store" });
         const listJson = await listRes.json().catch(() => null);
         if (listRes.ok && listJson?.success) {
-          setEnterairInvites(listJson.users || []);
-          setEnterairInvitesMeta(listJson.counts || enterairInvitesMeta);
+          setSchaefflerDebrecenInvites(listJson.users || []);
+          setSchaefflerDebrecenInvitesMeta(listJson.counts || schaefflerdebrecenInvitesMeta);
         }
       }
     } catch {
       setToast({ type: "error", message: "Hálózati hiba törlés közben." });
     } finally {
-      setEnterairInviteDeleting(null);
+      setSchaefflerDebrecenInviteDeleting(null);
     }
   }
 
-  async function handleResendEnterairInvite(id: string, email: string, requireTwoFactor: boolean) {
-    let enterairPartnerBase = PARTNER_PORTAL_BASE_URL;
+  async function handleDeleteIbuszUser(id: string, email: string) {
+    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt IBUSZ Hungary Kft. hozzáférést?\n\nA művelet nem visszavonható.`)) {
+      return;
+    }
+    setIbuszInviteDeleting(id);
+    try {
+      const res = await fetch("/api/ibusz-invites/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
+      } else {
+        setToast({ type: "success", message: json.message || "IBUSZ Hungary Kft. felhasználó törölve." });
+        const listRes = await fetch("/api/ibusz-invites/list", { cache: "no-store" });
+        const listJson = await listRes.json().catch(() => null);
+        if (listRes.ok && listJson?.success) {
+          setIbuszInvites(listJson.users || []);
+          setIbuszInvitesMeta(listJson.counts || ibuszInvitesMeta);
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba törlés közben." });
+    } finally {
+      setIbuszInviteDeleting(null);
+    }
+  }
+
+  async function handleResendSchaefflerMotionInvite(id: string, email: string, requireTwoFactor: boolean) {
+    let schaefflermotionPartnerBase = PARTNER_PORTAL_BASE_URL;
     if (typeof window !== "undefined") {
       try {
         const url = new URL(window.location.origin);
         if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
           url.port = "3001";
-          enterairPartnerBase = url.origin;
+          schaefflermotionPartnerBase = url.origin;
         }
       } catch {
         // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
       }
     }
 
-    setEnterairInviteResending(id);
+    setSchaefflerMotionInviteResending(id);
     try {
-      const res = await fetch("/api/enterair-invites/send", {
+      const res = await fetch("/api/schaefflermotionmotion-invites/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           recipients: [email],
           requireTwoFactor,
-          loginBaseUrl: enterairPartnerBase,
+          loginBaseUrl: schaefflermotionPartnerBase,
         }),
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.success) {
         const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
-        setToast({ type: "error", message: detailedError || json?.message || "Az EnterAir meghívó újraküldése nem sikerült." });
+        setToast({ type: "error", message: detailedError || json?.message || "A Schaeffler Motion meghívó újraküldése nem sikerült." });
       } else {
-        setToast({ type: "success", message: `${email} részére az EnterAir meghívó újra kiküldve.` });
-        const listRes = await fetch("/api/enterair-invites/list", { cache: "no-store" });
+        setToast({ type: "success", message: `${email} részére a Schaeffler Motion meghívó újra kiküldve.` });
+        const listRes = await fetch("/api/schaefflermotionmotion-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
           if (j2?.success) {
-            setEnterairInvites(j2.users);
-            setEnterairInvitesMeta(j2.counts || {});
+            setSchaefflerMotionInvites(j2.users);
+            setSchaefflerMotionInvitesMeta(j2.counts || {});
           }
         }
       }
     } catch {
-      setToast({ type: "error", message: "Hálózati hiba az EnterAir meghívó újraküldése közben." });
+      setToast({ type: "error", message: "Hálózati hiba a Schaeffler Motion meghívó újraküldése közben." });
     } finally {
-      setEnterairInviteResending(null);
+      setSchaefflerMotionInviteResending(null);
     }
   }
 
-  // Tama handlers
+  async function handleResendSchaefflerDebrecenInvite(id: string, email: string, requireTwoFactor: boolean) {
+    let schaefflerdebrecenPartnerBase = PARTNER_PORTAL_BASE_URL;
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+          schaefflerdebrecenPartnerBase = url.origin;
+        }
+      } catch {
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
+      }
+    }
+
+    setSchaefflerDebrecenInviteResending(id);
+    try {
+      const res = await fetch("/api/schaefflerdebrecendebrecen-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients: [email],
+          requireTwoFactor,
+          loginBaseUrl: schaefflerdebrecenPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "A Schaeffler Debrecen meghívó újraküldése nem sikerült." });
+      } else {
+        setToast({ type: "success", message: `${email} részére a Schaeffler Debrecen meghívó újra kiküldve.` });
+        const listRes = await fetch("/api/schaefflerdebrecendebrecen-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setSchaefflerDebrecenInvites(j2.users);
+            setSchaefflerDebrecenInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a Schaeffler Debrecen meghívó újraküldése közben." });
+    } finally {
+      setSchaefflerDebrecenInviteResending(null);
+    }
+  }
+
+  async function handleResendIbuszInvite(id: string, email: string, requireTwoFactor: boolean) {
+    let ibuszPartnerBase = PARTNER_PORTAL_BASE_URL;
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.origin);
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+          url.port = "3001";
+          ibuszPartnerBase = url.origin;
+        }
+      } catch {
+        // Marad a PARTNER_PORTAL_BASE_URL (production) alapertelmezes.
+      }
+    }
+
+    setIbuszInviteResending(id);
+    try {
+      const res = await fetch("/api/ibusz-invites/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients: [email],
+          requireTwoFactor,
+          loginBaseUrl: ibuszPartnerBase,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
+        setToast({ type: "error", message: detailedError || json?.message || "A IBUSZ Hungary Kft. meghívó újraküldése nem sikerült." });
+      } else {
+        setToast({ type: "success", message: `${email} részére a IBUSZ Hungary Kft. meghívó újra kiküldve.` });
+        const listRes = await fetch("/api/ibusz-invites/list", { cache: "no-store" });
+        if (listRes.ok) {
+          const j2 = await listRes.json();
+          if (j2?.success) {
+            setIbuszInvites(j2.users);
+            setIbuszInvitesMeta(j2.counts || {});
+          }
+        }
+      }
+    } catch {
+      setToast({ type: "error", message: "Hálózati hiba a IBUSZ Hungary Kft. meghívó újraküldése közben." });
+    } finally {
+      setIbuszInviteResending(null);
+    }
+  }
+
+  // TAMA Hungary Kft. handlers
   async function handleSendTamaInvite() {
     const recipients = tamaInviteRecipients
       .split(/[,;\n]/)
@@ -1716,7 +1562,7 @@ export default function AdminDashboard() {
         const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
         setToast({ type: "error", message: detailedError || json?.message || "Hiba történt a küldés közben." });
       } else {
-        setToast({ type: "success", message: json.message || "Tama meghívók sikeresen elküldve." });
+        setToast({ type: "success", message: json.message || "TAMA Hungary Kft. meghívók sikeresen elküldve." });
         setTamaInviteRecipients("");
         setTamaInvite2FA(false);
         const listRes = await fetch("/api/tama-invites/list", { cache: "no-store" });
@@ -1736,7 +1582,7 @@ export default function AdminDashboard() {
   }
 
   async function handleDeleteTamaUser(id: string, email: string) {
-    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt Tama hozzáférést?\n\nA művelet nem visszavonható.`)) {
+    if (!window.confirm(`Biztosan törlöd a(z) ${email} felhasználót és az általa használt TAMA Hungary Kft. hozzáférést?\n\nA művelet nem visszavonható.`)) {
       return;
     }
     setTamaInviteDeleting(id);
@@ -1750,7 +1596,7 @@ export default function AdminDashboard() {
       if (!res.ok || !json?.success) {
         setToast({ type: "error", message: json?.message || "Hiba történt a törlés közben." });
       } else {
-        setToast({ type: "success", message: json.message || "Tama felhasználó törölve." });
+        setToast({ type: "success", message: json.message || "TAMA Hungary Kft. felhasználó törölve." });
         const listRes = await fetch("/api/tama-invites/list", { cache: "no-store" });
         const listJson = await listRes.json().catch(() => null);
         if (listRes.ok && listJson?.success) {
@@ -1793,9 +1639,9 @@ export default function AdminDashboard() {
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.success) {
         const detailedError = json?.results?.find((r: any) => !r?.success)?.error;
-        setToast({ type: "error", message: detailedError || json?.message || "A Tama meghívó újraküldése nem sikerült." });
+        setToast({ type: "error", message: detailedError || json?.message || "A TAMA Hungary Kft. meghívó újraküldése nem sikerült." });
       } else {
-        setToast({ type: "success", message: `${email} részére a Tama meghívó újra kiküldve.` });
+        setToast({ type: "success", message: `${email} részére a TAMA Hungary Kft. meghívó újra kiküldve.` });
         const listRes = await fetch("/api/tama-invites/list", { cache: "no-store" });
         if (listRes.ok) {
           const j2 = await listRes.json();
@@ -1806,7 +1652,7 @@ export default function AdminDashboard() {
         }
       }
     } catch {
-      setToast({ type: "error", message: "Hálózati hiba a Tama meghívó újraküldése közben." });
+      setToast({ type: "error", message: "Hálózati hiba a TAMA Hungary Kft. meghívó újraküldése közben." });
     } finally {
       setTamaInviteResending(null);
     }
@@ -2398,7 +2244,7 @@ export default function AdminDashboard() {
   }> = [
     {
       key: "catl",
-      name: "CATL Hungary Kft.",
+      name: "CATL",
       shortLabel: "CATL",
       color: "#0047BA",
       colorSecondary: "#00B4D8",
@@ -2410,93 +2256,80 @@ export default function AdminDashboard() {
       onAccess: () => setActive("catl-invites"),
     },
     {
-      key: "ecopro",
-      name: "EcoPro Global",
-      shortLabel: "EP",
+      key: "ecoproinnovation",
+      name: "Ecopro Innovation Global",
+      shortLabel: "EI",
       color: "#00B4D8",
       colorSecondary: "#0096B4",
       tag: "Ipari",
       description: "Debrecen-Budapest és repülőtéri transzferek vállalati kezelőfelülete.",
-      portalPath: "/ecopro",
-        accessLabel: "EcoPro Meghívások",
+      portalPath: "/ecoproinnovation",
+        accessLabel: "Ecopro Innovation Meghívások",
         isLive: true,
-        onAccess: () => setActive("ecopro-invites"),
+        onAccess: () => setActive("ecoproinnovation-invites"),
     },
     {
-      key: "eccoino",
-      name: "Eccoino",
-      shortLabel: "EC",
-      color: "#60B8FF",
-      colorSecondary: "#3A9FEE",
-      tag: "Nemzetközi",
-      description: "Nemzetközi Wien útvonalak és partnerfoglalások előkészített felülete.",
-      portalPath: "/eccoino",
-      accessLabel: "Eccoino Meghívások",
-      isLive: true,
-      onAccess: () => setActive("eccoino-invites"),
+      key: "ecoprobm",
+      name: "Ecopro BM Global",
+      shortLabel: "EB",
+      color: "#00B4D8",
+      colorSecondary: "#0096B4",
+      tag: "Ipari",
+      description: "Debrecen-Budapest és repülőtéri transzferek vállalati kezelőfelülete.",
+      portalPath: "/ecoprobm",
+        accessLabel: "Ecopro BM Meghívások",
+        isLive: true,
+        onAccess: () => setActive("ecoprobm-invites"),
     },
     {
-      key: "vitesco",
-      name: "Vitesco Technologies",
-      shortLabel: "VT",
-      color: "#E30613",
-      colorSecondary: "#B80010",
-      tag: "Autóipar",
-      description: "Debrecen-Budapest vállalati transzferek és partnerbeállítások felülete.",
-      portalPath: "/vitesco",
-      accessLabel: "Vitesco Meghívások",
-      isLive: true,
-      onAccess: () => setActive("vitesco-invites"),
-    },
-    {
-      key: "schaeffler",
-      name: "Schaeffler",
-      shortLabel: "SCH",
+      key: "schaefflermotion",
+      name: "Schaeffler Motion",
+      shortLabel: "SM",
       color: "#009A44",
       colorSecondary: "#007A35",
       tag: "Autóipar",
-      description: "Schaeffler céges fuvarok és delegációs igények kezelőnézete.",
-      portalPath: "/schaeffler",
-      accessLabel: "Schaeffler Meghívások",
+      description: "Schaeffler Motion céges fuvarok és delegációs igények kezelőnézete.",
+      portalPath: "/schaefflermotion",
+      accessLabel: "Schaeffler Motion Meghívások",
       isLive: true,
-      onAccess: () => setActive("schaeffler-invites"),
+      onAccess: () => setActive("schaefflermotion-invites"),
     },
     {
-      key: "krones",
-      name: "Krones AG",
-      shortLabel: "KR",
-      color: "#003F8A",
-      colorSecondary: "#002D6A",
-      tag: "Gyártás",
-      description: "Db-Db és Debrecen-Budapest vállalati transzferek dedikált felülete.",
-      portalPath: "/krones",
-      accessLabel: "Krones Meghívások",
+      key: "schaefflerdebrecen",
+      name: "Schaeffler Debrecen",
+      shortLabel: "SD",
+      color: "#009A44",
+      colorSecondary: "#007A35",
+      tag: "Autóipar",
+      description: "Schaeffler Debrecen céges fuvarok és delegációs igények kezelőnézete.",
+      portalPath: "/schaefflerdebrecen",
+      accessLabel: "Schaeffler Debrecen Meghívások",
       isLive: true,
-      onAccess: () => setActive("krones-invites"),
+      onAccess: () => setActive("schaefflerdebrecen-invites"),
     },
     {
-      key: "enterair",
-      name: "Enter Air",
-      shortLabel: "EA",
-      color: "#005BAA",
-      colorSecondary: "#0078D4",
-      tag: "Légi",
-      description: "Euro alapú csoportos transzferek és partnerhozzáférések előnézete.",
-      portalPath: "/enterair",
-      accessLabel: "Enter Air Meghívások",
+      key: "ibusz",
+      name: "IBUSZ Hungary Kft.",
+      shortLabel: "IB",
+      color: "#D71920",
+      colorSecondary: "#A8121A",
+      tag: "Utazás",
+      description: "IBUSZ Hungary Kft. vállalati transzferek és partnerbeállítások felülete.",
+      portalPath: "/ibusz",
+      accessLabel: "IBUSZ Hungary Kft. Meghívások",
       isLive: true,
-      onAccess: () => setActive("enterair-invites"),
+      onAccess: () => setActive("ibusz-invites"),
     },
     {
       key: "tama",
-      name: "Tama",
+      name: "TAMA Hungary Kft.",
       shortLabel: "TM",
       color: "#5CA700",
       colorSecondary: "#438000",
       tag: "Logisztika",
       description: "Debrecen, Budapest és B.újfalu útvonalak partnerkártyás megjelenítése.",
       portalPath: "/tama",
-      accessLabel: "Tama Meghívások",
+      accessLabel: "TAMA Hungary Kft. Meghívások",
       isLive: true,
       onAccess: () => setActive("tama-invites"),
     },
@@ -2823,62 +2656,53 @@ export default function AdminDashboard() {
                   handleSend: handleSendCatlInvite, handleDelete: handleDeleteCatlUser, handleResend: handleResendCatlInvite,
                   color: "#0047BA", secondaryColor: "#00B4D8", placeholder: "pelda@catl.hu, catl.ugyvezeto@hu.com; dolgozo@pannon.hu",
                 },
-                ecopro: {
-                  title: "EcoPro Meghívások", shortLabel: "EcoPro", description: "Kezelje az EcoPro portálhoz hozzáféréssel rendelkező felhasználókat és delegációkat.",
-                  recipients: ecoproInviteRecipients, setRecipients: setEcoproInviteRecipients,
-                  twoFA: ecoproInvite2FA, setTwoFA: setEcoproInvite2FA,
-                  sending: ecoproInviteSending, deleting: ecoproInviteDeleting, resending: ecoproInviteResending,
-                  loading: ecoproInvitesLoading, users: ecoproInvites, meta: ecoproInvitesMeta, display: displayEcoproInvites,
-                  handleSend: handleSendEcoproInvite, handleDelete: handleDeleteEcoproUser, handleResend: handleResendEcoproInvite,
+                ecoproinnovation: {
+                  title: "Ecopro Innovation Meghívások", shortLabel: "Ecopro Innovation", description: "Kezelje az Ecopro Innovation portálhoz hozzáféréssel rendelkező felhasználókat és delegációkat.",
+                  recipients: ecoproinnovationInviteRecipients, setRecipients: setEcoproInnovationInviteRecipients,
+                  twoFA: ecoproinnovationInvite2FA, setTwoFA: setEcoproInnovationInvite2FA,
+                  sending: ecoproinnovationInviteSending, deleting: ecoproinnovationInviteDeleting, resending: ecoproinnovationInviteResending,
+                  loading: ecoproinnovationInvitesLoading, users: ecoproinnovationInvites, meta: ecoproinnovationInvitesMeta, display: displayEcoproInnovationInvites,
+                  handleSend: handleSendEcoproInnovationInvite, handleDelete: handleDeleteEcoproInnovationUser, handleResend: handleResendEcoproInnovationInvite,
                   color: "#00B4D8", secondaryColor: "#0096B4", placeholder: "partner@ecopro.hu, manager@ecopro.hu; dolgozo@pannon.hu",
                 },
-                eccoino: {
-                  title: "Eccoino Meghívások", shortLabel: "Eccoino", description: "Kezelje az Eccoino portálhoz hozzáféréssel rendelkező felhasználókat.",
-                  recipients: eccoinoInviteRecipients, setRecipients: setEccoinoInviteRecipients,
-                  twoFA: eccoinoInvite2FA, setTwoFA: setEccoinoInvite2FA,
-                  sending: eccoinoInviteSending, deleting: eccoinoInviteDeleting, resending: eccoinoInviteResending,
-                  loading: eccoinoInvitesLoading, users: eccoinoInvites, meta: eccoinoInvitesMeta, display: displayEccoinoInvites,
-                  handleSend: handleSendEccoinoInvite, handleDelete: handleDeleteEccoinoUser, handleResend: handleResendEccoinoInvite,
-                  color: "#60B8FF", secondaryColor: "#3A9FEE", placeholder: "partner@eccoino.hu; dolgozo@pannon.hu",
+                ecoprobm: {
+                  title: "Ecopro BM Meghívások", shortLabel: "Ecopro BM", description: "Kezelje az Ecopro BM portálhoz hozzáféréssel rendelkező felhasználókat és delegációkat.",
+                  recipients: ecoprobmInviteRecipients, setRecipients: setEcoproBmInviteRecipients,
+                  twoFA: ecoprobmInvite2FA, setTwoFA: setEcoproBmInvite2FA,
+                  sending: ecoprobmInviteSending, deleting: ecoprobmInviteDeleting, resending: ecoprobmInviteResending,
+                  loading: ecoprobmInvitesLoading, users: ecoprobmInvites, meta: ecoprobmInvitesMeta, display: displayEcoproBmInvites,
+                  handleSend: handleSendEcoproBmInvite, handleDelete: handleDeleteEcoproBmUser, handleResend: handleResendEcoproBmInvite,
+                  color: "#00B4D8", secondaryColor: "#0096B4", placeholder: "partner@ecopro.hu, manager@ecopro.hu; dolgozo@pannon.hu",
                 },
-                vitesco: {
-                  title: "Vitesco Meghívások", shortLabel: "Vitesco", description: "Kezelje a Vitesco portálhoz hozzáféréssel rendelkező felhasználókat.",
-                  recipients: vitescoInviteRecipients, setRecipients: setVitescoInviteRecipients,
-                  twoFA: vitescoInvite2FA, setTwoFA: setVitescoInvite2FA,
-                  sending: vitescoInviteSending, deleting: vitescoInviteDeleting, resending: vitescoInviteResending,
-                  loading: vitescoInvitesLoading, users: vitescoInvites, meta: vitescoInvitesMeta, display: displayVitescoInvites,
-                  handleSend: handleSendVitescoInvite, handleDelete: handleDeleteVitescoUser, handleResend: handleResendVitescoInvite,
-                  color: "#E30613", secondaryColor: "#B80010", placeholder: "partner@vitesco.hu; dolgozo@pannon.hu",
-                },
-                schaeffler: {
-                  title: "Schaeffler Meghívások", shortLabel: "Schaeffler", description: "Kezelje a Schaeffler portálhoz hozzáféréssel rendelkező felhasználókat.",
-                  recipients: schaefflerInviteRecipients, setRecipients: setSchaefflerInviteRecipients,
-                  twoFA: schaefflerInvite2FA, setTwoFA: setSchaefflerInvite2FA,
-                  sending: schaefflerInviteSending, deleting: schaefflerInviteDeleting, resending: schaefflerInviteResending,
-                  loading: schaefflerInvitesLoading, users: schaefflerInvites, meta: schaefflerInvitesMeta, display: displaySchaefflerInvites,
-                  handleSend: handleSendSchaefflerInvite, handleDelete: handleDeleteSchaefflerUser, handleResend: handleResendSchaefflerInvite,
+                schaefflermotion: {
+                  title: "Schaeffler Motion Meghívások", shortLabel: "Schaeffler Motion", description: "Kezelje a Schaeffler Motion portálhoz hozzáféréssel rendelkező felhasználókat.",
+                  recipients: schaefflermotionInviteRecipients, setRecipients: setSchaefflerMotionInviteRecipients,
+                  twoFA: schaefflermotionInvite2FA, setTwoFA: setSchaefflerMotionInvite2FA,
+                  sending: schaefflermotionInviteSending, deleting: schaefflermotionInviteDeleting, resending: schaefflermotionInviteResending,
+                  loading: schaefflermotionInvitesLoading, users: schaefflermotionInvites, meta: schaefflermotionInvitesMeta, display: displaySchaefflerMotionInvites,
+                  handleSend: handleSendSchaefflerMotionInvite, handleDelete: handleDeleteSchaefflerMotionUser, handleResend: handleResendSchaefflerMotionInvite,
                   color: "#009A44", secondaryColor: "#007A35", placeholder: "partner@schaeffler.hu; dolgozo@pannon.hu",
                 },
-                krones: {
-                  title: "Krones Meghívások", shortLabel: "Krones", description: "Kezelje a Krones portálhoz hozzáféréssel rendelkező felhasználókat.",
-                  recipients: kronesInviteRecipients, setRecipients: setKronesInviteRecipients,
-                  twoFA: kronesInvite2FA, setTwoFA: setKronesInvite2FA,
-                  sending: kronesInviteSending, deleting: kronesInviteDeleting, resending: kronesInviteResending,
-                  loading: kronesInvitesLoading, users: kronesInvites, meta: kronesInvitesMeta, display: displayKronesInvites,
-                  handleSend: handleSendKronesInvite, handleDelete: handleDeleteKronesUser, handleResend: handleResendKronesInvite,
-                  color: "#003F8A", secondaryColor: "#002D6A", placeholder: "partner@krones.hu; dolgozo@pannon.hu",
+                schaefflerdebrecen: {
+                  title: "Schaeffler Debrecen Meghívások", shortLabel: "Schaeffler Debrecen", description: "Kezelje a Schaeffler Debrecen portálhoz hozzáféréssel rendelkező felhasználókat.",
+                  recipients: schaefflerdebrecenInviteRecipients, setRecipients: setSchaefflerDebrecenInviteRecipients,
+                  twoFA: schaefflerdebrecenInvite2FA, setTwoFA: setSchaefflerDebrecenInvite2FA,
+                  sending: schaefflerdebrecenInviteSending, deleting: schaefflerdebrecenInviteDeleting, resending: schaefflerdebrecenInviteResending,
+                  loading: schaefflerdebrecenInvitesLoading, users: schaefflerdebrecenInvites, meta: schaefflerdebrecenInvitesMeta, display: displaySchaefflerDebrecenInvites,
+                  handleSend: handleSendSchaefflerDebrecenInvite, handleDelete: handleDeleteSchaefflerDebrecenUser, handleResend: handleResendSchaefflerDebrecenInvite,
+                  color: "#009A44", secondaryColor: "#007A35", placeholder: "partner@schaeffler.hu; dolgozo@pannon.hu",
                 },
-                enterair: {
-                  title: "Enter Air Meghívások", shortLabel: "Enter Air", description: "Kezelje az Enter Air portálhoz hozzáféréssel rendelkező felhasználókat.",
-                  recipients: enterairInviteRecipients, setRecipients: setEnterairInviteRecipients,
-                  twoFA: enterairInvite2FA, setTwoFA: setEnterairInvite2FA,
-                  sending: enterairInviteSending, deleting: enterairInviteDeleting, resending: enterairInviteResending,
-                  loading: enterairInvitesLoading, users: enterairInvites, meta: enterairInvitesMeta, display: displayEnterairInvites,
-                  handleSend: handleSendEnterairInvite, handleDelete: handleDeleteEnterairUser, handleResend: handleResendEnterairInvite,
-                  color: "#005BAA", secondaryColor: "#0078D4", placeholder: "partner@enterair.hu; dolgozo@pannon.hu",
+                ibusz: {
+                  title: "IBUSZ Hungary Kft. Meghívások", shortLabel: "IBUSZ Hungary Kft.", description: "Kezelje a IBUSZ Hungary Kft. portálhoz hozzáféréssel rendelkező felhasználókat.",
+                  recipients: ibuszInviteRecipients, setRecipients: setIbuszInviteRecipients,
+                  twoFA: ibuszInvite2FA, setTwoFA: setIbuszInvite2FA,
+                  sending: ibuszInviteSending, deleting: ibuszInviteDeleting, resending: ibuszInviteResending,
+                  loading: ibuszInvitesLoading, users: ibuszInvites, meta: ibuszInvitesMeta, display: displayIbuszInvites,
+                  handleSend: handleSendIbuszInvite, handleDelete: handleDeleteIbuszUser, handleResend: handleResendIbuszInvite,
+                  color: "#D71920", secondaryColor: "#A8121A", placeholder: "partner@ibusz.hu; dolgozo@pannon.hu",
                 },
                 tama: {
-                  title: "Tama Meghívások", shortLabel: "Tama", description: "Kezelje a Tama portálhoz hozzáféréssel rendelkező felhasználókat.",
+                  title: "TAMA Hungary Kft. Meghívások", shortLabel: "TAMA", description: "Kezelje a TAMA Hungary Kft. portálhoz hozzáféréssel rendelkező felhasználókat.",
                   recipients: tamaInviteRecipients, setRecipients: setTamaInviteRecipients,
                   twoFA: tamaInvite2FA, setTwoFA: setTamaInvite2FA,
                   sending: tamaInviteSending, deleting: tamaInviteDeleting, resending: tamaInviteResending,
@@ -3417,17 +3241,16 @@ export default function AdminDashboard() {
           ) : active === "terms" ? (
             (() => {
               const PARTNER_CONFIGS: Record<string, { key: string; name: string; shortLabel: string; color: string; colorSecondary: string; textColor: string; description: string; currency: string; tag: string; }> = {
-                catl: { key: "catl", name: "CATL Hungary Kft.", shortLabel: "CATL", color: "#0047BA", colorSecondary: "#00B4D8", textColor: "#0047BA", description: "Delegációs és dolgozói transzferekhez kötött egyedi vállalati szerződés.", currency: "HUF", tag: "Enterprise" },
-                ecopro: { key: "ecopro", name: "EcoPro Global", shortLabel: "EP", color: "#00B4D8", colorSecondary: "#0096B4", textColor: "#006E8A", description: "Debrecen-Budapest és repülőtéri transzferek, 130%/150% módosítási feltételekkel.", currency: "HUF", tag: "Ipari" },
-                eccoino: { key: "eccoino", name: "Eccoino", shortLabel: "EC", color: "#60B8FF", colorSecondary: "#3A9FEE", textColor: "#1A6FB8", description: "Debrecen-Wien és Budapest-Wien útvonalak, ÁFA nélküli árakkal.", currency: "HUF", tag: "Nemzetközi" },
-                vitesco: { key: "vitesco", name: "Vitesco Technologies", shortLabel: "VT", color: "#E30613", colorSecondary: "#B80010", textColor: "#B80010", description: "Debrecen-Budapest nettó és bruttó vállalati transzferárak.", currency: "HUF", tag: "Autóipar" },
-                schaeffler: { key: "schaeffler", name: "Schaeffler", shortLabel: "SCH", color: "#009A44", colorSecondary: "#007A35", textColor: "#007A35", description: "Debrecen-Budapest nettó és bruttó vállalati transzferárak.", currency: "HUF", tag: "Autóipar" },
-                krones: { key: "krones", name: "Krones AG", shortLabel: "KR", color: "#003F8A", colorSecondary: "#002D6A", textColor: "#002D6A", description: "Db-Db és Debrecen-Budapest (utalás) vállalati szállítási árak.", currency: "HUF", tag: "Gyártás" },
-                enterair: { key: "enterair", name: "Enter Air", shortLabel: "EA", color: "#005BAA", colorSecondary: "#0078D4", textColor: "#005BAA", description: "Csoportméret alapú Euro árak több útvonalra (Db-Nv, Db-Bp, Db-Db, Db-Kassa).", currency: "EUR", tag: "Légi" },
-                tama: { key: "tama", name: "Tama", shortLabel: "TM", color: "#5CA700", colorSecondary: "#438000", textColor: "#3A6F00", description: "Debrecen-B.újfalu, Debrecen-Budapest, Budapest-B.újfalu útvonalak.", currency: "HUF", tag: "Logisztika" },
+                catl: { key: "catl", name: "CATL", shortLabel: "CATL", color: "#0047BA", colorSecondary: "#00B4D8", textColor: "#0047BA", description: "Delegációs és dolgozói transzferekhez kötött egyedi vállalati szerződés.", currency: "HUF", tag: "Enterprise" },
+                ecoproinnovation: { key: "ecoproinnovation", name: "Ecopro Innovation Global", shortLabel: "EI", color: "#00B4D8", colorSecondary: "#0096B4", textColor: "#006E8A", description: "Debrecen-Budapest és repülőtéri transzferek, 130%/150% módosítási feltételekkel.", currency: "HUF", tag: "Ipari" },
+                ecoprobm: { key: "ecoprobm", name: "Ecopro BM Global", shortLabel: "EB", color: "#00B4D8", colorSecondary: "#0096B4", textColor: "#006E8A", description: "Debrecen-Budapest és repülőtéri transzferek, 130%/150% módosítási feltételekkel.", currency: "HUF", tag: "Ipari" },
+                schaefflermotion: { key: "schaefflermotion", name: "Schaeffler Motion", shortLabel: "SM", color: "#009A44", colorSecondary: "#007A35", textColor: "#007A35", description: "Debrecen-Budapest nettó és bruttó vállalati transzferárak.", currency: "HUF", tag: "Autóipar" },
+                schaefflerdebrecen: { key: "schaefflerdebrecen", name: "Schaeffler Debrecen", shortLabel: "SD", color: "#009A44", colorSecondary: "#007A35", textColor: "#007A35", description: "Debrecen-Budapest nettó és bruttó vállalati transzferárak.", currency: "HUF", tag: "Autóipar" },
+                ibusz: { key: "ibusz", name: "IBUSZ Hungary Kft.", shortLabel: "IB", color: "#D71920", colorSecondary: "#A8121A", textColor: "#A8121A", description: "Vállalati transzferárak.", currency: "HUF", tag: "Utazás" },
+                tama: { key: "tama", name: "TAMA Hungary Kft.", shortLabel: "TM", color: "#5CA700", colorSecondary: "#438000", textColor: "#3A6F00", description: "Debrecen-B.újfalu, Debrecen-Budapest, Budapest-B.újfalu útvonalak.", currency: "HUF", tag: "Logisztika" },
                 ni: { key: "ni", name: "NI", shortLabel: "NI", color: "#22C55E", colorSecondary: "#16A34A", textColor: "#166534", description: "Standard transzfer / fo, valamint VIP Mercedes V es S osztaly arak Debrecen, Nyiregyhaza es Miskolc indulassal.", currency: "HUF", tag: "Technologia" },
               };
-              const PARTNER_ORDER = ["catl","ecopro","eccoino","vitesco","schaeffler","krones","enterair","tama","ni"];
+              const PARTNER_ORDER = ["catl","ecoproinnovation","ecoprobm","schaefflermotion","schaefflerdebrecen","ibusz","tama","ni"];
               const activeCfg = activeTermsSubpage !== "list" ? PARTNER_CONFIGS[activeTermsSubpage] : null;
               const draft = activePartnerDraft;
               const primaryColor = activeCfg?.color || "#0047BA";

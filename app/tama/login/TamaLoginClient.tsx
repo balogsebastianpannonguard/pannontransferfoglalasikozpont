@@ -53,10 +53,10 @@ export default function TamaLoginClient() {
         <div className="w-full max-w-[560px]">
           <div className="mb-8 text-center">
             <div className="inline-flex items-center gap-2 bg-white rounded-[1.5rem] px-6 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.2)] mb-6">
-              <span className="text-[2rem] font-black tracking-tight text-[#5CA700]">Tama</span>
+              <span className="text-[2rem] font-black tracking-tight text-[#5CA700]">TAMA Hungary Kft.</span>
             </div>
             <h1 className="font-serif text-4xl font-bold tracking-tight mb-2">Partner Bejelentkezés</h1>
-            <p className="text-sm text-lime-100/90 font-medium">Bejelentkezés a Tama dedikált partnerportálra.</p>
+            <p className="text-sm text-lime-100/90 font-medium">Bejelentkezés a TAMA Hungary Kft. dedikált partnerportálra.</p>
           </div>
 
           <div ref={resultRef} className="rounded-[2rem] border border-white/10 bg-white/95 text-admin-gray-900 shadow-[0_30px_80px_rgba(0,0,0,0.25)] overflow-hidden">

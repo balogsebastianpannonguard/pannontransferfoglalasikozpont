@@ -48,7 +48,7 @@ const COLLECTION_NAME = "partner_pricing";
 
 export const DEFAULT_CATL_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | "updatedAt"> = {
   partnerKey: "catl",
-  partnerName: "CATL Hungary Kft.",
+  partnerName: "CATL",
   isActive: true,
   vehicles: [
     {
@@ -134,10 +134,10 @@ export const DEFAULT_CATL_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | "u
   },
 };
 
-// EcoPro Global – cián-kék – Debrecen-Budapest alapárak (2026 bruttó + módosítás/lemondás)
-export const DEFAULT_ECOPRO_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | "updatedAt"> = {
-  partnerKey: "ecopro",
-  partnerName: "EcoPro Global",
+// Ecopro Innovation – cián-kék – Debrecen-Budapest alapárak
+export const DEFAULT_ECOPROINNOVATION_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | "updatedAt"> = {
+  partnerKey: "ecoproinnovation",
+  partnerName: "Ecopro Innovation",
   isActive: true,
   vehicles: [
     {
@@ -223,95 +223,81 @@ export const DEFAULT_ECOPRO_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | 
   },
 };
 
-// Eccoino – világoskék – Debrecen-Wien és Budapest-Wien útvonalak (ÁFA nélkül)
-export const DEFAULT_ECCOINO_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | "updatedAt"> = {
-  partnerKey: "eccoino",
-  partnerName: "Eccoino",
+// Ecopro BM – cián-kék – Debrecen-Budapest alapárak
+export const DEFAULT_ECOPROBM_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | "updatedAt"> = {
+  partnerKey: "ecoprobm",
+  partnerName: "Ecopro BM",
   isActive: true,
   vehicles: [
     {
-      id: "skoda_db_wien",
-      name: "Skoda (Db-Wien)",
+      id: "skoda",
+      name: "Skoda",
       capacity: "1-3 utas",
-      bpBudAirport: 280000,
+      bpBudAirport: 82550,
       dbDbAirport: null,
-      newPrice2026: 280000,
-      modification12to24h: 364000,
-      modification0to12h: 420000,
-      cancellation12to24h: 140000,
-      cancellation0to12h: 224000,
-      extraWaitingPerHour: 10000,
-      dailyRate: 200000,
+      newPrice2026: 92456,
+      modification12to24h: 120193,
+      modification0to12h: 138684,
+      cancellation12to24h: 46228,
+      cancellation0to12h: 73965,
+      extraWaitingPerHour: 7000,
+      dailyRate: 65000,
     },
     {
-      id: "ford_db_wien",
-      name: "Ford (Db-Wien)",
+      id: "opel_ford",
+      name: "Opel/Ford",
       capacity: "3-8 utas",
-      bpBudAirport: 310000,
+      bpBudAirport: 95250,
       dbDbAirport: null,
-      newPrice2026: 310000,
-      modification12to24h: 403000,
-      modification0to12h: 465000,
-      cancellation12to24h: 155000,
-      cancellation0to12h: 248000,
-      extraWaitingPerHour: 12000,
-      dailyRate: 240000,
+      newPrice2026: 106680,
+      modification12to24h: 138684,
+      modification0to12h: 160020,
+      cancellation12to24h: 53340,
+      cancellation0to12h: 85344,
+      extraWaitingPerHour: 10000,
+      dailyRate: 80000,
     },
     {
-      id: "mercedes_db_wien",
-      name: "Mercedes (Db-Wien)",
+      id: "v_class",
+      name: "V class",
       capacity: "3-7 utas",
-      bpBudAirport: 340000,
+      bpBudAirport: 127000,
       dbDbAirport: null,
-      newPrice2026: 340000,
-      modification12to24h: 442000,
-      modification0to12h: 510000,
-      cancellation12to24h: 170000,
-      cancellation0to12h: 272000,
+      newPrice2026: 142240,
+      modification12to24h: 184912,
+      modification0to12h: 213360,
+      cancellation12to24h: 71120,
+      cancellation0to12h: 113792,
       extraWaitingPerHour: 15000,
-      dailyRate: 280000,
+      dailyRate: 120000,
     },
     {
-      id: "skoda_bp_wien",
-      name: "Skoda (Bp-Wien)",
+      id: "s_class",
+      name: "S class",
       capacity: "1-3 utas",
-      bpBudAirport: 220000,
+      bpBudAirport: 152400,
       dbDbAirport: null,
-      newPrice2026: 220000,
-      modification12to24h: 286000,
-      modification0to12h: 330000,
-      cancellation12to24h: 110000,
-      cancellation0to12h: 176000,
-      extraWaitingPerHour: 10000,
-      dailyRate: 180000,
+      newPrice2026: 170688,
+      modification12to24h: 221894,
+      modification0to12h: 256032,
+      cancellation12to24h: 85344,
+      cancellation0to12h: 136550,
+      extraWaitingPerHour: 25000,
+      dailyRate: 150000,
     },
     {
-      id: "ford_bp_wien",
-      name: "Ford (Bp-Wien)",
-      capacity: "3-8 utas",
-      bpBudAirport: 250000,
+      id: "man_bus",
+      name: "MAN busz",
+      capacity: "Nagy csoport",
+      bpBudAirport: 165100,
       dbDbAirport: null,
-      newPrice2026: 250000,
-      modification12to24h: 325000,
-      modification0to12h: 375000,
-      cancellation12to24h: 125000,
-      cancellation0to12h: 200000,
-      extraWaitingPerHour: 12000,
-      dailyRate: 200000,
-    },
-    {
-      id: "mercedes_bp_wien",
-      name: "Mercedes (Bp-Wien)",
-      capacity: "3-7 utas",
-      bpBudAirport: 280000,
-      dbDbAirport: null,
-      newPrice2026: 280000,
-      modification12to24h: 364000,
-      modification0to12h: 420000,
-      cancellation12to24h: 140000,
-      cancellation0to12h: 224000,
-      extraWaitingPerHour: 15000,
-      dailyRate: 230000,
+      newPrice2026: 184912,
+      modification12to24h: 240386,
+      modification0to12h: 277368,
+      cancellation12to24h: 92456,
+      cancellation0to12h: 147930,
+      extraWaitingPerHour: 20000,
+      dailyRate: 145000,
     },
   ],
   terms: {
@@ -326,10 +312,10 @@ export const DEFAULT_ECCOINO_PRICING: Omit<PartnerPricing, "_id" | "createdAt" |
   },
 };
 
-// Vitesco – piros – Debrecen-Budapest nettó/bruttó
-export const DEFAULT_VITESCO_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | "updatedAt"> = {
-  partnerKey: "vitesco",
-  partnerName: "Vitesco Technologies",
+// Schaeffler Motion – zöld – Debrecen-Budapest nettó/bruttó
+export const DEFAULT_SCHAEFFLERMOTION_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | "updatedAt"> = {
+  partnerKey: "schaefflermotion",
+  partnerName: "Schaeffler Motion",
   isActive: true,
   vehicles: [
     {
@@ -415,10 +401,10 @@ export const DEFAULT_VITESCO_PRICING: Omit<PartnerPricing, "_id" | "createdAt" |
   },
 };
 
-// Schaeffler – zöld – Debrecen-Budapest nettó/bruttó
-export const DEFAULT_SCHAEFFLER_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | "updatedAt"> = {
-  partnerKey: "schaeffler",
-  partnerName: "Schaeffler",
+// Schaeffler Debrecen – zöld – Debrecen-Budapest nettó/bruttó
+export const DEFAULT_SCHAEFFLERDEBRECEN_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | "updatedAt"> = {
+  partnerKey: "schaefflerdebrecen",
+  partnerName: "Schaeffler Debrecen",
   isActive: true,
   vehicles: [
     {
@@ -504,23 +490,23 @@ export const DEFAULT_SCHAEFFLER_PRICING: Omit<PartnerPricing, "_id" | "createdAt
   },
 };
 
-// Krones – sötétkék – Db-Db és Debrecen-Budapest (utalás)
-export const DEFAULT_KRONES_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | "updatedAt"> = {
-  partnerKey: "krones",
-  partnerName: "Krones AG",
+// IBUSZ Hungary Kft. – vállalati transzferárak (Schaeffler-alapú induló árlista)
+export const DEFAULT_IBUSZ_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | "updatedAt"> = {
+  partnerKey: "ibusz",
+  partnerName: "IBUSZ Hungary Kft.",
   isActive: true,
   vehicles: [
     {
       id: "skoda",
       name: "Skoda",
       capacity: "1-3 utas",
-      bpBudAirport: 60000,
-      dbDbAirport: 15000,
-      newPrice2026: 76200,
+      bpBudAirport: 76200,
+      dbDbAirport: null,
+      newPrice2026: 60000,
       modification12to24h: 76200,
       modification0to12h: 76200,
-      cancellation12to24h: 38100,
-      cancellation0to12h: 60960,
+      cancellation12to24h: 30000,
+      cancellation0to12h: 60000,
       extraWaitingPerHour: 7000,
       dailyRate: 60000,
     },
@@ -528,13 +514,13 @@ export const DEFAULT_KRONES_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | 
       id: "opel_ford",
       name: "Opel/Ford",
       capacity: "3-8 utas",
-      bpBudAirport: 75000,
-      dbDbAirport: 18000,
-      newPrice2026: 95250,
+      bpBudAirport: 95250,
+      dbDbAirport: null,
+      newPrice2026: 75000,
       modification12to24h: 95250,
       modification0to12h: 95250,
-      cancellation12to24h: 47625,
-      cancellation0to12h: 76200,
+      cancellation12to24h: 37500,
+      cancellation0to12h: 75000,
       extraWaitingPerHour: 10000,
       dailyRate: 75000,
     },
@@ -542,13 +528,13 @@ export const DEFAULT_KRONES_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | 
       id: "v_class",
       name: "V class",
       capacity: "3-7 utas",
-      bpBudAirport: 100000,
-      dbDbAirport: 25000,
-      newPrice2026: 127000,
+      bpBudAirport: 127000,
+      dbDbAirport: null,
+      newPrice2026: 100000,
       modification12to24h: 127000,
       modification0to12h: 127000,
-      cancellation12to24h: 63500,
-      cancellation0to12h: 101600,
+      cancellation12to24h: 50000,
+      cancellation0to12h: 100000,
       extraWaitingPerHour: 15000,
       dailyRate: 100000,
     },
@@ -556,13 +542,13 @@ export const DEFAULT_KRONES_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | 
       id: "s_class",
       name: "S class",
       capacity: "1-3 utas",
-      bpBudAirport: 120000,
-      dbDbAirport: 40000,
-      newPrice2026: 152400,
+      bpBudAirport: 152400,
+      dbDbAirport: null,
+      newPrice2026: 120000,
       modification12to24h: 152400,
       modification0to12h: 152400,
-      cancellation12to24h: 76200,
-      cancellation0to12h: 121920,
+      cancellation12to24h: 60000,
+      cancellation0to12h: 120000,
       extraWaitingPerHour: 25000,
       dailyRate: 120000,
     },
@@ -570,221 +556,33 @@ export const DEFAULT_KRONES_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | 
       id: "man_bus",
       name: "MAN busz",
       capacity: "Nagy csoport",
-      bpBudAirport: 130000,
-      dbDbAirport: 45000,
-      newPrice2026: 165100,
+      bpBudAirport: 165100,
+      dbDbAirport: null,
+      newPrice2026: 130000,
       modification12to24h: 165100,
       modification0to12h: 165100,
-      cancellation12to24h: 82550,
-      cancellation0to12h: 132080,
+      cancellation12to24h: 65000,
+      cancellation0to12h: 130000,
       extraWaitingPerHour: 20000,
       dailyRate: 130000,
     },
   ],
   terms: {
     modification: {
-      "12-24h": { percentage: 100, description: "Nincs felár (módosítás 12-24h)" },
-      "0-12h": { percentage: 100, description: "Nincs felár (módosítás 0-12h)" },
+      "12-24h": { percentage: 130, description: "130% felár (módosítás 12-24h)" },
+      "0-12h": { percentage: 150, description: "150% extra felár (módosítás 0-12h)" },
     },
     cancellation: {
       "12-24h": { percentage: 50, description: "50% kötbér (törlés 12-24h)" },
       "0-12h": { percentage: 80, description: "80% kötbér (törlés 0-12h)" },
     },
   },
-};
-
-// Enter Air – fehér-kék – Eurós csoportárak több útvonalra
-export const DEFAULT_ENTERAIR_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | "updatedAt"> = {
-  partnerKey: "enterair",
-  partnerName: "Enter Air",
-  isActive: true,
-  vehicles: [
-    {
-      id: "kis_csoport_db_nv",
-      name: "1-3 fő (Db-Nv)",
-      capacity: "1-3 utas",
-      bpBudAirport: 90,
-      dbDbAirport: null,
-      newPrice2026: 99,
-      modification12to24h: 99,
-      modification0to12h: 99,
-      cancellation12to24h: 50,
-      cancellation0to12h: 80,
-      extraWaitingPerHour: 15,
-      dailyRate: 300,
-    },
-    {
-      id: "nagy_csoport_db_nv",
-      name: "4-8 fő (Db-Nv)",
-      capacity: "4-8 utas",
-      bpBudAirport: 120,
-      dbDbAirport: null,
-      newPrice2026: 132,
-      modification12to24h: 132,
-      modification0to12h: 132,
-      cancellation12to24h: 66,
-      cancellation0to12h: 106,
-      extraWaitingPerHour: 20,
-      dailyRate: 400,
-    },
-    {
-      id: "nagybusz_db_nv",
-      name: "Nagybusz (Db-Nv)",
-      capacity: "Nagy csoport",
-      bpBudAirport: 200,
-      dbDbAirport: null,
-      newPrice2026: 220,
-      modification12to24h: 220,
-      modification0to12h: 220,
-      cancellation12to24h: 110,
-      cancellation0to12h: 176,
-      extraWaitingPerHour: 30,
-      dailyRate: 600,
-    },
-    {
-      id: "kis_csoport_db_bp",
-      name: "1-3 fő (Db-Bp)",
-      capacity: "1-3 utas",
-      bpBudAirport: 200,
-      dbDbAirport: null,
-      newPrice2026: 220,
-      modification12to24h: 220,
-      modification0to12h: 220,
-      cancellation12to24h: 110,
-      cancellation0to12h: 176,
-      extraWaitingPerHour: 15,
-      dailyRate: 400,
-    },
-    {
-      id: "nagy_csoport_db_bp",
-      name: "4-8 fő (Db-Bp)",
-      capacity: "4-8 utas",
-      bpBudAirport: 300,
-      dbDbAirport: null,
-      newPrice2026: 330,
-      modification12to24h: 330,
-      modification0to12h: 330,
-      cancellation12to24h: 165,
-      cancellation0to12h: 264,
-      extraWaitingPerHour: 20,
-      dailyRate: 600,
-    },
-    {
-      id: "nagybusz_db_bp",
-      name: "Nagybusz (Db-Bp)",
-      capacity: "Nagy csoport",
-      bpBudAirport: 500,
-      dbDbAirport: null,
-      newPrice2026: 550,
-      modification12to24h: 550,
-      modification0to12h: 550,
-      cancellation12to24h: 275,
-      cancellation0to12h: 440,
-      extraWaitingPerHour: 30,
-      dailyRate: 1000,
-    },
-    {
-      id: "kis_csoport_db_db",
-      name: "1-3 fő (Db-Db)",
-      capacity: "1-3 utas",
-      bpBudAirport: 25,
-      dbDbAirport: 25,
-      newPrice2026: 28,
-      modification12to24h: 28,
-      modification0to12h: 28,
-      cancellation12to24h: 14,
-      cancellation0to12h: 22,
-      extraWaitingPerHour: 10,
-      dailyRate: 80,
-    },
-    {
-      id: "nagy_csoport_db_db",
-      name: "4-8 fő (Db-Db)",
-      capacity: "4-8 utas",
-      bpBudAirport: 40,
-      dbDbAirport: 40,
-      newPrice2026: 44,
-      modification12to24h: 44,
-      modification0to12h: 44,
-      cancellation12to24h: 22,
-      cancellation0to12h: 35,
-      extraWaitingPerHour: 15,
-      dailyRate: 120,
-    },
-    {
-      id: "nagybusz_db_db",
-      name: "Nagybusz (Db-Db)",
-      capacity: "Nagy csoport",
-      bpBudAirport: 70,
-      dbDbAirport: 70,
-      newPrice2026: 77,
-      modification12to24h: 77,
-      modification0to12h: 77,
-      cancellation12to24h: 39,
-      cancellation0to12h: 62,
-      extraWaitingPerHour: 20,
-      dailyRate: 200,
-    },
-    {
-      id: "kis_csoport_db_kassa",
-      name: "1-3 fő (Db-Kassa)",
-      capacity: "1-3 utas",
-      bpBudAirport: 300,
-      dbDbAirport: null,
-      newPrice2026: 330,
-      modification12to24h: 330,
-      modification0to12h: 330,
-      cancellation12to24h: 165,
-      cancellation0to12h: 264,
-      extraWaitingPerHour: 15,
-      dailyRate: 500,
-    },
-    {
-      id: "nagy_csoport_db_kassa",
-      name: "4-8 fő (Db-Kassa)",
-      capacity: "4-8 utas",
-      bpBudAirport: 400,
-      dbDbAirport: null,
-      newPrice2026: 440,
-      modification12to24h: 440,
-      modification0to12h: 440,
-      cancellation12to24h: 220,
-      cancellation0to12h: 352,
-      extraWaitingPerHour: 20,
-      dailyRate: 700,
-    },
-    {
-      id: "nagybusz_db_kassa",
-      name: "Nagybusz (Db-Kassa)",
-      capacity: "Nagy csoport",
-      bpBudAirport: 600,
-      dbDbAirport: null,
-      newPrice2026: 660,
-      modification12to24h: 660,
-      modification0to12h: 660,
-      cancellation12to24h: 330,
-      cancellation0to12h: 528,
-      extraWaitingPerHour: 30,
-      dailyRate: 1100,
-    },
-  ],
-  terms: {
-    modification: {
-      "12-24h": { percentage: 100, description: "Nincs felár (módosítás 12-24h)" },
-      "0-12h": { percentage: 110, description: "110% felár (módosítás 0-12h)" },
-    },
-    cancellation: {
-      "12-24h": { percentage: 50, description: "50% kötbér (törlés 12-24h)" },
-      "0-12h": { percentage: 80, description: "80% kötbér (törlés 0-12h)" },
-    },
-  },
-  meta: { currency: "EUR", note: "plusz 25 EUR Debrecen 20 km-es körzetén túl" },
 };
 
 // Tama – zöld – Debrecen-B.újfalu, Debrecen-Budapest, Budapest-B.újfalu
 export const DEFAULT_TAMA_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | "updatedAt"> = {
   partnerKey: "tama",
-  partnerName: "Tama",
+  partnerName: "TAMA Hungary Kft.",
   isActive: true,
   vehicles: [
     {
@@ -1041,12 +839,11 @@ export const DEFAULT_NI_PRICING: Omit<PartnerPricing, "_id" | "createdAt" | "upd
 // Map of all default pricing data
 const DEFAULT_PRICING_MAP: Record<string, Omit<PartnerPricing, "_id" | "createdAt" | "updatedAt">> = {
   catl: DEFAULT_CATL_PRICING,
-  ecopro: DEFAULT_ECOPRO_PRICING,
-  eccoino: DEFAULT_ECCOINO_PRICING,
-  vitesco: DEFAULT_VITESCO_PRICING,
-  schaeffler: DEFAULT_SCHAEFFLER_PRICING,
-  krones: DEFAULT_KRONES_PRICING,
-  enterair: DEFAULT_ENTERAIR_PRICING,
+  ecoproinnovation: DEFAULT_ECOPROINNOVATION_PRICING,
+  ecoprobm: DEFAULT_ECOPROBM_PRICING,
+  schaefflermotion: DEFAULT_SCHAEFFLERMOTION_PRICING,
+  schaefflerdebrecen: DEFAULT_SCHAEFFLERDEBRECEN_PRICING,
+  ibusz: DEFAULT_IBUSZ_PRICING,
   tama: DEFAULT_TAMA_PRICING,
   ni: DEFAULT_NI_PRICING,
 };
@@ -1083,8 +880,18 @@ export async function initPricingIndexes() {
 export async function getAllPartnerPricing(): Promise<PartnerPricing[]> {
   const collection = await getPricingCollection();
   await initPricingIndexes();
-  const docs = await collection.find({}).sort({ updatedAt: -1 }).toArray();
-  return docs.map((d) => ({ ...d, _id: d._id.toString() }) as unknown as PartnerPricing);
+  const docs = await collection
+    .find({ partnerKey: { $in: PARTNER_PORTAL_ORDER } })
+    .sort({ updatedAt: -1 })
+    .toArray();
+  return docs.map(
+    (d) =>
+      ({
+        ...d,
+        _id: d._id.toString(),
+        partnerName: DEFAULT_PRICING_MAP[d.partnerKey]?.partnerName ?? d.partnerName,
+      }) as unknown as PartnerPricing
+  );
 }
 
 export async function ensureDefaultPartnerPricing() {
@@ -1107,7 +914,10 @@ export async function getPartnerPricingByKey(
   const collection = await getPricingCollection();
   await initPricingIndexes();
   const existing = (await collection.findOne({ partnerKey })) as PartnerPricing | null;
-  if (existing) return existing;
+  if (existing) {
+    const canonicalName = DEFAULT_PRICING_MAP[partnerKey]?.partnerName;
+    return canonicalName ? { ...existing, partnerName: canonicalName } : existing;
+  }
 
   if (seedIfMissing && DEFAULT_PRICING_MAP[partnerKey]) {
     const now = Date.now();

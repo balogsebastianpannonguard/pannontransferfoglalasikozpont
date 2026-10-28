@@ -1,8 +1,8 @@
 import TamaBookingsClient from "./BookingsClient";
 
 export const metadata = {
-  title: "Tama Foglalások | Pannon Transfer",
-  description: "Kezelje Tama transfer foglalásait.",
+  title: "TAMA Hungary Kft. Foglalások | Pannon Transfer",
+  description: "Kezelje TAMA Hungary Kft. transfer foglalásait.",
 };
 
 export default function TamaBookingsPage() {

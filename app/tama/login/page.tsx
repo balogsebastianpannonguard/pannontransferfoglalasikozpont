@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import TamaLoginClient from "./TamaLoginClient";
 
 export const metadata = {
-  title: "Tama Bejelentkezés | Pannon Transfer",
-  description: "Bejelentkezés a Tama partnerportálra.",
+  title: "TAMA Hungary Kft. Bejelentkezés | Pannon Transfer",
+  description: "Bejelentkezés a TAMA Hungary Kft. partnerportálra.",
 };
 
 export default function TamaLoginPage() {

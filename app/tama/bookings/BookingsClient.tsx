@@ -34,7 +34,7 @@ export default function TamaBookingsClient() {
         <div className="border-b border-white/10 bg-white/5 backdrop-blur-xl">
           <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
             <div className="inline-flex items-center gap-2">
-              <span className="text-[1.5rem] font-black tracking-tight text-[#5CA700]">Tama</span>
+              <span className="text-[1.5rem] font-black tracking-tight text-[#5CA700]">TAMA Hungary Kft.</span>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
@@ -55,7 +55,7 @@ export default function TamaBookingsClient() {
         <div className="max-w-7xl mx-auto px-6 py-12">
           <div className="mb-10">
             <h1 className="font-serif text-4xl font-bold tracking-tight mb-2">Foglalások</h1>
-            <p className="text-lime-200 text-lg">Kezelje a Tama transfer foglalásokat.</p>
+            <p className="text-lime-200 text-lg">Kezelje a TAMA Hungary Kft. transfer foglalásokat.</p>
           </div>
 
           {isLoading ? (

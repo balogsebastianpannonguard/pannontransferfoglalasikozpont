@@ -26,7 +26,7 @@ export async function POST(request: Request) {
         {
           success: false,
           code: "INVALID_TOKEN",
-          message: "Érvénytelen vagy lejárt Tama meghívó link.",
+          message: "Érvénytelen vagy lejárt TAMA Hungary Kft. meghívó link.",
         },
         { status: 400 }
       );
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "A Tama portál jelszava sikeresen beállítva.",
+      message: "A TAMA Hungary Kft. portál jelszava sikeresen beállítva.",
       redirectTo: "/tama?activated=1",
       requireTwoFactor: !!user.requireTwoFactor,
     });

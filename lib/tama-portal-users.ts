@@ -97,7 +97,7 @@ export async function createOrResetTamaInvite(
       }
     );
     const fresh = await col.findOne({ _id: existing._id });
-    if (!fresh) throw new Error("Tama user update failed");
+    if (!fresh) throw new Error("TAMA Hungary Kft. user update failed");
     return { user: fresh as TamaPortalUser, rawToken };
   }
 
@@ -121,7 +121,7 @@ export async function createOrResetTamaInvite(
   };
   const r = await col.insertOne(newUser as any);
   const created = await col.findOne({ _id: r.insertedId });
-  if (!created) throw new Error("Tama user insert failed");
+  if (!created) throw new Error("TAMA Hungary Kft. user insert failed");
   return { user: created as TamaPortalUser, rawToken };
 }
 
