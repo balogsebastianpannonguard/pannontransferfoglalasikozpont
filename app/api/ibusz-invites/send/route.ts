@@ -2,88 +2,9 @@ import { NextResponse } from "next/server";
 import { getCurrentSession } from "@/lib/auth";
 import { sendEmail, testSmtpConnection } from "@/lib/email";
 import { createOrResetIbuszInvite } from "@/lib/ibusz-portal-users";
+import { buildIbuszInviteEmail } from "@/lib/ibusz-invite-email";
 
 export const dynamic = "force-dynamic";
-
-function buildInviteEmail(
-  recipientEmail: string,
-  setupUrl: string,
-  requireTwoFactor: boolean,
-  expiresAt: number
-) {
-  const expiresStr = new Date(expiresAt).toLocaleString("hu-HU");
-  const html = `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /></head>
-<body style="margin:0; padding:0; background:#F3F4F6; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#F3F4F6"><tr><td align="center" style="padding:40px 15px;">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:580px; background:#FFFFFF; border-radius:12px; overflow:hidden;">
-<tr><td bgcolor="#009A44" style="padding:44px 40px; border-bottom:3px solid #007335;">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:22px;"><tr>
-<td align="left" valign="middle" bgcolor="#FFFFFF" style="border-radius:16px; padding:16px 20px;">
-<span style="font-family:-apple-system, sans-serif; font-size:18px; font-weight:900; color:#009A44;">IBUSZ Hungary Kft.</span>
-<span style="font-family:-apple-system, sans-serif; font-size:14px; font-weight:800; color:#007335; margin-left:6px;">Partner</span>
-</td></tr></table>
-<h1 style="margin:0 0 8px 0; font-family:Georgia, serif; color:#FFFFFF; font-size:26px; letter-spacing:.5px;">IBUSZ Hungary Kft. Partner Portál</h1>
-<p style="margin:0; font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#A0E7A0;">Pannon Transfer Partner</p>
-</td></tr>
-<tr><td style="padding:44px 40px;">
-<h2 style="margin:0 0 20px 0; font-family:Georgia, serif; font-size:22px; color:#0F172A;">Kedves Partner!</h2>
-<p style="margin:0 0 30px 0; font-size:15px; line-height:1.7; color:#475569;">
-Meghívást kaptál az IBUSZ Hungary Kft. dedikált portálra. Kizárólag az alábbi egyedi linken keresztül tudsz belépni és elérni az árstruktúrát és a foglalásokat.
-</p>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:30px;"><tr><td align="center">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-<td align="center" bgcolor="#009A44" style="border-radius:10px;">
-<a href="${setupUrl}" style="display:inline-block; padding:18px 40px; font-size:14px; font-weight:800; color:#FFFFFF; text-decoration:none; letter-spacing:1.5px; text-transform:uppercase; border-radius:10px;">
-Jelszó beállítása &amp; Belépés
-</a>
-</td></tr></table>
-</td></tr></table>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-top:1px solid #E2E8F0; border-bottom:1px solid #E2E8F0; margin-bottom:28px;"><tr>
-<td width="50%" style="padding:20px 20px 20px 0; border-right:1px solid #E2E8F0;">
-<p style="margin:0 0 6px 0; font-size:10px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:#94A3B8;">Belépési fiók</p>
-<p style="margin:0; font-size:14px; font-weight:700; color:#0F172A; word-break:break-all;">${recipientEmail}</p>
-</td>
-<td width="50%" style="padding:20px 0 20px 20px;">
-<p style="margin:0 0 6px 0; font-size:10px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:#94A3B8;">Link érvényessége</p>
-<p style="margin:0; font-size:14px; font-weight:700; color:#0F172A;">${expiresStr}</p>
-</td>
-</tr></table>
-<p style="margin:0; font-size:13px; line-height:1.6; color:#64748B;">
-<strong style="color:#0F172A;">Biztonság:</strong> ${requireTwoFactor ? "A bejelentkezéshez <strong>kétfaktoros hitelesítés (2FA) kötelező</strong> lesz a jelszó beállítása után." : "A bejelentkezéshez jelszó szükséges, kérés esetén 2FA aktiválható."} Az egyedi link másokkal <strong>nem osztható meg</strong>.
-</p>
-</td></tr>
-<tr><td bgcolor="#F8FAFC" style="padding:30px 40px; border-top:1px solid #E2E8F0;">
-<p style="margin:0; font-size:11px; line-height:1.6; color:#94A3B8; text-align:center;">
-Ezt az üzenetet a Pannon Transfer IBUSZ Hungary Kft. Portál rendszere küldte. Ha nem kérted a meghívást, hagyd figyelmen kívül.<br>
-© ${new Date().getFullYear()} Pannon Transfer. Minden jog fenntartva.
-</p>
-</td></tr>
-</table></td></tr></table>
-</body></html>
-  `;
-
-  const text = [
-    "IBUSZ Hungary Kft. Portál - Pannon Transfer",
-    "",
-    "Kedves Partner!",
-    "",
-    "Meghívást kaptál az IBUSZ Hungary Kft. dedikált portálra. Kizárólag az alábbi linken keresztül tudsz belépni:",
-    setupUrl,
-    "",
-    "Belépési fiókod: " + recipientEmail,
-    "Link érvényessége: " + expiresStr,
-    requireTwoFactor
-      ? "FONTOS: Kétfaktoros hitelesítés (2FA) kötelező a bejelentkezéshez."
-      : "2FA opcionális, de ajánlott bekapcsolni.",
-    "",
-    "Pannon Transfer - Vezető fejlesztő: Balog Sebastian Máté (balogh.sebastian@pannonguard.hu, +36 30 665 4135)",
-  ].join("\n");
-
-  return { html, text };
-}
 
 export async function POST(request: Request) {
   try {
@@ -168,7 +89,7 @@ export async function POST(request: Request) {
         console.log("Lejár:", new Date(user.inviteExpiresAt).toLocaleString("hu-HU"));
         console.log("====================================\n");
 
-        const { html, text } = buildInviteEmail(
+        const { html, text } = buildIbuszInviteEmail(
           recipient,
           setupUrl,
           !!requireTwoFactor,
@@ -177,7 +98,7 @@ export async function POST(request: Request) {
 
         const sendRes = await sendEmail({
           to: recipient,
-          subject: "Meghívás az IBUSZ Hungary Kft. Partner Portálra – Pannon Transfer",
+          subject: "Meghívó az IBUSZ foglalási portálra / Invitation to the IBUSZ booking portal – Pannon Transfer",
           html,
           text,
         });

@@ -5,81 +5,205 @@ import { createOrResetEcoproBmInvite } from "@/lib/ecoprobm-portal-users";
 
 export const dynamic = "force-dynamic";
 
+function esc(s: string) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+const C = {
+  navy: "#071B38",
+  blue: "#1E73BE",
+  blueLight: "#8CC4F5",
+  orange: "#F28C28",
+  orangeLight: "#FFB366",
+  ink: "#0F172A",
+  text: "#334155",
+  muted: "#64748B",
+  faint: "#94A3B8",
+  line: "#E2E8F0",
+  panel: "#F5F8FC",
+  page: "#EAF0F8",
+};
+
+function infoRow(left: { label: string; value: string }, right: { label: string; value: string }) {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${C.panel}; border:1px solid ${C.line}; border-radius:10px; margin:0 0 24px 0;"><tr>
+<td width="50%" valign="top" style="padding:16px 18px; border-right:1px solid ${C.line};">
+<div style="font-size:10px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:${C.faint}; margin-bottom:6px;">${esc(left.label)}</div>
+<div style="font-size:14px; font-weight:700; color:${C.ink}; word-break:break-all;">${esc(left.value)}</div>
+</td>
+<td width="50%" valign="top" style="padding:16px 18px;">
+<div style="font-size:10px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:${C.faint}; margin-bottom:6px;">${esc(right.label)}</div>
+<div style="font-size:14px; font-weight:700; color:${C.ink};">${esc(right.value)}</div>
+</td></tr></table>`;
+}
+
+function button(href: string, label: string) {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 30px 0;"><tr><td align="center">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td align="center" bgcolor="${C.orange}" style="border-radius:10px;">
+<a href="${href}" style="display:inline-block; padding:16px 40px; font-size:14px; font-weight:800; color:#050F20; text-decoration:none; letter-spacing:.5px; border-radius:10px;">${label}</a>
+</td></tr></table></td></tr></table>`;
+}
+
 function buildInviteEmail(
   recipientEmail: string,
   setupUrl: string,
   requireTwoFactor: boolean,
   expiresAt: number
 ) {
-  const expiresStr = new Date(expiresAt).toLocaleString("hu-HU");
-  const html = `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /></head>
-<body style="margin:0; padding:0; background:#F3F4F6; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#F3F4F6"><tr><td align="center" style="padding:40px 15px;">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:580px; background:#FFFFFF; border-radius:12px; overflow:hidden;">
-<tr><td bgcolor="#0B1F47" style="padding:44px 40px; border-bottom:3px solid #00B4D8;">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:22px;"><tr>
-<td align="left" valign="middle" bgcolor="#FFFFFF" style="border-radius:16px; padding:16px 20px;">
-<span style="font-family:-apple-system, sans-serif; font-size:18px; font-weight:900; color:#0096D6;">Ecopro</span>
-<span style="font-family:-apple-system, sans-serif; font-size:14px; font-weight:800; color:#F28C28; margin-left:6px;">BM</span>
-</td></tr></table>
-<h1 style="margin:0 0 8px 0; font-family:Georgia, serif; color:#FFFFFF; font-size:26px; letter-spacing:.5px;">Ecopro BM Partner Portál</h1>
-<p style="margin:0; font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#7DD3FC;">Pannon Transfer Partner</p>
-</td></tr>
-<tr><td style="padding:44px 40px;">
-<h2 style="margin:0 0 20px 0; font-family:Georgia, serif; font-size:22px; color:#0F172A;">Kedves Partner!</h2>
-<p style="margin:0 0 30px 0; font-size:15px; line-height:1.7; color:#475569;">
-Meghívást kaptál az Ecopro BM dedikált portálra. Kizárólag az alábbi egyedi linken keresztül tudsz belépni és elérni az árstruktúrát és a foglalásokat.
-</p>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:30px;"><tr><td align="center">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-<td align="center" bgcolor="#00B4D8" style="border-radius:10px;">
-<a href="${setupUrl}" style="display:inline-block; padding:18px 40px; font-size:14px; font-weight:800; color:#FFFFFF; text-decoration:none; letter-spacing:1.5px; text-transform:uppercase; border-radius:10px;">
-Jelszó beállítása &amp; Belépés
-</a>
-</td></tr></table>
-</td></tr></table>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-top:1px solid #E2E8F0; border-bottom:1px solid #E2E8F0; margin-bottom:28px;"><tr>
-<td width="50%" style="padding:20px 20px 20px 0; border-right:1px solid #E2E8F0;">
-<p style="margin:0 0 6px 0; font-size:10px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:#94A3B8;">Belépési fiók</p>
-<p style="margin:0; font-size:14px; font-weight:700; color:#0F172A; word-break:break-all;">${recipientEmail}</p>
-</td>
-<td width="50%" style="padding:20px 0 20px 20px;">
-<p style="margin:0 0 6px 0; font-size:10px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:#94A3B8;">Link érvényessége</p>
-<p style="margin:0; font-size:14px; font-weight:700; color:#0F172A;">${expiresStr}</p>
-</td>
+  const expiresHu = new Date(expiresAt).toLocaleString("hu-HU", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Budapest",
+  });
+  const expiresKo = new Date(expiresAt).toLocaleString("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Europe/Budapest",
+  });
+  const year = new Date().getFullYear();
+
+  let origin = "";
+  try {
+    origin = new URL(setupUrl).origin;
+  } catch {}
+  const logoRow = origin
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px;"><tr>
+<td valign="middle" style="background:#FFFFFF; border-radius:9px; padding:9px 14px;"><img src="${origin}/brand/pannon-transfer-logo.png" width="118" height="24" alt="Pannon Transfer" style="display:block; border:0; height:24px; width:118px;"></td>
+<td width="12"></td>
+<td valign="middle" style="background:#FFFFFF; border-radius:9px; padding:10px 14px;"><img src="${origin}/partners/ecoprobm/logo.png" width="104" height="23" alt="Ecopro BM" style="display:block; border:0; height:23px; width:104px;"></td>
+</tr></table>`
+    : `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px;"><tr><td style="background:#FFFFFF; border-radius:9px; padding:10px 16px; font-size:16px; font-weight:900; color:${C.blue};">Ecopro <span style="color:${C.orange};">BM</span></td></tr></table>`;
+
+  const p = (t: string, last = false) =>
+    `<p style="margin:0 0 ${last ? 26 : 14}px 0; font-size:15px; line-height:1.75; color:${C.text}; word-break:keep-all;">${t}</p>`;
+  const hi = (t: string) => `<p style="margin:0 0 14px 0; font-size:16px; font-weight:700; color:${C.ink};">${t}</p>`;
+
+  const huBody =
+    hi("Tisztelt Partnerünk!") +
+    p("A Pannon Transfer személyes fiókot hozott létre Önnek az Ecopro BM dedikált portálján. A portálon áttekintheti a megállapodott díjszabást, transzfert foglalhat, és egy helyen követheti a foglalásait.") +
+    p("Kérjük, az alábbi személyes linken válasszon jelszót, és lépjen be első alkalommal.", true) +
+    button(setupUrl, "Jelszó beállítása és belépés") +
+    infoRow({ label: "Az Ön fiókja", value: recipientEmail }, { label: "A link érvényes eddig", value: expiresHu }) +
+    `<p style="margin:0 0 24px 0; font-size:13px; line-height:1.7; color:${C.muted};"><strong style="color:${C.ink};">Biztonság:</strong> ${
+      requireTwoFactor
+        ? "a fiókhoz <strong>kétfaktoros hitelesítés (2FA) kötelező</strong>, amelyet a jelszó beállítása után azonnal beállíthat."
+        : "a belépés saját jelszóval történik; kérésre kétfaktoros hitelesítés (2FA) is bekapcsolható."
+    } A link személyes, kérjük, ne ossza meg senkivel.</p>`;
+
+  const koBody =
+    hi("고객님께,") +
+    p("Pannon Transfer가 Ecopro BM 전용 포털에 고객님의 개인 계정을 만들었습니다. 포털에서 합의된 요금 체계를 확인하고, 이동을 예약하고, 모든 예약을 한곳에서 확인하실 수 있습니다.") +
+    p("아래 개인 링크에서 비밀번호를 설정하고 처음으로 로그인해 주세요.", true) +
+    button(setupUrl, "비밀번호 설정 및 로그인") +
+    infoRow({ label: "계정", value: recipientEmail }, { label: "링크 유효 기간", value: expiresKo }) +
+    `<p style="margin:0 0 24px 0; font-size:13px; line-height:1.7; color:${C.muted};"><strong style="color:${C.ink};">보안 안내:</strong> ${
+      requireTwoFactor
+        ? "이 계정에는 <strong>2단계 인증(2FA)이 필수</strong>이며, 비밀번호 설정 직후 바로 설정하실 수 있습니다."
+        : "본인의 비밀번호로 로그인하며, 요청 시 2단계 인증(2FA)을 추가로 사용할 수 있습니다."
+    } 이 링크는 개인 전용이므로 다른 사람과 공유하지 마세요.</p>`;
+
+  const divider = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 26px 0;"><tr>
+<td style="border-top:1px solid ${C.line}; height:1px; font-size:0; line-height:0;" width="42%">&nbsp;</td>
+<td align="center" style="padding:0 12px; white-space:nowrap;"><span style="display:inline-block; padding:4px 12px; border-radius:20px; background:${C.panel}; border:1px solid ${C.line}; font-size:10px; font-weight:800; letter-spacing:1.6px; color:${C.muted};">한국어</span></td>
+<td style="border-top:1px solid ${C.line}; height:1px; font-size:0; line-height:0;" width="42%">&nbsp;</td>
+</tr></table>`;
+
+  const html = `<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light only" />
+<title>Meghívó az Ecopro BM portálra / Ecopro BM 포털 초대</title>
+</head>
+<body style="margin:0; padding:0; background:${C.page}; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, 'Malgun Gothic', 'Apple SD Gothic Neo', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
+<div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">Meghívást kapott az Ecopro BM dedikált portálra. / Ecopro BM 전용 포털에 초대되었습니다.</div>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="${C.page}"><tr><td align="center" style="padding:36px 14px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px;">
+<tr><td style="padding:0 6px 14px 6px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td style="font-size:12px; font-weight:700; letter-spacing:2.4px; text-transform:uppercase; color:${C.muted};">Pannon Transfer</td>
+<td align="right" style="font-size:12px; color:${C.faint};">Meghívó · 초대</td>
 </tr></table>
-<p style="margin:0; font-size:13px; line-height:1.6; color:#64748B;">
-<strong style="color:#0F172A;">Biztonság:</strong> ${requireTwoFactor ? "A bejelentkezéshez <strong>kétfaktoros hitelesítés (2FA) kötelező</strong> lesz a jelszó beállítása után." : "A bejelentkezéshez jelszó szükséges, kérés esetén 2FA aktiválható."} Az egyedi link másokkal <strong>nem osztható meg</strong>.
-</p>
 </td></tr>
-<tr><td bgcolor="#F8FAFC" style="padding:30px 40px; border-top:1px solid #E2E8F0;">
-<p style="margin:0; font-size:11px; line-height:1.6; color:#94A3B8; text-align:center;">
-Ezt az üzenetet a Pannon Transfer Ecopro BM Portál rendszere küldte. Ha nem kérted a meghívást, hagyd figyelmen kívül.<br>
-© ${new Date().getFullYear()} Pannon Transfer. Minden jog fenntartva.
+<tr><td style="background:#FFFFFF; border-radius:14px; overflow:hidden; box-shadow:0 2px 8px rgba(7,27,56,.10);">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr><td bgcolor="${C.orange}" height="5" style="height:5px; font-size:0; line-height:0;">&nbsp;</td></tr>
+<tr><td bgcolor="${C.navy}" style="padding:34px 40px 32px 40px; border-bottom:4px solid ${C.blue};">
+${logoRow}
+<div style="font-size:11px; font-weight:700; letter-spacing:2.6px; text-transform:uppercase; color:${C.orangeLight}; margin-bottom:10px;">Dedikált portál · 전용 포털</div>
+<div style="font-family:Georgia, 'Times New Roman', serif; font-size:26px; line-height:1.28; color:#FFFFFF;">Meghívó az<br>Ecopro BM portálra</div>
+<div style="margin-top:8px; font-size:15px; line-height:1.4; color:${C.blueLight};">Ecopro BM 전용 포털 초대장</div>
+</td></tr>
+<tr><td style="padding:38px 40px 6px 40px;">
+${huBody}
+${divider}
+${koBody}
+</td></tr>
+<tr><td style="padding:0 40px 36px 40px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid ${C.line};"><tr><td style="padding-top:22px;">
+<div style="font-size:10px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:${C.faint}; margin-bottom:12px;">Kapcsolattartó · 담당자 연락처</div>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td width="46" valign="top" style="width:46px;"><div style="width:46px; height:46px; line-height:46px; text-align:center; background:${C.navy}; border-radius:23px; color:${C.orangeLight}; font-size:16px; font-weight:700;">BS</div></td>
+<td valign="top" style="padding-left:14px; font-size:13px; line-height:1.65; color:#475569;">
+<div style="font-size:15px; font-weight:700; color:${C.ink};">Balog Sebastian M&aacute;t&eacute;</div>
+<div>Fejlesztő&nbsp;&middot;&nbsp;개발자, Pannon Transfer</div>
+<div><a href="mailto:balogh.sebastian@pannonguard.hu" style="color:${C.blue}; text-decoration:none;">balogh.sebastian@pannonguard.hu</a></div>
+<div><a href="tel:+36306654135" style="color:${C.blue}; text-decoration:none;">+36 30 665 4135</a></div>
+</td></tr></table>
+</td></tr></table>
+</td></tr>
+<tr><td bgcolor="${C.panel}" style="padding:22px 40px; border-top:1px solid ${C.line};">
+<p style="margin:0; font-size:11px; line-height:1.7; color:${C.faint}; text-align:center;">
+Ezt az üzenetet a Pannon Transfer Komplex rendszere küldte. Ha nem kérte a meghívást, kérjük, hagyja figyelmen kívül.<br>
+이 메일은 Pannon Transfer Komplex 시스템에서 발송되었습니다. 초대를 요청하지 않으셨다면 무시해 주세요.<br>
+&copy; ${year} Pannon Transfer. Minden jog fenntartva. / 모든 권리 보유.
 </p>
 </td></tr>
 </table></td></tr></table>
-</body></html>
-  `;
+</td></tr></table>
+</body></html>`;
 
   const text = [
-    "Ecopro BM Portál - Pannon Transfer",
+    "PANNON TRANSFER - ECOPRO BM",
     "",
-    "Kedves Partner!",
+    "Tisztelt Partnerünk!",
     "",
-    "Meghívást kaptál az Ecopro BM dedikált portálra. Kizárólag az alábbi linken keresztül tudsz belépni:",
+    "Meghívást kapott az Ecopro BM dedikált portálra. Személyes link a jelszó beállításához és a belépéshez:",
     setupUrl,
     "",
-    "Belépési fiókod: " + recipientEmail,
-    "Link érvényessége: " + expiresStr,
+    "Fiók: " + recipientEmail,
+    "A link érvényes eddig: " + expiresHu,
     requireTwoFactor
-      ? "FONTOS: Kétfaktoros hitelesítés (2FA) kötelező a bejelentkezéshez."
-      : "2FA opcionális, de ajánlott bekapcsolni.",
+      ? "Fontos: a belépéshez kétfaktoros hitelesítés (2FA) kötelező."
+      : "A 2FA opcionális, de ajánlott.",
     "",
-    "Pannon Transfer - Vezető fejlesztő: Balog Sebastian Máté (balogh.sebastian@pannonguard.hu, +36 30 665 4135)",
+    "--------------------",
+    "",
+    "고객님께,",
+    "",
+    "Ecopro BM 전용 포털에 초대되었습니다. 비밀번호 설정 및 로그인을 위한 개인 링크:",
+    setupUrl,
+    "",
+    "계정: " + recipientEmail,
+    "링크 유효 기간: " + expiresKo,
+    requireTwoFactor ? "중요: 로그인에는 2단계 인증(2FA)이 필수입니다." : "2단계 인증(2FA)은 선택 사항이지만 권장합니다.",
+    "",
+    "--------------------",
+    "Balog Sebastian Máté - Fejlesztő / 개발자, Pannon Transfer",
+    "balogh.sebastian@pannonguard.hu",
+    "+36 30 665 4135",
   ].join("\n");
 
   return { html, text };
@@ -177,7 +301,7 @@ export async function POST(request: Request) {
 
         const sendRes = await sendEmail({
           to: recipient,
-          subject: "Meghívás az Ecopro BM Partner Portálra – Pannon Transfer",
+          subject: "Meghívó az Ecopro BM portálra · Ecopro BM 포털 초대 – Pannon Transfer",
           html,
           text,
         });
