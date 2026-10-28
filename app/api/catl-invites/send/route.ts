@@ -23,6 +23,18 @@ function buildInviteEmail(
     }) + " (CET/CEST)";
   const year = new Date().getFullYear();
 
+  let origin = "";
+  try {
+    origin = new URL(setupUrl).origin;
+  } catch {}
+  const logoRow = origin
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px;"><tr>
+<td valign="middle" style="background:#FFFFFF; border-radius:8px; padding:9px 14px;"><img src="${origin}/brand/pannon-transfer-logo.png" width="120" height="24" alt="Pannon Transfer" style="display:block; border:0; height:24px; width:120px;"></td>
+<td width="14"></td>
+<td valign="middle" style="background:#FFFFFF; border-radius:8px; padding:7px 14px;"><img src="${origin}/partners/catl/logo.png" width="70" height="23" alt="CATL" style="display:block; border:0; height:23px; width:70px;"></td>
+</tr></table>`
+    : `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px;"><tr><td style="background:#FFFFFF; border-radius:8px; padding:9px 16px; font-size:16px; font-weight:900; color:#0047BA;">CATL</td></tr></table>`;
+
   const securityNote = requireTwoFactor
     ? "Two-factor authentication (2FA) is <strong>mandatory</strong> and will be set up right after you choose your password."
     : "You will sign in with your own password. Two-factor authentication (2FA) can be enabled on request.";
@@ -51,15 +63,9 @@ function buildInviteEmail(
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 
 <tr><td bgcolor="#0B1220" style="padding:38px 40px 34px 40px; border-bottom:4px solid #0047BA;">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-<td width="60" valign="top" style="width:60px;">
-<div style="width:60px; height:60px; line-height:60px; text-align:center; background:#FFFFFF; border-radius:12px; font-size:19px; font-weight:900; color:#0047BA; letter-spacing:.5px;">CATL</div>
-</td>
-<td valign="middle" style="padding-left:18px;">
-<div style="font-size:11px; font-weight:700; letter-spacing:2.6px; text-transform:uppercase; color:#60A5FA; margin-bottom:6px;">Dedicated Portal</div>
-<div style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; line-height:1.25; color:#FFFFFF;">You&rsquo;re invited to the<br>CATL Booking Portal</div>
-</td>
-</tr></table>
+${logoRow}
+<div style="font-size:11px; font-weight:700; letter-spacing:2.6px; text-transform:uppercase; color:#60A5FA; margin-bottom:8px;">Dedicated Portal</div>
+<div style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; line-height:1.3; color:#FFFFFF;">You&rsquo;re invited to the<br>CATL Booking Portal</div>
 </td></tr>
 
 <tr><td style="padding:38px 40px 8px 40px;">
