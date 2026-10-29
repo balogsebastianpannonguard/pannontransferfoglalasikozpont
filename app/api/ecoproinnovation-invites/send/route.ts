@@ -6,7 +6,7 @@ import { createOrResetEcoproInnovationInvite } from "@/lib/ecoproinnovation-port
 export const dynamic = "force-dynamic";
 
 /* Ecopro Innovation e-mail identity (kept in sync with partnercegek/lib/ecoproinnovation-email-layout.ts) */
-type Lang = "hu" | "ko";
+type Lang = "hu" | "en" | "ko";
 
 const ECO_CONTACT = {
   name: "Balog Sebastian Máté",
@@ -62,15 +62,22 @@ function ecoInfoRow(left: { label: string; value: string }, right: { label: stri
 </td></tr></table>`;
 }
 
-/** Hungarian block, a clear divider, then the Korean block. */
-function ecoBilingual(huHtml: string, koHtml: string) {
-  return `${huHtml}
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 18px 0;"><tr>
+const DIVIDER_LABEL: Record<Lang, string> = { hu: "Magyar", en: "English", ko: "한국어" };
+
+/** Language sections in order; every section after the first gets a labelled divider. */
+function ecoMultilingual(sections: { lang: Lang; html: string }[]) {
+  return sections
+    .map((sec, i) =>
+      i === 0
+        ? sec.html
+        : `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 18px 0;"><tr>
 <td style="border-top:1px solid #DCEBF7; font-size:0; line-height:0;" height="1">&nbsp;</td>
-<td width="1" style="padding:0 12px; white-space:nowrap; font-size:10px; font-weight:700; letter-spacing:1.6px; color:#0E86D4; text-transform:uppercase;">한국어</td>
+<td width="1" style="padding:0 12px; white-space:nowrap; font-size:10px; font-weight:700; letter-spacing:1.6px; color:#0E86D4; text-transform:uppercase;">${DIVIDER_LABEL[sec.lang]}</td>
 <td style="border-top:1px solid #DCEBF7; font-size:0; line-height:0;" height="1">&nbsp;</td>
 </tr></table>
-${koHtml}`;
+${sec.html}`,
+    )
+    .join("\n");
 }
 
 function contactBlock(label: string, role: string) {
@@ -92,6 +99,10 @@ const FOOTERS: Record<Lang, { sent: string; rights: string }> = {
     sent: "Ezt az üzenetet a Pannon Transfer Komplex rendszere küldte. Ha nem Ön kérte, kérjük, hagyja figyelmen kívül.",
     rights: "Minden jog fenntartva.",
   },
+  en: {
+    sent: "This message was sent by the Pannon Transfer Komplex system. If you did not request it, please disregard it.",
+    rights: "All rights reserved.",
+  },
   ko: {
     sent: "이 메시지는 Pannon Transfer Komplex 시스템에서 발송되었습니다. 본인이 요청하지 않으셨다면 이 메일을 무시해 주십시오.",
     rights: "모든 권리 보유.",
@@ -106,14 +117,14 @@ function ecoEmailShell(opts: {
   headline: string;
   subHeadline?: string;
   bodyHtml: string;
-  langs: Lang[] | "bi";
+  langs: Lang[] | "tri";
   topRight?: string;
 }) {
   const year = new Date().getFullYear();
   const origin = opts.origin.replace(/\/$/, "");
   const ptLogo = origin ? `${origin}/brand/pannon-transfer-logo.png` : "";
   const ecoLogo = origin ? `${origin}/partners/ecoproinnovation/logo.png` : "";
-  const langs: Lang[] = opts.langs === "bi" ? ["hu", "ko"] : opts.langs;
+  const langs: Lang[] = opts.langs === "tri" ? ["hu", "en", "ko"] : opts.langs;
   const primary = langs[0];
 
   const logos =
@@ -125,15 +136,27 @@ function ecoEmailShell(opts: {
 </tr></table>`
       : `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px;"><tr><td style="background:#FFFFFF; border-radius:10px; padding:10px 16px; font-size:15px; font-weight:800; color:#0E86D4;">Ecopro Innovation</td></tr></table>`;
 
-  const contactLabel = opts.langs === "bi" ? "Kapcsolat · 문의" : primary === "ko" ? "담당자" : "Kapcsolattartó";
-  const contactRole = opts.langs === "bi" ? "Fejlesztő · 개발자" : primary === "ko" ? "개발자" : "Fejlesztő";
+  const multi = langs.length > 1;
+  const contactLabel = multi
+    ? "Kapcsolat · Contact · 문의"
+    : primary === "ko"
+      ? "담당자"
+      : primary === "en"
+        ? "Your contact"
+        : "Kapcsolattartó";
+  const contactRole = multi
+    ? "Fejlesztő · Developer · 개발자"
+    : primary === "ko"
+      ? "개발자"
+      : primary === "en"
+        ? "Developer"
+        : "Fejlesztő";
 
-  const footerBlocks = langs
-    .map(
-      (l) =>
-        `${esc(FOOTERS[l].sent)}<br>&copy; ${year} Pannon Transfer. ${esc(FOOTERS[l].rights)}`,
-    )
-    .join(`<br><span style="display:block; height:8px; line-height:8px;">&nbsp;</span>`);
+  const footerBlocks = multi
+    ? `${langs.map((l) => esc(FOOTERS[l].sent)).join("<br>")}<br>&copy; ${year} Pannon Transfer. ${langs
+        .map((l) => esc(FOOTERS[l].rights))
+        .join(" · ")}`
+    : `${esc(FOOTERS[primary].sent)}<br>&copy; ${year} Pannon Transfer. ${esc(FOOTERS[primary].rights)}`;
 
   return `<!DOCTYPE html>
 <html lang="${primary}">
@@ -210,6 +233,15 @@ function buildInviteEmail(
       margin: "0 0 10px 0",
     });
 
+  const en =
+    ecoPara("Dear Partner,", { size: 16, color: "#0B2540", margin: "0 0 14px 0" }) +
+    ecoPara(
+      "Pannon Transfer has created a personal account for you on the Ecopro Innovation dedicated portal. There you can view your agreed rates, book transfers and follow all your bookings in one place."
+    ) +
+    ecoPara("Please click your personal link below to set your password and sign in for the first time.", {
+      margin: "0 0 10px 0",
+    });
+
   const ko =
     ecoPara("안녕하세요, 파트너님.", { size: 16, color: "#0B2540", margin: "0 0 14px 0" }) +
     ecoPara(
@@ -223,6 +255,12 @@ function buildInviteEmail(
       ? "A fiókjához kétfaktoros hitelesítés (2FA) kötelező, amelyet a jelszó beállítása után azonnal beállíthat."
       : "A belépéshez saját jelszavát használja; kérésre kétfaktoros hitelesítés (2FA) is bekapcsolható.") +
     " A link személyes – kérjük, ne ossza meg senkivel.";
+  const secEn =
+    "**Security:** " +
+    (requireTwoFactor
+      ? "Two-factor authentication (2FA) is mandatory for your account; you can set it up right after choosing your password."
+      : "You will sign in with your own password; two-factor authentication (2FA) can be enabled on request.") +
+    " This link is personal – please do not share it with anyone.";
   const secKo =
     "**보안:** " +
     (requireTwoFactor
@@ -231,24 +269,29 @@ function buildInviteEmail(
     " 이 링크는 개인 전용이므로 다른 사람과 공유하지 마세요.";
 
   const bodyHtml =
-    ecoBilingual(hu, ko) +
-    ecoButton(setupUrl, "Jelszó beállítása és belépés · 비밀번호 설정 및 로그인") +
+    ecoMultilingual([
+      { lang: "hu", html: hu },
+      { lang: "en", html: en },
+      { lang: "ko", html: ko },
+    ]) +
+    ecoButton(setupUrl, "Jelszó beállítása és belépés · Set password & sign in · 비밀번호 설정 및 로그인") +
     ecoInfoRow(
-      { label: "Belépési fiók · 로그인 계정", value: recipientEmail },
-      { label: "Link érvényes eddig · 링크 유효 기한", value: expiresStr }
+      { label: "Belépési fiók · Account · 로그인 계정", value: recipientEmail },
+      { label: "Link érvényes eddig · Valid until · 링크 유효 기한", value: expiresStr }
     ) +
-    ecoPara(secHu, { size: 13, color: "#64748B", margin: "0 0 10px 0" }) +
+    ecoPara(secHu, { size: 13, color: "#64748B", margin: "0 0 8px 0" }) +
+    ecoPara(secEn, { size: 13, color: "#64748B", margin: "0 0 8px 0" }) +
     ecoPara(secKo, { size: 13, color: "#64748B", margin: "0 0 28px 0" });
 
   const html = ecoEmailShell({
     origin,
     preheader:
-      "Meghívást kapott az Ecopro Innovation dedikált portálra. · Ecopro Innovation 전용 포털에 초대되었습니다.",
-    eyebrow: "Meghívó · 초대",
+      "Meghívást kapott az Ecopro Innovation dedikált portálra. · You have been invited to the Ecopro Innovation dedicated portal. · Ecopro Innovation 전용 포털에 초대되었습니다.",
+    eyebrow: "Meghívó · Invitation · 초대",
     headline: "Meghívást kapott az Ecopro Innovation portálra",
-    subHeadline: "Ecopro Innovation 전용 포털에 초대되었습니다",
+    subHeadline: "You're invited to the Ecopro Innovation portal · Ecopro Innovation 전용 포털에 초대되었습니다",
     bodyHtml,
-    langs: "bi",
+    langs: "tri",
     topRight: "Partner portal · 파트너 포털",
   });
 
@@ -263,6 +306,18 @@ function buildInviteEmail(
     "A link érvényes eddig: " + expiresStr,
     requireTwoFactor ? "Fontos: a belépéshez kétfaktoros hitelesítés (2FA) kötelező." : "A 2FA kérésre bekapcsolható.",
     "",
+    "--- English ---",
+    "Dear Partner,",
+    "Pannon Transfer has created a personal account for you on the Ecopro Innovation dedicated portal.",
+    "Set your password and sign in:",
+    setupUrl,
+    "Account: " + recipientEmail,
+    "Link valid until: " + expiresStr,
+    requireTwoFactor
+      ? "Important: two-factor authentication (2FA) is mandatory to sign in."
+      : "2FA can be enabled on request.",
+    "",
+    "--- 한국어 ---",
     "안녕하세요, 파트너님.",
     "Pannon Transfer가 Ecopro Innovation 전용 포털에 개인 계정을 생성했습니다.",
     "비밀번호 설정 및 로그인:",
@@ -271,13 +326,14 @@ function buildInviteEmail(
     "링크 유효 기한: " + expiresStr,
     requireTwoFactor ? "중요: 로그인에는 2단계 인증(2FA)이 필수입니다." : "2단계 인증(2FA)은 요청 시 활성화할 수 있습니다.",
     "",
-    "Balog Sebastian Máté – Fejlesztő / 개발자",
+    "Balog Sebastian Máté – Fejlesztő / Developer / 개발자",
     "balogh.sebastian@pannonguard.hu",
     "+36 30 665 4135",
     "",
     "Ezt az üzenetet a Pannon Transfer Komplex rendszere küldte. Ha nem Ön kérte, kérjük, hagyja figyelmen kívül.",
+    "This message was sent by the Pannon Transfer Komplex system. If you did not request it, please disregard it.",
     "이 메시지는 Pannon Transfer Komplex 시스템에서 발송되었습니다. 본인이 요청하지 않으셨다면 이 메일을 무시해 주십시오.",
-    `© ${year} Pannon Transfer. Minden jog fenntartva. / 모든 권리 보유.`,
+    `© ${year} Pannon Transfer. Minden jog fenntartva. / All rights reserved. / 모든 권리 보유.`,
   ].join("\n");
 
   return { html, text };
@@ -375,7 +431,7 @@ export async function POST(request: Request) {
 
         const sendRes = await sendEmail({
           to: recipient,
-          subject: "Meghívó az Ecopro Innovation portálra · Ecopro Innovation 포털 초대 – Pannon Transfer",
+          subject: "Meghívó · Invitation · 초대 – Ecopro Innovation portál – Pannon Transfer",
           html,
           text,
         });
